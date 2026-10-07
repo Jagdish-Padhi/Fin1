@@ -35,11 +35,11 @@ export function PublicVerifyPage({ onClose }) {
     <div className="fixed inset-0 z-50 bg-[#0F2A43]/40 backdrop-blur-md flex items-center justify-center p-4">
       <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 md:p-8 space-y-6">
         <div className="flex items-center justify-between border-b border-[#D8E0E8] pb-4">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="AsseTrust" className="w-9 h-9 object-contain" />
+          <div className="flex items-center gap-3.5">
+            <img src="/logo.png" alt="AsseTrust" className="w-11 h-11 object-contain" />
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-['Outfit',sans-serif] font-bold text-sm tracking-tight">
+                <span className="font-['Outfit',sans-serif] font-extrabold text-base tracking-tight">
                   <span className="text-[#0F2A43]">Asse</span>
                   <span className="text-[#0F766E]">Trust</span>
                 </span>

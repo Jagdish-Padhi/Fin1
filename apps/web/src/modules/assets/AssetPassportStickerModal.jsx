@@ -8,8 +8,8 @@ export function AssetPassportStickerModal({ isOpen, onClose, asset }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F2A43]/40 backdrop-blur-sm">
       <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
         <div className="p-4 border-b border-[#D8E0E8] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Logo" className="w-4 h-4 object-contain" />
+          <div className="flex items-center gap-2.5">
+            <img src="/logo.png" alt="Logo" className="w-5 h-5 object-contain" />
             <h3 className="text-sm font-bold text-[#17202A]">Physical Asset Passport</h3>
           </div>
           <button
@@ -24,12 +24,12 @@ export function AssetPassportStickerModal({ isOpen, onClose, asset }) {
         <div className="p-6 bg-[#F8FAFC]">
           <div className="p-5 rounded-2xl bg-white border-2 border-[#D8E0E8] text-center space-y-4 shadow-sm relative overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#D8E0E8] pb-3">
-              <div className="flex items-center gap-1.5">
-                <img src="/logo.png" alt="AsseTrust" className="w-5 h-5 object-contain" />
-                <span className="text-[11px] uppercase font-bold tracking-wider font-['Outfit',sans-serif]">
+              <div className="flex items-center gap-2">
+                <img src="/logo.png" alt="AsseTrust" className="w-7 h-7 object-contain" />
+                <span className="text-xs uppercase font-bold tracking-wider font-['Outfit',sans-serif]">
                   <span className="text-[#0F2A43]">Asse</span>
                   <span className="text-[#0F766E]">Trust</span>
-                  <span className="text-[#5A6A7E] ml-1.5 font-sans font-medium text-[10px]">Passport</span>
+                  <span className="text-[#5A6A7E] ml-1.5 font-sans font-medium text-[11px]">Passport</span>
                 </span>
               </div>
               <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0F766E]/10 text-[#0F766E] font-bold border border-[#0F766E]/20">

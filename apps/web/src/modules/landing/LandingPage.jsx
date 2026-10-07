@@ -49,10 +49,10 @@ export function LandingPage({ onEnterConsole, onOpenPublicVerify }) {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#17202A] flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Top Navigation */}
-      <header className="h-16 border-b border-[#D8E0E8] bg-white/95 backdrop-blur-md px-6 md:px-12 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="AsseTrust" className="w-9 h-9 object-contain" />
-          <span className="text-xl font-extrabold tracking-tight font-['Outfit',sans-serif]">
+      <header className="h-16 md:h-20 border-b border-[#D8E0E8] bg-white/95 backdrop-blur-md px-6 md:px-12 flex items-center justify-between sticky top-0 z-40">
+        <div className="flex items-center gap-3.5">
+          <img src="/logo.png" alt="AsseTrust" className="w-11 h-11 md:w-12 md:h-12 object-contain hover:scale-105 transition-transform" />
+          <span className="text-2xl font-extrabold tracking-tight font-['Outfit',sans-serif]">
             <span className="text-[#0F2A43]">Asse</span>
             <span className="text-[#0F766E]">Trust</span>
           </span>
@@ -199,9 +199,9 @@ export function LandingPage({ onEnterConsole, onOpenPublicVerify }) {
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-[#D8E0E8]">
             <div className="space-y-2">
-              <div className="flex items-center gap-2.5">
-                <img src="/logo.png" alt="AsseTrust" className="w-8 h-8 object-contain" />
-                <span className="text-lg font-extrabold tracking-tight font-['Outfit',sans-serif]">
+              <div className="flex items-center gap-3">
+                <img src="/logo.png" alt="AsseTrust" className="w-10 h-10 object-contain" />
+                <span className="text-xl font-extrabold tracking-tight font-['Outfit',sans-serif]">
                   <span className="text-[#0F2A43]">Asse</span>
                   <span className="text-[#0F766E]">Trust</span>
                 </span>

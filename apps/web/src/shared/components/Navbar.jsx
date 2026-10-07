@@ -10,19 +10,19 @@ export function Navbar({ onOpenPublicVerify, onNavigateLanding, onNavigateConsol
       {/* Brand & Logo */}
       <div 
         onClick={onNavigateLanding}
-        className="flex items-center gap-3 cursor-pointer group select-none"
+        className="flex items-center gap-3.5 cursor-pointer group select-none"
       >
         <img 
           src="/logo.png" 
           alt="AsseTrust Logo" 
-          className="w-9 h-9 object-contain group-hover:opacity-90 transition" 
+          className="w-11 h-11 md:w-12 md:h-12 object-contain group-hover:scale-105 transition-transform duration-200" 
         />
         <div>
-          <span className="text-xl font-extrabold tracking-tight font-['Outfit',sans-serif]">
+          <span className="text-2xl font-extrabold tracking-tight font-['Outfit',sans-serif] leading-none block">
             <span className="text-[#0F2A43]">Asse</span>
             <span className="text-[#0F766E]">Trust</span>
           </span>
-          <p className="text-[10px] text-[#5A6A7E] font-medium tracking-tight -mt-0.5">
+          <p className="text-[11px] text-[#5A6A7E] font-medium tracking-tight mt-0.5">
             Permissioned Asset Trust Network
           </p>
         </div>

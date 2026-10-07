@@ -8,7 +8,7 @@ export function HeroTokenAnimation() {
           position: relative;
           width: 100%;
           height: 100%;
-          min-height: 280px;
+          min-height: 420px;
           display: flex;
           justify-content: center;
           align-items: center;
@@ -18,15 +18,15 @@ export function HeroTokenAnimation() {
         }
 
         .hero-matrix-loader {
-          perspective: 1200px;
+          perspective: 1400px;
         }
 
         .hero-matrix-loader .hero-cube {
-          width: 110px;
-          height: 110px;
+          width: 180px;
+          height: 180px;
           position: relative;
           transform-style: preserve-3d;
-          animation: heroCubeSpin 14s infinite linear;
+          animation: heroCubeSpin 15s infinite linear;
         }
 
         .hero-matrix-loader .hero-layer {
@@ -34,61 +34,64 @@ export function HeroTokenAnimation() {
           inset: 0;
           display: grid;
           grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-          gap: 4px;
+          gap: 6px;
+          padding: 3px;
           transform-style: preserve-3d;
-          border: 1px solid rgba(15, 118, 110, 0.2);
-          background: rgba(15, 42, 67, 0.02);
-          box-shadow: inset 0 0 12px rgba(15, 118, 110, 0.12);
-          border-radius: 6px;
+          border: 1.5px solid rgba(15, 118, 110, 0.22);
+          background: rgba(15, 42, 67, 0.015);
+          box-shadow: inset 0 0 16px rgba(15, 118, 110, 0.12);
+          border-radius: 10px;
         }
 
         .hero-matrix-loader .l1 {
-          transform: translateZ(-26px);
+          transform: translateZ(-44px);
         }
         .hero-matrix-loader .l2 {
           transform: translateZ(0);
         }
         .hero-matrix-loader .l3 {
-          transform: translateZ(26px);
+          transform: translateZ(44px);
         }
 
         .hero-matrix-loader .hero-block {
-          width: 32px;
-          height: 32px;
-          border-radius: 4px;
-          transform: translateZ(-80px) scale(0.3);
+          width: 52px;
+          height: 52px;
+          border-radius: 6px;
+          transform: translateZ(-120px) scale(0.3);
           opacity: 0;
-          box-shadow: 0 0 8px rgba(15, 118, 110, 0.2);
-          animation: heroRiseIn 3.2s infinite ease-in-out;
+          box-shadow: 0 0 10px rgba(15, 118, 110, 0.2);
+          animation: heroRiseIn 3.4s infinite ease-in-out;
         }
 
         .hero-matrix-loader .l1 .hero-block {
           background: #0F2A43;
-          border: 1px solid rgba(15, 42, 67, 0.4);
+          border: 1.5px solid rgba(15, 42, 67, 0.5);
+          box-shadow: 0 0 10px rgba(15, 42, 67, 0.3);
         }
         .hero-matrix-loader .l2 .hero-block {
           background: #1F5A7A;
-          border: 1px solid rgba(31, 90, 122, 0.4);
+          border: 1.5px solid rgba(31, 90, 122, 0.5);
+          box-shadow: 0 0 12px rgba(31, 90, 122, 0.3);
         }
         .hero-matrix-loader .l3 .hero-block {
           background: #0F766E;
-          border: 1px solid rgba(15, 118, 110, 0.5);
-          box-shadow: 0 0 12px rgba(15, 118, 110, 0.35);
+          border: 1.5px solid rgba(15, 118, 110, 0.6);
+          box-shadow: 0 0 18px rgba(15, 118, 110, 0.45);
         }
 
         .hero-matrix-loader .hero-layer .hero-block:nth-child(1) { animation-delay: 0s; }
-        .hero-matrix-loader .hero-layer .hero-block:nth-child(2) { animation-delay: 0.1s; }
-        .hero-matrix-loader .hero-layer .hero-block:nth-child(3) { animation-delay: 0.2s; }
-        .hero-matrix-loader .hero-layer .hero-block:nth-child(4) { animation-delay: 0.3s; }
-        .hero-matrix-loader .hero-layer .hero-block:nth-child(5) { animation-delay: 0.4s; }
-        .hero-matrix-loader .hero-layer .hero-block:nth-child(6) { animation-delay: 0.5s; }
-        .hero-matrix-loader .hero-layer .hero-block:nth-child(7) { animation-delay: 0.6s; }
-        .hero-matrix-loader .hero-layer .hero-block:nth-child(8) { animation-delay: 0.7s; }
-        .hero-matrix-loader .hero-layer .hero-block:nth-child(9) { animation-delay: 0.8s; }
+        .hero-matrix-loader .hero-layer .hero-block:nth-child(2) { animation-delay: 0.12s; }
+        .hero-matrix-loader .hero-layer .hero-block:nth-child(3) { animation-delay: 0.24s; }
+        .hero-matrix-loader .hero-layer .hero-block:nth-child(4) { animation-delay: 0.36s; }
+        .hero-matrix-loader .hero-layer .hero-block:nth-child(5) { animation-delay: 0.48s; }
+        .hero-matrix-loader .hero-layer .hero-block:nth-child(6) { animation-delay: 0.60s; }
+        .hero-matrix-loader .hero-layer .hero-block:nth-child(7) { animation-delay: 0.72s; }
+        .hero-matrix-loader .hero-layer .hero-block:nth-child(8) { animation-delay: 0.84s; }
+        .hero-matrix-loader .hero-layer .hero-block:nth-child(9) { animation-delay: 0.96s; }
 
         @keyframes heroRiseIn {
           0% {
-            transform: translateZ(-80px) scale(0.3);
+            transform: translateZ(-120px) scale(0.3);
             opacity: 0;
           }
           50% {
@@ -96,7 +99,7 @@ export function HeroTokenAnimation() {
             opacity: 1;
           }
           100% {
-            transform: translateZ(24px) scale(0.5);
+            transform: translateZ(36px) scale(0.5);
             opacity: 0.35;
           }
         }
