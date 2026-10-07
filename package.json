@@ -1,0 +1,28 @@
+{
+  "name": "rwa-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enterprise Real-World Asset (RWA) Tokenization Platform on Hyperledger Fabric",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter \"@rwa/web\" dev",
+    "dev:api": "pnpm --filter \"@rwa/api\" dev",
+    "dev:worker": "pnpm --filter \"@rwa/worker\" dev",
+    "dev:all": "concurrently \"pnpm run dev:api\" \"pnpm run dev:worker\" \"pnpm run dev\"",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "db:generate": "prisma generate --schema=./db/prisma/schema.prisma",
+    "db:push": "prisma db push --schema=./db/prisma/schema.prisma",
+    "db:seed": "node ./db/seeds/seed.js",
+    "fixtures": "node ./tools/fixtures/fixture-runner.js",
+    "network:up": "bash ./network/scripts/bootstrap.sh",
+    "network:down": "bash ./network/scripts/teardown.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prettier": "^3.5.0",
+    "prisma": "^6.4.1"
+  },
+  "packageManager": "pnpm@10.28.2"
+}
