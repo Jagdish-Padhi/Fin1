@@ -10,11 +10,13 @@ export class ValuationService {
   }
 
   async proposeValuation(caller, data) {
-    return chainBridge.submit(caller, 'proposeValuation', data);
+    const submission = await chainBridge.submit(caller, 'proposeValuation', data);
+    return submission.result || submission;
   }
 
   async approveValuation(caller, valuationId) {
-    return chainBridge.submit(caller, 'approveValuation', { valuationId });
+    const submission = await chainBridge.submit(caller, 'approveValuation', { valuationId });
+    return submission.result || submission;
   }
 }
 

@@ -4,12 +4,6 @@ import { useAuth } from '../../shared/context/AuthContext.jsx';
 import {
   TrendingUp,
   PlusCircle,
-  CheckCircle,
-  FileBadge,
-  DollarSign,
-  Calendar,
-  Building,
-  ShieldAlert,
 } from 'lucide-react';
 
 export function ValuationView() {
@@ -21,14 +15,16 @@ export function ValuationView() {
 
   // Form State
   const [assetId, setAssetId] = useState('');
-  const [currency, setCurrency] = useState('INR');
   const [amountPaise, setAmountPaise] = useState(500000000); // 50 Lakhs default
-  const [methodology, setMethodology] = useState('DCF');
+  const [methodology, setMethodology] = useState('');
   const [modelUri, setModelUri] = useState('ipfs://QmValuationModel2026');
   const [validDays, setValidDays] = useState(90);
+  const [validityLimit, setValidityLimit] = useState(90);
+  const [allowedMethods, setAllowedMethods] = useState([]);
+  const [assetTypeError, setAssetTypeError] = useState('');
 
   const isValuer = user?.role === 'VALUER';
-  const isCompliance = user?.role === 'COMPLIANCE' || user?.role === 'ADMINISTRATOR';
+  const canApprove = user?.role === 'COMPLIANCE' || user?.role === 'VALUER';
 
   const loadValuations = async () => {
     try {
@@ -46,17 +42,67 @@ export function ValuationView() {
     loadValuations();
   }, []);
 
+  useEffect(() => {
+    if (!showProposeModal || !assetId.trim()) {
+      setAllowedMethods([]);
+      setAssetTypeError('');
+      return undefined;
+    }
+
+    let active = true;
+    const loadAssetValuationRules = async () => {
+      try {
+        setAssetTypeError('');
+        const assetResponse = await api.getAsset(assetId.trim());
+        const asset = assetResponse.data;
+        if (!asset) throw new Error('Asset was not found.');
+        if (asset.status !== 'VERIFIED') throw new Error('Asset must be VERIFIED before valuation.');
+
+        const typeResponse = await api.getAssetType(asset.typeKey, asset.typeVersion || 1);
+        const methods = typeResponse.data?.valuation?.methods || [];
+        if (methods.length === 0) throw new Error('This asset type has no configured valuation methods.');
+
+        if (!active) return;
+        const maxDays = typeResponse.data.valuation.validityDays || 90;
+        setAllowedMethods(methods);
+        setValidityLimit(maxDays);
+        setMethodology((current) => methods.includes(current) ? current : methods[0]);
+        setValidDays((current) => Math.min(Number(current) || maxDays, maxDays));
+      } catch (err) {
+        if (active) {
+          setAllowedMethods([]);
+          setAssetTypeError(err.message || 'Unable to load valuation rules for this asset.');
+        }
+      }
+    };
+
+    loadAssetValuationRules();
+    return () => {
+      active = false;
+    };
+  }, [assetId, showProposeModal]);
+
   const handlePropose = async (e) => {
     e.preventDefault();
     try {
       setSubmitting(true);
-      const validUntil = new Date(Date.now() + validDays * 86400000).toISOString();
+      if (!allowedMethods.includes(methodology)) {
+        throw new Error('Select a valuation method allowed for this asset type.');
+      }
+      const valuationDate = new Date(Date.now() - 60_000);
+      const validUntil = new Date(valuationDate.getTime() + Number(validDays) * 86400000).toISOString();
       await api.proposeValuation({
         assetId,
-        currency,
+        currency: 'INR',
         amountPaise: Number(amountPaise),
-        methodology,
-        modelUri,
+        method: methodology,
+        methodDetails: { financialModelUri: modelUri },
+        source: {
+          valuerName: user?.name || 'Registered Valuer',
+          valuerOrg: user?.orgId || 'Valuation Organization',
+          reportReference: modelUri,
+        },
+        valuationDate: valuationDate.toISOString(),
         validUntil,
       });
       setShowProposeModal(false);
@@ -145,7 +191,7 @@ export function ValuationView() {
                       </td>
                       <td className="px-4 py-3">
                         <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8]">
-                          {v.methodology}
+                          {v.method}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-[#5A6A7E]">{v.valuerId || 'Independent Appraiser'}</td>
@@ -164,7 +210,7 @@ export function ValuationView() {
                         {v.validUntil ? new Date(v.validUntil).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        {isCompliance && !isApproved ? (
+                        {canApprove && v.status === 'PROPOSED' && v.proposedBy !== user?.userId ? (
                           <button
                             onClick={() => handleApprove(v.id)}
                             className="px-2.5 py-1 bg-[#18794E] hover:bg-[#146441] text-white rounded text-[11px] font-semibold transition"
@@ -205,15 +251,7 @@ export function ValuationView() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[#5A6A7E] font-medium mb-1">Currency</label>
-                  <select
-                    value={currency}
-                    onChange={(e) => setCurrency(e.target.value)}
-                    className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg bg-white"
-                  >
-                    <option value="INR">INR (₹)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                  </select>
+                  <div className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg bg-[#F8FAFC]">INR (₹)</div>
                 </div>
                 <div>
                   <label className="block text-[#5A6A7E] font-medium mb-1">Amount (in Paise)</label>
@@ -236,12 +274,14 @@ export function ValuationView() {
                   value={methodology}
                   onChange={(e) => setMethodology(e.target.value)}
                   className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg bg-white"
+                  disabled={allowedMethods.length === 0}
+                  required
                 >
-                  <option value="DCF">Discounted Cash Flow (DCF)</option>
-                  <option value="NAV">Net Asset Value (NAV)</option>
-                  <option value="MARKET_COMPARABLE">Market Comparable Sales</option>
-                  <option value="REPLACEMENT_COST">Depreciated Replacement Cost</option>
+                  {allowedMethods.map((method) => (
+                    <option key={method} value={method}>{method.replaceAll('_', ' ')}</option>
+                  ))}
                 </select>
+                {assetTypeError && <p className="mt-1 text-[10px] text-red-700">{assetTypeError}</p>}
               </div>
 
               <div>
@@ -263,9 +303,10 @@ export function ValuationView() {
                   onChange={(e) => setValidDays(e.target.value)}
                   className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg"
                   min="1"
-                  max="365"
+                  max={validityLimit}
                   required
                 />
+                <p className="mt-1 text-[10px] text-[#5A6A7E]">Maximum for this asset type: {validityLimit} days</p>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -278,7 +319,7 @@ export function ValuationView() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || allowedMethods.length === 0 || !!assetTypeError}
                   className="px-4 py-2 bg-[#0F2A43] text-white rounded-lg font-semibold hover:bg-[#1F5A7A]"
                 >
                   {submitting ? 'Submitting...' : 'Sign & Propose'}

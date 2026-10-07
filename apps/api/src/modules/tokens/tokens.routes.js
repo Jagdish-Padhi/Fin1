@@ -14,6 +14,9 @@ tokensRouter.use(authenticate);
 
 tokensRouter.get('/', (req, res, next) => tokensController.list(req, res, next));
 tokensRouter.get('/:id', (req, res, next) => tokensController.getById(req, res, next));
+tokensRouter.get('/:id/balance/:participantId', (req, res, next) =>
+  tokensController.getBalance(req, res, next)
+);
 tokensRouter.get('/:id/holders', (req, res, next) => tokensController.getHolders(req, res, next));
 tokensRouter.get('/:id/trace', (req, res, next) => tokensController.getTrace(req, res, next));
 

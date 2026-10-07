@@ -13,12 +13,12 @@ valuationRouter.get('/:id', (req, res, next) => valuationController.getById(req,
 
 valuationRouter.post(
   '/propose',
-  requireRole(Role.VERIFIER, Role.VALUER),
+  requireRole(Role.VALUER),
   (req, res, next) => valuationController.propose(req, res, next)
 );
 
 valuationRouter.post(
   '/:id/approve',
-  requireRole(Role.COMPLIANCE, Role.ADMINISTRATOR),
+  requireRole(Role.COMPLIANCE, Role.VALUER),
   (req, res, next) => valuationController.approve(req, res, next)
 );

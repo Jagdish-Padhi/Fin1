@@ -13,24 +13,17 @@ export class TokensService {
     return chainBridge.evaluate(caller, 'listHolders', { tokenId });
   }
 
+  async getBalance(caller, tokenId, participantId) {
+    return chainBridge.evaluate(caller, 'getBalance', { tokenId, participantId });
+  }
+
   async mintToken(caller, data) {
-    return chainBridge.submit(caller, 'mintToken', data);
+    const submission = await chainBridge.submit(caller, 'mintToken', data);
+    return submission.result || submission;
   }
 
   async getTokenTrace(caller, tokenId) {
-    const token = await chainBridge.evaluate(caller, 'getToken', { id: tokenId });
-    if (!token) return null;
-
-    const asset = await chainBridge.evaluate(caller, 'getAsset', { id: token.assetId });
-    const holders = await chainBridge.evaluate(caller, 'listHolders', { tokenId });
-    const auditTrail = await chainBridge.evaluate(caller, 'getAuditTrail', { entityId: tokenId });
-
-    return {
-      token,
-      asset,
-      holders,
-      auditTrail,
-    };
+    return chainBridge.evaluate(caller, 'getTokenTrace', { tokenId });
   }
 
   async publicVerify(tokenId) {
