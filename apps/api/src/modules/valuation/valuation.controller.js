@@ -1,0 +1,23 @@
+import { valuationService } from './valuation.service.js';
+
+export class ValuationController {
+  async propose(req, res, next) {
+    try {
+      const data = await valuationService.proposeValuation(req.user, req.body);
+      res.status(201).json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async approve(req, res, next) {
+    try {
+      const data = await valuationService.approveValuation(req.user, req.params.id);
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  }
+}
+
+export const valuationController = new ValuationController();
