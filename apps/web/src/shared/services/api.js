@@ -29,9 +29,21 @@ export class ApiClient {
       headers,
     });
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type') || '';
+    let data;
+    if (contentType.includes('application/json')) {
+      try {
+        data = await response.json();
+      } catch (e) {
+        throw new Error(`Invalid JSON response from server (${response.status} ${response.statusText})`);
+      }
+    } else {
+      const text = await response.text();
+      throw new Error(text || `Server returned ${response.status}: Ensure backend API is running on http://localhost:5000`);
+    }
+
     if (!response.ok) {
-      throw new Error(data?.error?.message || data?.message || 'API request failed');
+      throw new Error(data?.error?.message || data?.message || `API error (${response.status})`);
     }
 
     return data;
