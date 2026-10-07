@@ -13,7 +13,7 @@ import {
   History,
 } from 'lucide-react';
 
-export function LandingPage({ onEnterConsole, onOpenPublicVerify }) {
+export function LandingPage({ onEnterConsole, onOpenPublicVerify, onOpenAuth }) {
   const features = [
     {
       icon: Layers,
@@ -68,16 +68,27 @@ export function LandingPage({ onEnterConsole, onOpenPublicVerify }) {
         <div className="flex items-center gap-3">
           <button
             onClick={onOpenPublicVerify}
-            className="md:hidden p-2 rounded-lg text-[#5A6A7E] hover:text-[#0F2A43] hover:bg-[#F8FAFC]"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#5A6A7E] hover:text-[#0F2A43] hover:bg-[#F8FAFC] border border-[#D8E0E8] transition"
             title="Public Verify"
           >
-            <Search className="w-4 h-4 text-[#0F766E]" />
+            <Search className="w-3.5 h-3.5 text-[#0F766E]" />
+            <span>Public Verify</span>
           </button>
+
+          {onOpenAuth && (
+            <button
+              onClick={onOpenAuth}
+              className="px-3.5 py-1.5 rounded-lg border border-[#D8E0E8] bg-white hover:bg-[#F8FAFC] text-[#0F2A43] text-xs font-semibold transition shadow-2xs"
+            >
+              Sign In
+            </button>
+          )}
+
           <button
             onClick={onEnterConsole}
             className="px-4 py-2 rounded-lg bg-[#0F2A43] hover:bg-[#1F5A7A] text-white text-xs font-semibold flex items-center gap-2 transition shadow-xs"
           >
-            <span>Launch Console</span>
+            <span>Console</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

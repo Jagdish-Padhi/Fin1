@@ -17,11 +17,14 @@ import { AuditView } from './modules/audit/AuditView.jsx';
 import { PublicVerifyPage } from './modules/public-verify/PublicVerifyPage.jsx';
 import { LandingPage } from './modules/landing/LandingPage.jsx';
 
+import { AuthModal } from './modules/auth/AuthModal.jsx';
+
 function MainLayout() {
   const { user, loading } = useAuth();
   const [view, setView] = useState('landing'); // 'landing' | 'console'
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [showPublicVerify, setShowPublicVerify] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const currentRole = user?.role || 'ADMINISTRATOR';
 
@@ -45,9 +48,17 @@ function MainLayout() {
         <LandingPage
           onEnterConsole={() => setView('console')}
           onOpenPublicVerify={() => setShowPublicVerify(true)}
+          onOpenAuth={() => setShowAuthModal(true)}
         />
         {showPublicVerify && (
           <PublicVerifyPage onClose={() => setShowPublicVerify(false)} />
+        )}
+        {showAuthModal && (
+          <AuthModal
+            isOpen={showAuthModal}
+            onClose={() => setShowAuthModal(false)}
+            onSuccess={() => setView('console')}
+          />
         )}
       </>
     );
