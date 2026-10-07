@@ -1,0 +1,13 @@
+export const Keys = {
+  PARTICIPANT: 'PRT',
+  ASSET_TYPE: 'TYPE',
+  ASSET: 'AST',
+  EVIDENCE: 'EVD',
+  VERIFICATION: 'VER',
+  VALUATION: 'VAL',
+  TOKEN: 'TKN',
+  BALANCE: 'BAL',
+  TRANSFER: 'TRF',
+  AUDIT: 'AUD',
+  HOLD: 'HLD',
+};
