@@ -103,6 +103,51 @@ export class MockGateway {
         RETIRED: ['LEGAL_INVALIDATION', 'GOVT_ACQUISITION'],
       },
     });
+
+    // Seed default Phase 1 participants
+    this.participants.set('PRT-ISSUER-01', {
+      id: 'PRT-ISSUER-01',
+      userId: 'USR-ISSUER',
+      orgId: 'ORG-ISSUER',
+      mspId: 'IssuerMSP',
+      kind: 'ENTITY',
+      jurisdiction: 'IN',
+      investorClass: 'QUALIFIED',
+      kycStatus: 'APPROVED',
+      status: 'ACTIVE',
+      limits: { maxHoldingBps: 2500, maxTransferPaise: 100000000 },
+      piiHash: crypto.createHash('sha256').update(JSON.stringify({ legalName: 'Bharat Agro Enterprises Ltd', pan: 'AAACB1234F' })).digest('hex'),
+      createdAt: this._now(),
+    });
+
+    this.participants.set('PRT-INVESTOR-01', {
+      id: 'PRT-INVESTOR-01',
+      userId: 'USR-INVESTOR',
+      orgId: 'ORG-INVESTOR',
+      mspId: 'InvestorMSP',
+      kind: 'INDIVIDUAL',
+      jurisdiction: 'IN',
+      investorClass: 'QUALIFIED',
+      kycStatus: 'APPROVED',
+      status: 'ACTIVE',
+      limits: { maxHoldingBps: 2500, maxTransferPaise: 100000000 },
+      piiHash: crypto.createHash('sha256').update(JSON.stringify({ legalName: 'Pooja Iyer', pan: 'ABZPI5678K' })).digest('hex'),
+      createdAt: this._now(),
+    });
+
+    this.participants.set('PRT-INVESTOR-02', {
+      id: 'PRT-INVESTOR-02',
+      orgId: 'ORG-INVESTOR',
+      mspId: 'InvestorMSP',
+      kind: 'ENTITY',
+      jurisdiction: 'IN',
+      investorClass: 'INSTITUTIONAL',
+      kycStatus: 'APPROVED',
+      status: 'ACTIVE',
+      limits: { maxHoldingBps: 5000, maxTransferPaise: 500000000 },
+      piiHash: crypto.createHash('sha256').update(JSON.stringify({ legalName: 'Apex Capital Ventures', pan: 'AABCA9988D' })).digest('hex'),
+      createdAt: this._now(),
+    });
   }
 
   _now() {
@@ -159,16 +204,26 @@ export class MockGateway {
     switch (fnName) {
       case 'registerParticipant': {
         const id = args.id || `PRT-${Date.now()}`;
+        // Duplicate PII check (salted hash)
+        if (args.piiHash) {
+          for (const p of this.participants.values()) {
+            if (p.piiHash === args.piiHash) {
+              throw new Error(`Duplicate registration: Participant with identical PII hash already exists (${p.id})`);
+            }
+          }
+        }
         const record = {
           id,
-          orgId: args.orgId,
+          userId: args.userId || caller.userId || null,
+          orgId: args.orgId || caller.orgId,
           mspId: caller.mspId,
           kind: args.kind,
           jurisdiction: args.jurisdiction || 'IN',
           investorClass: args.investorClass || 'RETAIL',
           kycStatus: 'SUBMITTED',
           status: 'ACTIVE',
-          limits: { maxHoldingBps: 2500, maxTransferPaise: 100000000 },
+          limits: args.limits || { maxHoldingBps: 2500, maxTransferPaise: 100000000 },
+          piiHash: args.piiHash || null,
           createdAt: this._now(),
         };
         this.participants.set(id, record);
@@ -179,16 +234,110 @@ export class MockGateway {
       }
 
       case 'updateKycStatus': {
-        if (caller.role !== Role.COMPLIANCE && caller.role !== Role.ADMINISTRATOR) {
-          throw new Error('Only Compliance or Administrator can update KYC status');
+        // Enforce Segregation of Duties: Admin CANNOT approve/update KYC; only Compliance
+        if (caller.role !== Role.COMPLIANCE) {
+          throw new Error('Segregation of duties violation: Only Compliance role can update participant KYC status');
         }
         const participant = this.participants.get(args.participantId);
         if (!participant) throw new Error(`Participant not found: ${args.participantId}`);
         const prev = participant.kycStatus;
         participant.kycStatus = args.kycStatus;
         participant.kycReason = args.reason || '';
+        if (args.expiryDate) {
+          participant.kycExpiryDate = args.expiryDate;
+        }
         this._appendAudit(caller, 'PARTICIPANT', participant.id, prev, args.kycStatus, 'KYC_DECISION', args.reason, txId);
-        this._emit(EventName.KYC_UPDATED, { participantId: participant.id, kycStatus: args.kycStatus }, txId);
+        this._emit(EventName.KYC_UPDATED, { participantId: participant.id, kycStatus: args.kycStatus, reason: args.reason }, txId);
+        result = participant;
+        break;
+      }
+
+      case 'setInvestorClass': {
+        if (caller.role !== Role.COMPLIANCE && caller.role !== Role.ADMINISTRATOR) {
+          throw new Error('Only Compliance or Administrator can set investor class');
+        }
+        const participant = this.participants.get(args.participantId);
+        if (!participant) throw new Error(`Participant not found: ${args.participantId}`);
+        const prev = participant.investorClass;
+        participant.investorClass = args.investorClass;
+        this._appendAudit(caller, 'PARTICIPANT', participant.id, prev, args.investorClass, 'INVESTOR_CLASS_UPDATED', args.reason || '', txId);
+        this._emit(EventName.INVESTOR_CLASS_UPDATED, { participantId: participant.id, investorClass: args.investorClass }, txId);
+        result = participant;
+        break;
+      }
+
+      case 'setLimits': {
+        if (caller.role !== Role.COMPLIANCE && caller.role !== Role.ADMINISTRATOR) {
+          throw new Error('Only Compliance or Administrator can set limits');
+        }
+        const participant = this.participants.get(args.participantId);
+        if (!participant) throw new Error(`Participant not found: ${args.participantId}`);
+        participant.limits = {
+          maxHoldingBps: args.maxHoldingBps ?? participant.limits?.maxHoldingBps ?? 2500,
+          maxTransferPaise: args.maxTransferPaise ?? participant.limits?.maxTransferPaise ?? 100000000,
+        };
+        this._appendAudit(caller, 'PARTICIPANT', participant.id, 'ACTIVE', 'ACTIVE', 'LIMITS_UPDATED', args.reason || '', txId);
+        this._emit(EventName.LIMITS_UPDATED, { participantId: participant.id, limits: participant.limits }, txId);
+        result = participant;
+        break;
+      }
+
+      case 'suspendParticipant': {
+        if (caller.role !== Role.COMPLIANCE && caller.role !== Role.ADMINISTRATOR) {
+          throw new Error('Only Compliance or Administrator can suspend participants');
+        }
+        const participant = this.participants.get(args.participantId);
+        if (!participant) throw new Error(`Participant not found: ${args.participantId}`);
+        const prev = participant.status;
+        participant.status = 'SUSPENDED';
+        participant.suspendReason = args.reason || '';
+        this._appendAudit(caller, 'PARTICIPANT', participant.id, prev, 'SUSPENDED', 'SUSPENDED', args.reason || '', txId);
+        this._emit(EventName.PARTICIPANT_SUSPENDED, { participantId: participant.id, reason: args.reason }, txId);
+        result = participant;
+        break;
+      }
+
+      case 'reinstateParticipant': {
+        if (caller.role !== Role.COMPLIANCE && caller.role !== Role.ADMINISTRATOR) {
+          throw new Error('Only Compliance or Administrator can reinstate participants');
+        }
+        const participant = this.participants.get(args.participantId);
+        if (!participant) throw new Error(`Participant not found: ${args.participantId}`);
+        const prev = participant.status;
+        participant.status = 'ACTIVE';
+        delete participant.suspendReason;
+        this._appendAudit(caller, 'PARTICIPANT', participant.id, prev, 'ACTIVE', 'REINSTATED', args.reason || '', txId);
+        this._emit(EventName.PARTICIPANT_REINSTATED, { participantId: participant.id, reason: args.reason }, txId);
+        result = participant;
+        break;
+      }
+
+      case 'addToBlacklist': {
+        if (caller.role !== Role.COMPLIANCE) {
+          throw new Error('Only Compliance can add participants to blacklist');
+        }
+        const participant = this.participants.get(args.participantId);
+        if (!participant) throw new Error(`Participant not found: ${args.participantId}`);
+        const prev = participant.status;
+        participant.status = 'BLACKLISTED';
+        participant.blacklistReason = args.reason || '';
+        this._appendAudit(caller, 'PARTICIPANT', participant.id, prev, 'BLACKLISTED', 'BLACKLISTED', args.reason || '', txId);
+        this._emit(EventName.BLACKLIST_ADDED, { participantId: participant.id, reason: args.reason }, txId);
+        result = participant;
+        break;
+      }
+
+      case 'removeFromBlacklist': {
+        if (caller.role !== Role.COMPLIANCE) {
+          throw new Error('Only Compliance can remove participants from blacklist');
+        }
+        const participant = this.participants.get(args.participantId);
+        if (!participant) throw new Error(`Participant not found: ${args.participantId}`);
+        const prev = participant.status;
+        participant.status = 'ACTIVE';
+        delete participant.blacklistReason;
+        this._appendAudit(caller, 'PARTICIPANT', participant.id, prev, 'ACTIVE', 'BLACKLIST_REMOVED', args.reason || '', txId);
+        this._emit(EventName.BLACKLIST_REMOVED, { participantId: participant.id, reason: args.reason }, txId);
         result = participant;
         break;
       }
@@ -647,6 +796,14 @@ export class MockGateway {
         const asset = token ? this.assets.get(token.assetId) : null;
         return this._evaluateRules(transfer, token, asset);
       }
+      case 'participantExistsAndActive': {
+        const p = this.participants.get(args.participantId || args.id);
+        return {
+          exists: !!p,
+          active: !!p && p.status === 'ACTIVE',
+          kycApproved: !!p && p.kycStatus === 'APPROVED',
+        };
+      }
       default:
         throw new Error(`Unknown query function: ${fnName}`);
     }
@@ -655,6 +812,25 @@ export class MockGateway {
   _evaluateRules(transfer, token, asset) {
     const results = {};
     const rejectionReasons = [];
+
+    // Rule: Participant status (Active & Not Suspended/Blacklisted)
+    const sender = this.participants.get(transfer.fromParticipantId);
+    const receiver = this.participants.get(transfer.toParticipantId);
+
+    if ((sender && sender.status !== 'ACTIVE') || (receiver && receiver.status !== 'ACTIVE')) {
+      rejectionReasons.push(TransferRuleReason.PARTICIPANT_INACTIVE);
+      results.PARTICIPANT_ACTIVE = { passed: false, senderStatus: sender?.status, receiverStatus: receiver?.status };
+    } else {
+      results.PARTICIPANT_ACTIVE = { passed: true };
+    }
+
+    // Rule: KYC status must be APPROVED for both parties
+    if ((sender && sender.kycStatus !== 'APPROVED') || (receiver && receiver.kycStatus !== 'APPROVED')) {
+      rejectionReasons.push(TransferRuleReason.KYC_NOT_VERIFIED);
+      results.KYC_VERIFIED = { passed: false, senderKyc: sender?.kycStatus, receiverKyc: receiver?.kycStatus };
+    } else {
+      results.KYC_VERIFIED = { passed: true };
+    }
 
     // Rule: Self transfer prohibited
     if (transfer.fromParticipantId === transfer.toParticipantId) {
@@ -672,35 +848,37 @@ export class MockGateway {
       results.ASSET_TRANSFERABLE = { passed: true };
     }
 
-    // Rule: Seller balance check
-    const senderKey = `${token.id}:${transfer.fromParticipantId}`;
-    const currentBal = this.balances.get(senderKey) || 0;
-    if (currentBal < transfer.units) {
-      rejectionReasons.push(TransferRuleReason.INSUFFICIENT_UNITS);
-      results.SELLER_BALANCE = { passed: false, currentBal, required: transfer.units };
-    } else {
-      results.SELLER_BALANCE = { passed: true };
-    }
-
-    // Rule: Whole token cannot be split
-    if (token.standard === TokenStandard.WHOLE && transfer.units !== 1) {
-      rejectionReasons.push(TransferRuleReason.WHOLE_TOKEN_SPLIT_FORBIDDEN);
-      results.WHOLE_ONLY = { passed: false };
-    } else {
-      results.WHOLE_ONLY = { passed: true };
-    }
-
-    // Rule: Max holding cap (e.g. 25% = 2500 bps for land)
-    if (token.standard === TokenStandard.FRACTIONAL) {
-      const receiverKey = `${token.id}:${transfer.toParticipantId}`;
-      const receiverBal = this.balances.get(receiverKey) || 0;
-      const futureBal = receiverBal + transfer.units;
-      const maxUnitsAllowed = Math.floor(token.totalUnits * 0.25);
-      if (futureBal > maxUnitsAllowed) {
-        rejectionReasons.push(TransferRuleReason.MAX_HOLDING_CAP_EXCEEDED);
-        results.MAX_HOLDING_CAP = { passed: false, futureBal, maxAllowed: maxUnitsAllowed };
+    // Rule: Token-specific checks (Balance, Whole split, Max holding cap)
+    if (token) {
+      const senderKey = `${token.id}:${transfer.fromParticipantId}`;
+      const currentBal = this.balances.get(senderKey) || 0;
+      if (currentBal < transfer.units) {
+        rejectionReasons.push(TransferRuleReason.INSUFFICIENT_UNITS);
+        results.SELLER_BALANCE = { passed: false, currentBal, required: transfer.units };
       } else {
-        results.MAX_HOLDING_CAP = { passed: true };
+        results.SELLER_BALANCE = { passed: true };
+      }
+
+      // Rule: Whole token cannot be split
+      if (token.standard === TokenStandard.WHOLE && transfer.units !== 1) {
+        rejectionReasons.push(TransferRuleReason.WHOLE_TOKEN_SPLIT_FORBIDDEN);
+        results.WHOLE_ONLY = { passed: false };
+      } else {
+        results.WHOLE_ONLY = { passed: true };
+      }
+
+      // Rule: Max holding cap (e.g. 25% = 2500 bps for land)
+      if (token.standard === TokenStandard.FRACTIONAL) {
+        const receiverKey = `${token.id}:${transfer.toParticipantId}`;
+        const receiverBal = this.balances.get(receiverKey) || 0;
+        const futureBal = receiverBal + transfer.units;
+        const maxUnitsAllowed = Math.floor(token.totalUnits * 0.25);
+        if (futureBal > maxUnitsAllowed) {
+          rejectionReasons.push(TransferRuleReason.MAX_HOLDING_CAP_EXCEEDED);
+          results.MAX_HOLDING_CAP = { passed: false, futureBal, maxAllowed: maxUnitsAllowed };
+        } else {
+          results.MAX_HOLDING_CAP = { passed: true };
+        }
       }
     }
 

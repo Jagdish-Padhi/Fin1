@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from './shared/context/AuthContext.jsx';
 import { Navbar } from './shared/components/Navbar.jsx';
 import { Sidebar } from './shared/components/Sidebar.jsx';
 import { DashboardView } from './modules/dashboard/DashboardView.jsx';
+import { ParticipantsView } from './modules/participants/ParticipantsView.jsx';
+import { IdentityAdminView } from './modules/identity-admin/IdentityAdminView.jsx';
 import { PublicVerifyPage } from './modules/public-verify/PublicVerifyPage.jsx';
 import { ShieldCheck, Layers, FileCheck, TrendingUp, Coins, ArrowRightLeft, Activity, History } from 'lucide-react';
 
@@ -31,8 +33,12 @@ function MainLayout() {
 
         <main className="flex-1 overflow-y-auto p-6 md:p-8 max-w-7xl mx-auto w-full">
           {currentTab === 'dashboard' && <DashboardView onNavigate={setCurrentTab} />}
+          {currentTab === 'participants' && <ParticipantsView />}
+          {currentTab === 'identity-admin' && <IdentityAdminView />}
 
-          {currentTab !== 'dashboard' && (
+          {currentTab !== 'dashboard' &&
+            currentTab !== 'participants' &&
+            currentTab !== 'identity-admin' && (
             <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-8 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">

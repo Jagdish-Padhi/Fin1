@@ -6,6 +6,7 @@ export function errorHandler(err, req, res, next) {
 
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
+      success: false,
       error: {
         code: err.code,
         message: err.message,
@@ -18,6 +19,7 @@ export function errorHandler(err, req, res, next) {
   // Zod validation error handling
   if (err?.name === 'ZodError') {
     return res.status(400).json({
+      success: false,
       error: {
         code: ErrorCode.BAD_REQUEST,
         message: 'Request payload validation failed',
@@ -30,6 +32,7 @@ export function errorHandler(err, req, res, next) {
   console.error(`[UnhandledError] [${correlationId}]`, err);
 
   return res.status(500).json({
+    success: false,
     error: {
       code: ErrorCode.INTERNAL_SERVER_ERROR,
       message: 'An unexpected internal error occurred',

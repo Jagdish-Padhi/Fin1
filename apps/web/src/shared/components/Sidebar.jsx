@@ -10,6 +10,8 @@ import {
   Activity,
   History,
   Building,
+  Users,
+  UserCheck,
 } from 'lucide-react';
 
 export function Sidebar({ currentTab, onSelectTab }) {
@@ -17,6 +19,10 @@ export function Sidebar({ currentTab, onSelectTab }) {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'participants', label: 'Participants & Identity', icon: Users, badge: 'Phase 1' },
+    ...(user?.role === 'ADMINISTRATOR'
+      ? [{ id: 'identity-admin', label: 'Consortium Org & Users', icon: UserCheck, badge: 'Admin' }]
+      : []),
     { id: 'assets', label: 'Assets & Registration', icon: Layers },
     { id: 'verification', label: 'Verification Queue', icon: FileCheck },
     { id: 'valuation', label: 'Valuation & Pricing', icon: TrendingUp },

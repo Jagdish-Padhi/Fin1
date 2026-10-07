@@ -14,6 +14,17 @@ const STATUS_STYLES = {
   RETIRED: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
   REJECTED: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
 
+  // Participant & KYC statuses
+  APPROVED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  SUBMITTED: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  UNDER_REVIEW: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  SUSPENDED: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  BLACKLISTED: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+  INACTIVE: 'bg-slate-700/40 text-slate-400 border-slate-700',
+  QUALIFIED: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  INSTITUTIONAL: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+  RETAIL: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+
   // Transfer statuses
   PROPOSED: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
   EXECUTED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',

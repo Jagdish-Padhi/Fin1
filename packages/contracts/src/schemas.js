@@ -7,9 +7,12 @@ import {
   RightsType,
   VerificationDecision,
   CheckResult,
+  KycStatus,
+  ParticipantStatus,
 } from './enums.js';
 
 export const RegisterParticipantSchema = z.object({
+  id: z.string().optional(),
   orgId: z.string().min(1),
   kind: z.nativeEnum(ParticipantKind),
   jurisdiction: z.string().default('IN'),
@@ -20,6 +23,51 @@ export const RegisterParticipantSchema = z.object({
     identifierValue: z.string().min(4),
     contactEmail: z.string().email(),
   }),
+  limits: z
+    .object({
+      maxHoldingBps: z.number().int().min(1).max(10000).default(2500),
+      maxTransferPaise: z.number().int().positive().default(100000000),
+    })
+    .optional(),
+});
+
+export const UpdateKycSchema = z.object({
+  kycStatus: z.nativeEnum(KycStatus),
+  reason: z.string().min(3),
+  expiryDate: z.string().optional(),
+});
+
+export const SetInvestorClassSchema = z.object({
+  investorClass: z.nativeEnum(InvestorClass),
+  reason: z.string().optional(),
+});
+
+export const SetLimitsSchema = z.object({
+  maxHoldingBps: z.number().int().min(1).max(10000),
+  maxTransferPaise: z.number().int().positive(),
+  reason: z.string().optional(),
+});
+
+export const SuspendParticipantSchema = z.object({
+  reason: z.string().min(3),
+});
+
+export const BlacklistParticipantSchema = z.object({
+  reason: z.string().min(3),
+});
+
+export const AdminCreateUserSchema = z.object({
+  email: z.string().email(),
+  name: z.string().min(2),
+  role: z.nativeEnum(Role),
+  orgId: z.string().min(1),
+  password: z.string().min(6).optional(),
+});
+
+export const AdminCreateOrgSchema = z.object({
+  id: z.string().min(1),
+  mspId: z.string().min(1),
+  name: z.string().min(2),
 });
 
 export const AssetTypeDefinitionSchema = z.object({

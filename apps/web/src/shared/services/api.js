@@ -74,6 +74,108 @@ export class ApiClient {
   publicVerify(tokenId) {
     return this.request(`/tokens/public-verify/${encodeURIComponent(tokenId)}`);
   }
+
+  // Phase 1: Participants & Identity
+  getParticipants() {
+    return this.request('/participants');
+  }
+
+  getParticipant(id) {
+    return this.request(`/participants/${encodeURIComponent(id)}`);
+  }
+
+  registerParticipant(data) {
+    return this.request('/participants', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  updateKycStatus(id, kycStatus, reason, expiryDate) {
+    return this.request(`/participants/${encodeURIComponent(id)}/kyc`, {
+      method: 'PATCH',
+      body: JSON.stringify({ kycStatus, reason, expiryDate }),
+    });
+  }
+
+  setInvestorClass(id, investorClass, reason) {
+    return this.request(`/participants/${encodeURIComponent(id)}/investor-class`, {
+      method: 'PATCH',
+      body: JSON.stringify({ investorClass, reason }),
+    });
+  }
+
+  setLimits(id, maxHoldingBps, maxTransferPaise, reason) {
+    return this.request(`/participants/${encodeURIComponent(id)}/limits`, {
+      method: 'PATCH',
+      body: JSON.stringify({ maxHoldingBps, maxTransferPaise, reason }),
+    });
+  }
+
+  suspendParticipant(id, reason) {
+    return this.request(`/participants/${encodeURIComponent(id)}/suspend`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  reinstateParticipant(id, reason) {
+    return this.request(`/participants/${encodeURIComponent(id)}/reinstate`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  addToBlacklist(id, reason) {
+    return this.request(`/participants/${encodeURIComponent(id)}/blacklist`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  removeFromBlacklist(id, reason) {
+    return this.request(`/participants/${encodeURIComponent(id)}/blacklist`, {
+      method: 'DELETE',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  uploadKycDoc(id, doc) {
+    return this.request(`/participants/${encodeURIComponent(id)}/kyc-docs`, {
+      method: 'POST',
+      body: JSON.stringify(doc),
+    });
+  }
+
+  // Phase 1: Identity Admin
+  getAdminUsers() {
+    return this.request('/identity-admin/users');
+  }
+
+  createAdminUser(data) {
+    return this.request('/identity-admin/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  updateUserStatus(id, status, reason) {
+    return this.request(`/identity-admin/users/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, reason }),
+    });
+  }
+
+  getAdminOrgs() {
+    return this.request('/identity-admin/orgs');
+  }
+
+  createAdminOrg(data) {
+    return this.request('/identity-admin/orgs', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const api = new ApiClient();

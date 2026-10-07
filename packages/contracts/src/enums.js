@@ -34,6 +34,13 @@ export const KycStatus = {
   REJECTED: 'REJECTED',
 };
 
+export const ParticipantStatus = {
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED',
+  BLACKLISTED: 'BLACKLISTED',
+  INACTIVE: 'INACTIVE',
+};
+
 export const InvestorClass = {
   RETAIL: 'RETAIL',
   QUALIFIED: 'QUALIFIED',
@@ -120,6 +127,12 @@ export const ErrorCode = {
 export const EventName = {
   PARTICIPANT_REGISTERED: 'ParticipantRegistered',
   KYC_UPDATED: 'KycUpdated',
+  INVESTOR_CLASS_UPDATED: 'InvestorClassUpdated',
+  LIMITS_UPDATED: 'LimitsUpdated',
+  PARTICIPANT_SUSPENDED: 'ParticipantSuspended',
+  PARTICIPANT_REINSTATED: 'ParticipantReinstated',
+  BLACKLIST_ADDED: 'BlacklistAdded',
+  BLACKLIST_REMOVED: 'BlacklistRemoved',
   ASSET_TYPE_DEFINED: 'AssetTypeDefined',
   ASSET_REGISTERED: 'AssetRegistered',
   EVIDENCE_ATTACHED: 'EvidenceAttached',
