@@ -8,6 +8,18 @@ export const verificationRouter = Router();
 
 verificationRouter.use(authenticate);
 
+verificationRouter.get(
+  '/cases',
+  requireRole(Role.VERIFIER, Role.AUDITOR, Role.ADMINISTRATOR, Role.COMPLIANCE),
+  (req, res, next) => verificationController.list(req, res, next)
+);
+
+verificationRouter.get(
+  '/cases/:caseId',
+  requireRole(Role.VERIFIER, Role.AUDITOR, Role.ADMINISTRATOR, Role.COMPLIANCE),
+  (req, res, next) => verificationController.getById(req, res, next)
+);
+
 verificationRouter.post(
   '/cases/:caseId/checks',
   requireRole(Role.VERIFIER),

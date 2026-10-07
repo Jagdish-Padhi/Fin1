@@ -2,20 +2,28 @@ import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './shared/context/AuthContext.jsx';
 import { Navbar } from './shared/components/Navbar.jsx';
 import { Sidebar } from './shared/components/Sidebar.jsx';
+import { RoleGuard } from './shared/components/RoleGuard.jsx';
 import { DashboardView } from './modules/dashboard/DashboardView.jsx';
 import { ParticipantsView } from './modules/participants/ParticipantsView.jsx';
 import { IdentityAdminView } from './modules/identity-admin/IdentityAdminView.jsx';
 import { AssetsView } from './modules/assets/AssetsView.jsx';
 import { AssetTypesView } from './modules/asset-types/AssetTypesView.jsx';
+import { VerificationView } from './modules/verification/VerificationView.jsx';
+import { ValuationView } from './modules/valuation/ValuationView.jsx';
+import { TokensView } from './modules/tokens/TokensView.jsx';
+import { TransfersView } from './modules/transfers/TransfersView.jsx';
+import { LifecycleView } from './modules/lifecycle/LifecycleView.jsx';
+import { AuditView } from './modules/audit/AuditView.jsx';
 import { PublicVerifyPage } from './modules/public-verify/PublicVerifyPage.jsx';
 import { LandingPage } from './modules/landing/LandingPage.jsx';
-import { ShieldCheck, ArrowLeft, Lock } from 'lucide-react';
 
 function MainLayout() {
   const { user, loading } = useAuth();
   const [view, setView] = useState('landing'); // 'landing' | 'console'
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [showPublicVerify, setShowPublicVerify] = useState(false);
+
+  const currentRole = user?.role || 'ADMINISTRATOR';
 
   if (loading) {
     return (
@@ -64,49 +72,89 @@ function MainLayout() {
 
         <main className="flex-1 overflow-y-auto p-6 md:p-8 max-w-7xl mx-auto w-full">
           {currentTab === 'dashboard' && <DashboardView onNavigate={setCurrentTab} />}
+          
           {currentTab === 'participants' && <ParticipantsView />}
-          {currentTab === 'identity-admin' && <IdentityAdminView />}
+
+          {currentTab === 'identity-admin' && (
+            <RoleGuard
+              currentRole={currentRole}
+              allowedRoles={['ADMINISTRATOR']}
+              onNavigateHome={() => setCurrentTab('dashboard')}
+            >
+              <IdentityAdminView />
+            </RoleGuard>
+          )}
+
           {currentTab === 'assets' && <AssetsView />}
-          {currentTab === 'asset-types' && <AssetTypesView />}
 
-          {currentTab !== 'dashboard' &&
-            currentTab !== 'participants' &&
-            currentTab !== 'identity-admin' &&
-            currentTab !== 'assets' &&
-            currentTab !== 'asset-types' && (
-            <div className="trust-card p-8 space-y-4 max-w-2xl bg-white border border-[#D8E0E8]">
-              <div className="flex items-center gap-3.5">
-                <div className="p-3 rounded-xl bg-[#F0F4F8] text-[#0F2A43] border border-[#D8E0E8]">
-                  <ShieldCheck className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-[#0F2A43] capitalize">
-                    {currentTab.replace('-', ' ')}
-                  </h3>
-                  <p className="text-xs text-[#5A6A7E] mt-0.5">
-                    Permissioned chaincode module on rwa-channel
-                  </p>
-                </div>
-              </div>
+          {currentTab === 'asset-types' && (
+            <RoleGuard
+              currentRole={currentRole}
+              allowedRoles={['ADMINISTRATOR', 'COMPLIANCE']}
+              onNavigateHome={() => setCurrentTab('dashboard')}
+            >
+              <AssetTypesView />
+            </RoleGuard>
+          )}
 
-              <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#D8E0E8] text-xs text-[#17202A] space-y-2">
-                <div className="font-semibold text-[#0F766E] flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5" />
-                  Consortium Policy
-                </div>
-                <p className="text-[#5A6A7E] leading-relaxed">
-                  Cryptographic transaction endpoints for this module are active on the chaincode ledger. Access is scoped by institutional role assignments.
-                </p>
-              </div>
+          {currentTab === 'verification' && (
+            <RoleGuard
+              currentRole={currentRole}
+              allowedRoles={['VERIFIER', 'COMPLIANCE', 'AUDITOR', 'ADMINISTRATOR']}
+              onNavigateHome={() => setCurrentTab('dashboard')}
+            >
+              <VerificationView />
+            </RoleGuard>
+          )}
 
-              <button
-                onClick={() => setCurrentTab('dashboard')}
-                className="text-xs font-semibold text-[#1F5A7A] hover:text-[#0F2A43] flex items-center gap-1.5 transition pt-2"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                Return to Dashboard
-              </button>
-            </div>
+          {currentTab === 'valuation' && (
+            <RoleGuard
+              currentRole={currentRole}
+              allowedRoles={['VALUER', 'COMPLIANCE', 'AUDITOR', 'ADMINISTRATOR']}
+              onNavigateHome={() => setCurrentTab('dashboard')}
+            >
+              <ValuationView />
+            </RoleGuard>
+          )}
+
+          {currentTab === 'tokens' && (
+            <RoleGuard
+              currentRole={currentRole}
+              allowedRoles={['ISSUER', 'COMPLIANCE', 'INVESTOR', 'AUDITOR', 'ADMINISTRATOR']}
+              onNavigateHome={() => setCurrentTab('dashboard')}
+            >
+              <TokensView />
+            </RoleGuard>
+          )}
+
+          {currentTab === 'transfers' && (
+            <RoleGuard
+              currentRole={currentRole}
+              allowedRoles={['ISSUER', 'INVESTOR', 'COMPLIANCE', 'AUDITOR', 'ADMINISTRATOR']}
+              onNavigateHome={() => setCurrentTab('dashboard')}
+            >
+              <TransfersView />
+            </RoleGuard>
+          )}
+
+          {currentTab === 'lifecycle' && (
+            <RoleGuard
+              currentRole={currentRole}
+              allowedRoles={['COMPLIANCE', 'AUDITOR', 'ADMINISTRATOR', 'ISSUER']}
+              onNavigateHome={() => setCurrentTab('dashboard')}
+            >
+              <LifecycleView />
+            </RoleGuard>
+          )}
+
+          {currentTab === 'audit' && (
+            <RoleGuard
+              currentRole={currentRole}
+              allowedRoles={['AUDITOR', 'COMPLIANCE', 'ADMINISTRATOR', 'VERIFIER', 'VALUER']}
+              onNavigateHome={() => setCurrentTab('dashboard')}
+            >
+              <AuditView />
+            </RoleGuard>
           )}
         </main>
       </div>

@@ -1,6 +1,24 @@
 import { valuationService } from './valuation.service.js';
 
 export class ValuationController {
+  async list(req, res, next) {
+    try {
+      const data = await valuationService.listValuations(req.user);
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getById(req, res, next) {
+    try {
+      const data = await valuationService.getValuationById(req.user, req.params.id);
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async propose(req, res, next) {
     try {
       const data = await valuationService.proposeValuation(req.user, req.body);

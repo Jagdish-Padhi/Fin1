@@ -1,6 +1,25 @@
 import { verificationService } from './verification.service.js';
 
 export class VerificationController {
+  async list(req, res, next) {
+    try {
+      const data = await verificationService.listCases(req.user);
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getById(req, res, next) {
+    try {
+      const { caseId } = req.params;
+      const data = await verificationService.getCaseById(req.user, caseId);
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async recordCheck(req, res, next) {
     try {
       const { caseId } = req.params;

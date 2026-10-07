@@ -237,6 +237,110 @@ export class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  // Verification Audit APIs
+  getVerificationCases() {
+    return this.request('/verification/cases');
+  }
+
+  getVerificationCase(caseId) {
+    return this.request(`/verification/cases/${encodeURIComponent(caseId)}`);
+  }
+
+  recordVerificationCheck(caseId, checkKey, result, notes, sourceRef) {
+    return this.request(`/verification/cases/${encodeURIComponent(caseId)}/checks`, {
+      method: 'POST',
+      body: JSON.stringify({ checkKey, result, notes, sourceRef }),
+    });
+  }
+
+  decideVerification(caseId, decision, reasonCode, reasonText) {
+    return this.request(`/verification/cases/${encodeURIComponent(caseId)}/decide`, {
+      method: 'POST',
+      body: JSON.stringify({ decision, reasonCode, reasonText }),
+    });
+  }
+
+  // Valuation APIs
+  getValuations() {
+    return this.request('/valuation');
+  }
+
+  getValuation(id) {
+    return this.request(`/valuation/${encodeURIComponent(id)}`);
+  }
+
+  proposeValuation(data) {
+    return this.request('/valuation/propose', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  approveValuation(id) {
+    return this.request(`/valuation/${encodeURIComponent(id)}/approve`, {
+      method: 'POST',
+    });
+  }
+
+  // Token APIs
+  mintToken(data) {
+    return this.request('/tokens/mint', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  getTokenHolders(id) {
+    return this.request(`/tokens/${encodeURIComponent(id)}/holders`);
+  }
+
+  getTokenTrace(id) {
+    return this.request(`/tokens/${encodeURIComponent(id)}/trace`);
+  }
+
+  // Transfer APIs
+  proposeTransfer(data) {
+    return this.request('/transfers/propose', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  evaluateTransfer(data) {
+    return this.request('/transfers/evaluate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  executeTransfer(id) {
+    return this.request(`/transfers/${encodeURIComponent(id)}/execute`, {
+      method: 'POST',
+    });
+  }
+
+  // Lifecycle APIs
+  freezeAsset(assetId, reasonText) {
+    return this.request('/lifecycle/freeze', {
+      method: 'POST',
+      body: JSON.stringify({ assetId, reasonText }),
+    });
+  }
+
+  unfreezeAsset(assetId, reasonText) {
+    return this.request('/lifecycle/unfreeze', {
+      method: 'POST',
+      body: JSON.stringify({ assetId, reasonText }),
+    });
+  }
+
+  retireAsset(assetId, reasonCode, reasonText) {
+    return this.request('/lifecycle/retire', {
+      method: 'POST',
+      body: JSON.stringify({ assetId, reasonCode, reasonText }),
+    });
+  }
 }
 
 export const api = new ApiClient();

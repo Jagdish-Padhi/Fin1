@@ -12,20 +12,20 @@ import {
   Building,
   Users,
   UserCheck,
-  Shield,
 } from 'lucide-react';
+import { canAccessTab, ROLE_PERMISSIONS } from '../utils/permissions.js';
 
 export function Sidebar({ currentTab, onSelectTab, onNavigateLanding }) {
   const { user } = useAuth();
+  const userRole = user?.role || 'ADMINISTRATOR';
+  const roleConfig = ROLE_PERMISSIONS[userRole] || {};
 
-  const navItems = [
+  const allNavItems = [
     { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
     { id: 'participants', label: 'Participant Directory', icon: Users },
-    ...(user?.role === 'ADMINISTRATOR'
-      ? [{ id: 'identity-admin', label: 'Consortium Governance', icon: UserCheck }]
-      : []),
+    { id: 'identity-admin', label: 'Consortium Governance', icon: UserCheck, requiredRole: 'ADMINISTRATOR' },
     { id: 'assets', label: 'Real-World Assets', icon: Layers },
-    { id: 'asset-types', label: 'Asset Type Engine', icon: Building },
+    { id: 'asset-types', label: 'Asset Type Engine', icon: Building, requiredRole: 'ADMINISTRATOR' },
     { id: 'verification', label: 'Verification Audits', icon: FileCheck },
     { id: 'valuation', label: 'Valuation & Pricing', icon: TrendingUp },
     { id: 'tokens', label: 'Tokenized Securities', icon: Coins },
@@ -33,6 +33,13 @@ export function Sidebar({ currentTab, onSelectTab, onNavigateLanding }) {
     { id: 'lifecycle', label: 'Lifecycle Governance', icon: Activity },
     { id: 'audit', label: 'Consortium Audit Trail', icon: History },
   ];
+
+  // Filter based on user's authorized tabs under segregation of duties
+  const filteredNavItems = allNavItems.filter((item) => {
+    if (item.id === 'dashboard' || item.id === 'participants') return true;
+    if (item.requiredRole && item.requiredRole !== userRole) return false;
+    return canAccessTab(userRole, item.id);
+  });
 
   return (
     <aside className="w-64 border-r border-[#D8E0E8] bg-white flex flex-col justify-between p-4 shadow-[1px_0_3px_rgba(15,42,67,0.02)]">
@@ -46,7 +53,7 @@ export function Sidebar({ currentTab, onSelectTab, onNavigateLanding }) {
           <div className="text-xs font-bold text-[#17202A] truncate">{user?.name}</div>
           <div className="flex items-center gap-1.5 pt-0.5">
             <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F0FDFA] text-[#0F766E] border border-[#CCFBF1]">
-              {user?.role}
+              {roleConfig.badge || user?.role}
             </span>
             <span className="text-[10px] text-[#5A6A7E] font-mono truncate">{user?.mspId}</span>
           </div>
@@ -54,7 +61,7 @@ export function Sidebar({ currentTab, onSelectTab, onNavigateLanding }) {
 
         {/* Navigation Items */}
         <nav className="space-y-1">
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
             return (
@@ -98,7 +105,7 @@ export function Sidebar({ currentTab, onSelectTab, onNavigateLanding }) {
             className="w-full pt-1 text-left text-xs font-semibold text-[#1F5A7A] hover:text-[#0F2A43] transition flex items-center justify-between"
           >
             <span>Platform Overview</span>
-            <span>→</span>
+            <span>&rarr;</span>
           </button>
         )}
       </div>

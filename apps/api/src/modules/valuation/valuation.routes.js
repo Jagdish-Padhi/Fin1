@@ -8,6 +8,9 @@ export const valuationRouter = Router();
 
 valuationRouter.use(authenticate);
 
+valuationRouter.get('/', (req, res, next) => valuationController.list(req, res, next));
+valuationRouter.get('/:id', (req, res, next) => valuationController.getById(req, res, next));
+
 valuationRouter.post(
   '/propose',
   requireRole(Role.VERIFIER, Role.VALUER),

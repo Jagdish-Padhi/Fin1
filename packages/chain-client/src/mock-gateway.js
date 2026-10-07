@@ -1036,6 +1036,26 @@ export class MockGateway {
           kycApproved: !!p && p.kycStatus === 'APPROVED',
         };
       }
+      case 'getVerificationCase': {
+        const c = this.verificationCases.get(args.caseId || args.id);
+        if (!c) return null;
+        const asset = this.assets.get(c.assetId);
+        return { ...c, asset: this._filterAssetVisibility(asset, caller) };
+      }
+      case 'listVerificationCases': {
+        return Array.from(this.verificationCases.values()).map((c) => {
+          const asset = this.assets.get(c.assetId);
+          return { ...c, asset: this._filterAssetVisibility(asset, caller) };
+        });
+      }
+      case 'getValuation':
+        return this.valuations.get(args.id) || null;
+      case 'listValuations': {
+        return Array.from(this.valuations.values()).map((v) => {
+          const asset = this.assets.get(v.assetId);
+          return { ...v, asset: this._filterAssetVisibility(asset, caller) };
+        });
+      }
       default:
         throw new Error(`Unknown query function: ${fnName}`);
     }
