@@ -9,15 +9,20 @@ export class TransfersService {
     return chainBridge.evaluate(caller, 'getTransfer', { id });
   }
 
+  async getTransferHistory(caller, tokenId) {
+    return chainBridge.evaluate(caller, 'getTransferHistory', { tokenId });
+  }
+
   async proposeTransfer(caller, data) {
-    return chainBridge.submit(caller, 'proposeTransfer', {
+    const submission = await chainBridge.submit(caller, 'proposeTransfer', {
       tokenId: data.tokenId,
-      fromParticipantId: caller.participantId,
+      fromParticipantId: data.fromParticipantId || caller.participantId || caller.userId,
       toParticipantId: data.toParticipantId,
       units: data.units,
       pricePaise: data.pricePaise || 0,
       paymentRef: data.paymentRef || '',
     });
+    return submission.result || submission;
   }
 
   async evaluateTransfer(caller, data) {
@@ -25,7 +30,13 @@ export class TransfersService {
   }
 
   async executeTransfer(caller, transferId) {
-    return chainBridge.submit(caller, 'executeTransfer', { transferId });
+    const submission = await chainBridge.submit(caller, 'executeTransfer', { transferId });
+    return submission.result || submission;
+  }
+
+  async cancelTransfer(caller, transferId, reason) {
+    const submission = await chainBridge.submit(caller, 'cancelTransfer', { transferId, reason });
+    return submission.result || submission;
   }
 }
 
