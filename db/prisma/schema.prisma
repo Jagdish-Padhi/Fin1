@@ -1,0 +1,447 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// 1. Identity & Access Control
+// ==========================================
+
+model Organization {
+  id           String        @id @default(uuid())
+  mspId        String        @unique @map("msp_id")
+  name         String
+  status       String        @default("ACTIVE")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  users        User[]
+  participants Participant[]
+
+  @@map("organizations")
+}
+
+model User {
+  id           String             @id @default(uuid())
+  orgId        String             @map("org_id")
+  email        String             @unique
+  passwordHash String             @map("password_hash")
+  role         String
+  name         String
+  status       String             @default("ACTIVE")
+  totpSecret   String?            @map("totp_secret")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  organization Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  sessions     Session[]
+  fabricId     FabricIdentity?
+  participant  Participant?
+  evidence     Evidence[]
+  auditLogs    ApiAuditLog[]
+  commands     ChainCommand[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model FabricIdentity {
+  userId        String   @id @map("user_id")
+  enrollmentId  String   @unique @map("enrollment_id")
+  encryptedKey  String   @map("encrypted_key")
+  cert          String
+  status        String   @default("ENROLLED")
+  createdAt     DateTime @default(now()) @map("created_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("fabric_identities")
+}
+
+model Participant {
+  id            String         @id
+  userId        String?        @unique @map("user_id")
+  orgId         String         @map("org_id")
+  kind          String         // INDIVIDUAL, ENTITY
+  kycStatus     String         @default("SUBMITTED") @map("kyc_status")
+  investorClass String         @default("RETAIL") @map("investor_class")
+  jurisdiction  String         @default("IN")
+  piiEncrypted  String         @map("pii_encrypted")
+  piiHash       String         @map("pii_hash")
+  limits        Json           @default("{}")
+  status        String         @default("ACTIVE")
+  chainSynced   Boolean        @default(false) @map("chain_synced")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  user          User?          @relation(fields: [userId], references: [id])
+  organization  Organization   @relation(fields: [orgId], references: [id])
+  assets        Asset[]
+  balances      TokenBalance[]
+
+  @@index([piiHash])
+  @@map("participants")
+}
+
+// ==========================================
+// 2. Asset Type Engine
+// ==========================================
+
+model AssetType {
+  key        String
+  version    Int      @default(1)
+  status     String   @default("ACTIVE")
+  definition Json
+  checksum   String
+  chainTxId  String?  @map("chain_tx_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  assets     Asset[]
+
+  @@id([key, version])
+  @@map("asset_types")
+}
+
+// ==========================================
+// 3. Assets & Evidence
+// ==========================================
+
+model Asset {
+  id                      String              @id
+  typeKey                 String              @map("type_key")
+  typeVersion             Int                 @default(1) @map("type_version")
+  originatorParticipantId String              @map("originator_participant_id")
+  displayName             String              @map("display_name")
+  status                  String              @default("REGISTERED")
+  attributes              Json
+  attributesHash          String              @map("attributes_hash")
+  chainTxId               String?             @map("chain_tx_id")
+  version                 Int                 @default(1)
+  createdAt               DateTime            @default(now()) @map("created_at")
+  updatedAt               DateTime            @updatedAt @map("updated_at")
+  assetType               AssetType           @relation(fields: [typeKey, typeVersion], references: [key, version])
+  originator              Participant         @relation(fields: [originatorParticipantId], references: [id])
+  evidence                Evidence[]
+  verificationCases       VerificationCase[]
+  valuations              Valuation[]
+  token                   Token?
+
+  @@map("assets")
+}
+
+model Evidence {
+  id           String   @id
+  assetId      String   @map("asset_id")
+  docType      String   @map("doc_type")
+  storageKey   String   @map("storage_key")
+  sha256       String
+  size         Int
+  mime         String
+  encryptedDek String   @map("encrypted_dek")
+  uploadedBy   String   @map("uploaded_by")
+  status       String   @default("ATTACHED")
+  chainTxId    String?  @map("chain_tx_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  asset        Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  uploader     User     @relation(fields: [uploadedBy], references: [id])
+
+  @@map("evidence")
+}
+
+// ==========================================
+// 4. Verification Workflow
+// ==========================================
+
+model VerificationCase {
+  id         String              @id
+  assetId    String              @map("asset_id")
+  status     String              @default("PENDING_REVIEW")
+  assignedTo String?             @map("assigned_to")
+  slaDueAt   DateTime?           @map("sla_due_at")
+  decision   String?
+  reasonCode String?             @map("reason_code")
+  reasonText String?             @map("reason_text")
+  decidedBy  String?             @map("decided_by")
+  createdAt  DateTime            @default(now()) @map("created_at")
+  updatedAt  DateTime            @updatedAt @map("updated_at")
+  asset      Asset               @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  checks     VerificationCheck[]
+
+  @@map("verification_cases")
+}
+
+model VerificationCheck {
+  id        String           @id @default(uuid())
+  caseId    String           @map("case_id")
+  checkKey  String           @map("check_key")
+  result    String           // PASS, FAIL, NOT_APPLICABLE
+  notes     String?
+  sourceRef String?          @map("source_ref")
+  checkedBy String           @map("checked_by")
+  checkedAt DateTime         @default(now()) @map("checked_at")
+  case      VerificationCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@unique([caseId, checkKey])
+  @@map("verification_checks")
+}
+
+// ==========================================
+// 5. Valuation Engine
+// ==========================================
+
+model Valuation {
+  id            String    @id
+  assetId       String    @map("asset_id")
+  version       Int       @default(1)
+  amountPaise   BigInt    @map("amount_paise")
+  currency      String    @default("INR")
+  method        String
+  methodDetails Json      @default("{}") @map("method_details")
+  source        Json
+  valuationDate DateTime  @map("valuation_date")
+  validUntil    DateTime  @map("valid_until")
+  status        String    @default("PROPOSED")
+  proposedBy    String    @map("proposed_by")
+  approvedBy    String?   @map("approved_by")
+  supersedesId  String?   @map("supersedes_id")
+  chainTxId     String?   @map("chain_tx_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  asset         Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@map("valuations")
+}
+
+// ==========================================
+// 6. Tokens & Ownership
+// ==========================================
+
+model Token {
+  id             String         @id
+  assetId        String         @unique @map("asset_id")
+  standard       String         // WHOLE, FRACTIONAL
+  totalUnits     BigInt         @map("total_units")
+  unitLabel      String         @default("UNITS") @map("unit_label")
+  rightsType     String         @map("rights_type")
+  representation Json
+  evidenceRoot   String         @map("evidence_root")
+  valuationId    String?        @map("valuation_id")
+  status         String         @default("ACTIVE")
+  mintedTxId     String         @map("minted_tx_id")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  asset          Asset          @relation(fields: [assetId], references: [id])
+  balances       TokenBalance[]
+  transfers      Transfer[]
+
+  @@map("tokens")
+}
+
+model TokenBalance {
+  tokenId       String      @map("token_id")
+  participantId String      @map("participant_id")
+  units         BigInt      @default(0)
+  lockedUnits   BigInt      @default(0) @map("locked_units")
+  acquiredAt    DateTime    @default(now()) @map("acquired_at")
+  token         Token       @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@id([tokenId, participantId])
+  @@map("token_balances")
+}
+
+model MintRequest {
+  id          String    @id
+  assetId     String    @map("asset_id")
+  requesterId String    @map("requester_id")
+  standard    String
+  totalUnits  BigInt    @map("total_units")
+  status      String    @default("PENDING")
+  decisionBy  String?   @map("decision_by")
+  chainTxId   String?   @map("chain_tx_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("mint_requests")
+}
+
+// ==========================================
+// 7. Transfers & Rule Engine
+// ==========================================
+
+model Transfer {
+  id               String   @id
+  tokenId          String   @map("token_id")
+  fromParticipant  String   @map("from_participant")
+  toParticipant    String   @map("to_participant")
+  units            BigInt
+  pricePaise       BigInt   @default(0) @map("price_paise")
+  paymentRef       String?  @map("payment_ref")
+  status           String   @default("PROPOSED")
+  ruleResults      Json     @default("{}") @map("rule_results")
+  rejectionReasons Json     @default("[]") @map("rejection_reasons")
+  requestedBy      String   @map("requested_by")
+  decidedAt        DateTime? @map("decided_at")
+  chainTxId        String?  @map("chain_tx_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  token            Token    @relation(fields: [tokenId], references: [id])
+
+  @@map("transfers")
+}
+
+// ==========================================
+// 8. Lifecycle & Audit Trail
+// ==========================================
+
+model LifecycleEvent {
+  id          String   @id @default(uuid())
+  entityType  String   @map("entity_type")
+  entityId    String   @map("entity_id")
+  fromState   String   @map("from_state")
+  toState     String   @map("to_state")
+  actorUserId String   @map("actor_user_id")
+  actorOrg    String   @map("actor_org")
+  actorRole   String   @map("actor_role")
+  reasonCode  String   @map("reason_code")
+  reasonText  String?  @map("reason_text")
+  txId        String   @map("tx_id")
+  blockNumber BigInt   @map("block_number")
+  occurredAt  DateTime @default(now()) @map("occurred_at")
+
+  @@map("lifecycle_events")
+}
+
+model ChainEvent {
+  blockNumber    BigInt   @map("block_number")
+  txIndex        Int      @map("tx_index")
+  eventIndex     Int      @map("event_index")
+  txId           String   @map("tx_id")
+  name           String
+  payload        Json
+  validationCode String   @default("VALID") @map("validation_code")
+  committedAt    DateTime @default(now()) @map("committed_at")
+
+  @@id([blockNumber, txIndex, eventIndex])
+  @@map("chain_events")
+}
+
+model IndexerCheckpoint {
+  id          String   @id @default("global")
+  lastBlock   BigInt   @map("last_block")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("indexer_checkpoint")
+}
+
+model ChainCommand {
+  id             String   @id @default(uuid())
+  idempotencyKey String   @unique @map("idempotency_key")
+  actorUserId    String   @map("actor_user_id")
+  fn             String
+  argsHash       String   @map("args_hash")
+  status         String   @default("QUEUED") // QUEUED, SUBMITTED, COMMITTED, FAILED
+  txId           String?  @map("tx_id")
+  error          String?
+  attempts       Int      @default(0)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  user           User     @relation(fields: [actorUserId], references: [id])
+
+  @@map("chain_commands")
+}
+
+model SecurityEvent {
+  id          String   @id @default(uuid())
+  eventType   String   @map("event_type")
+  actorIp     String?  @map("actor_ip")
+  actorUserId String?  @map("actor_user_id")
+  details     Json     @default("{}")
+  occurredAt  DateTime @default(now()) @map("occurred_at")
+
+  @@map("security_events")
+}
+
+model ApiAuditLog {
+  id         String   @id @default(uuid())
+  userId     String?  @map("user_id")
+  endpoint   String
+  method     String
+  statusCode Int      @map("status_code")
+  ip         String?
+  timestamp  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@map("api_audit_log")
+}
+
+// ==========================================
+// 9. Compliance & Holds
+// ==========================================
+
+model Hold {
+  id         String    @id @default(uuid())
+  entityType String    @map("entity_type")
+  entityId   String    @map("entity_id")
+  reason     String
+  placedBy   String    @map("placed_by")
+  releasedAt DateTime? @map("released_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@map("holds")
+}
+
+model Blacklist {
+  id            String   @id @default(uuid())
+  participantId String   @unique @map("participant_id")
+  reason        String
+  addedBy       String   @map("added_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("blacklist")
+}
+
+// ==========================================
+// 10. Notifications & Reconciler
+// ==========================================
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("notifications")
+}
+
+model ReconcileRun {
+  id         String      @id @default(uuid())
+  startedAt  DateTime    @default(now()) @map("started_at")
+  finishedAt DateTime?   @map("finished_at")
+  status     String      @default("IN_PROGRESS")
+  itemsFound Int         @default(0) @map("items_found")
+  driftItems DriftItem[]
+
+  @@map("reconcile_runs")
+}
+
+model DriftItem {
+  id             String       @id @default(uuid())
+  runId          String       @map("run_id")
+  entityType     String       @map("entity_type")
+  entityId       String       @map("entity_id")
+  chainHash      String       @map("chain_hash")
+  projectionHash String       @map("projection_hash")
+  detectedAt     DateTime     @default(now()) @map("detected_at")
+  run            ReconcileRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@map("drift_items")
+}
