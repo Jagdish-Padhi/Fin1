@@ -141,14 +141,9 @@ export function AssetTypesView() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-[#17202A] tracking-tight">Asset Type Engine</h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0F2A43]/10 text-[#0F2A43] border border-[#0F2A43]/20">
-              Parametric Schemas
-            </span>
-          </div>
+          <h1 className="text-2xl font-bold text-[#17202A] tracking-tight">Asset Type Engine</h1>
           <p className="text-xs text-[#5A6A7E] mt-0.5">
-            On-chain attribute schemas, field-level privacy visibility, and required evidence policies
+            Attribute schemas, privacy rules, and mandatory evidence policies
           </p>
         </div>
 

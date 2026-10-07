@@ -15,7 +15,7 @@ import {
   Shield,
 } from 'lucide-react';
 
-export function Sidebar({ currentTab, onSelectTab }) {
+export function Sidebar({ currentTab, onSelectTab, onNavigateLanding }) {
   const { user } = useAuth();
 
   const navItems = [
@@ -80,18 +80,27 @@ export function Sidebar({ currentTab, onSelectTab }) {
       </div>
 
       {/* Network Status Footer */}
-      <div className="pt-3 border-t border-[#D8E0E8] text-[10px] text-[#5A6A7E] space-y-1.5">
+      <div className="pt-3 border-t border-[#D8E0E8] text-[10px] text-[#5A6A7E] space-y-2">
         <div className="flex items-center justify-between font-medium">
-          <span>Fabric Channel</span>
+          <span>Channel</span>
           <span className="font-mono text-[#17202A] font-semibold">rwa-channel</span>
         </div>
         <div className="flex items-center justify-between font-medium">
-          <span>Consortium Health</span>
+          <span>Consortium</span>
           <span className="text-[#18794E] font-semibold flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-[#18794E] animate-pulse" />
             6 Orgs Synced
           </span>
         </div>
+        {onNavigateLanding && (
+          <button
+            onClick={onNavigateLanding}
+            className="w-full pt-1 text-left text-xs font-semibold text-[#1F5A7A] hover:text-[#0F2A43] transition flex items-center justify-between"
+          >
+            <span>Platform Overview</span>
+            <span>→</span>
+          </button>
+        )}
       </div>
     </aside>
   );

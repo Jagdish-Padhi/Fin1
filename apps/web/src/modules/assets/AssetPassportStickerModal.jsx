@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, QrCode, ShieldCheck, Printer, CheckCircle2 } from 'lucide-react';
+import { X, QrCode, Printer, CheckCircle2 } from 'lucide-react';
 
 export function AssetPassportStickerModal({ isOpen, onClose, asset }) {
   if (!isOpen || !asset) return null;
@@ -9,8 +9,8 @@ export function AssetPassportStickerModal({ isOpen, onClose, asset }) {
       <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
         <div className="p-4 border-b border-[#D8E0E8] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-[#0F766E]" />
-            <h3 className="text-sm font-bold text-[#17202A]">Physical Asset Passport Sticker</h3>
+            <img src="/logo.png" alt="Logo" className="w-4 h-4 object-contain" />
+            <h3 className="text-sm font-bold text-[#17202A]">Physical Asset Passport</h3>
           </div>
           <button
             onClick={onClose}
@@ -24,11 +24,14 @@ export function AssetPassportStickerModal({ isOpen, onClose, asset }) {
         <div className="p-6 bg-[#F8FAFC]">
           <div className="p-5 rounded-2xl bg-white border-2 border-[#D8E0E8] text-center space-y-4 shadow-sm relative overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#D8E0E8] pb-3">
-              <span className="text-[11px] uppercase font-bold tracking-wider font-['Outfit',sans-serif]">
-                <span className="text-[#0F2A43]">Asse</span>
-                <span className="text-[#0F766E]">Trust</span>
-                <span className="text-[#5A6A7E] ml-1.5 font-sans font-medium">Digital Passport</span>
-              </span>
+              <div className="flex items-center gap-1.5">
+                <img src="/logo.png" alt="AsseTrust" className="w-5 h-5 object-contain" />
+                <span className="text-[11px] uppercase font-bold tracking-wider font-['Outfit',sans-serif]">
+                  <span className="text-[#0F2A43]">Asse</span>
+                  <span className="text-[#0F766E]">Trust</span>
+                  <span className="text-[#5A6A7E] ml-1.5 font-sans font-medium text-[10px]">Passport</span>
+                </span>
+              </div>
               <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0F766E]/10 text-[#0F766E] font-bold border border-[#0F766E]/20">
                 {asset.typeKey}
               </span>
@@ -46,13 +49,13 @@ export function AssetPassportStickerModal({ isOpen, onClose, asset }) {
             </div>
 
             <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8] text-[10px] font-mono text-[#5A6A7E] break-all space-y-1">
-              <span className="text-[#17202A] block uppercase font-bold text-[9px] tracking-wider">Ledger Root Hash:</span>
+              <span className="text-[#17202A] block uppercase font-bold text-[9px] tracking-wider">Root Hash:</span>
               <span className="text-[#17202A]">{asset.attributesHash?.substring(0, 32)}...</span>
             </div>
 
             <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#18794E] font-semibold pt-1">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Cryptographically Anchored to Consortium Channel</span>
+              <span>Cryptographically Anchored to Ledger</span>
             </div>
           </div>
         </div>

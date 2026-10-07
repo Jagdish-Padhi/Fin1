@@ -36,9 +36,7 @@ export function PublicVerifyPage({ onClose }) {
       <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 md:p-8 space-y-6">
         <div className="flex items-center justify-between border-b border-[#D8E0E8] pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#0F766E]/10 border border-[#0F766E]/20 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-[#0F766E]" />
-            </div>
+            <img src="/logo.png" alt="AsseTrust" className="w-9 h-9 object-contain" />
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-['Outfit',sans-serif] font-bold text-sm tracking-tight">
@@ -47,8 +45,7 @@ export function PublicVerifyPage({ onClose }) {
                 </span>
                 <span className="text-xs text-[#5A6A7E]">Public Ledger Disclosure</span>
               </div>
-              <h3 className="text-lg font-bold text-[#17202A] tracking-tight">Public Asset & Token Passport Verification</h3>
-              <p className="text-xs text-[#5A6A7E]">Cryptographically verifiable ledger proof without restricted data disclosure</p>
+              <h3 className="text-base font-bold text-[#17202A] tracking-tight">Asset & Token Verification</h3>
             </div>
           </div>
           <button

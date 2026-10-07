@@ -50,28 +50,20 @@ export function DashboardView({ onNavigate }) {
 
   return (
     <div className="space-y-6">
-      {/* Institutional Hero Banner */}
-      <div className="trust-card p-6 md:p-8 bg-gradient-to-r from-[#FFFFFF] via-[#F8FAFC] to-[#F0FDFA] border border-[#D8E0E8] relative overflow-hidden">
-        <div className="max-w-2xl space-y-2 relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F0FDFA] border border-[#CCFBF1] text-[#0F766E] text-[11px] font-semibold">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Consortium Security Node • Verified Channel</span>
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-[#0F2A43] tracking-tight font-['Outfit',sans-serif]">
-            Welcome, {user?.name}
+      {/* Executive Welcome Banner */}
+      <div className="trust-card p-6 bg-white border border-[#D8E0E8] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="space-y-1">
+          <h2 className="text-xl md:text-2xl font-bold text-[#0F2A43] tracking-tight font-['Outfit',sans-serif]">
+            {user?.name}
           </h2>
-          <p className="text-xs text-[#5A6A7E] leading-relaxed">
-            Consortium node authenticated for{' '}
-            <span className="text-[#0F2A43] font-semibold">{user?.mspId}</span> with institutional role{' '}
-            <span className="text-[#0F766E] font-semibold">{user?.role}</span>. All operations are
-            cryptographically signed, anchored on Hyperledger Fabric 2.5, and auditable across all 6 member organizations.
+          <p className="text-xs text-[#5A6A7E]">
+            {user?.mspId} • Role: {user?.role} • rwa-channel
           </p>
         </div>
-
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-4 text-right">
-          <div className="p-4 rounded-xl bg-white border border-[#D8E0E8] shadow-2xs space-y-1">
-            <span className="text-[10px] uppercase font-bold text-[#5A6A7E] block">Consortium Ledger</span>
-            <span className="text-sm font-bold font-mono text-[#0F2A43]">Block #{stats.blockHeight || 1}</span>
+        <div className="flex items-center gap-3 self-start md:self-auto">
+          <div className="px-3.5 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8]">
+            <span className="text-[10px] font-semibold text-[#5A6A7E] uppercase block">Ledger Height</span>
+            <span className="text-xs font-bold font-mono text-[#0F2A43]">Block #{stats.blockHeight || 1}</span>
           </div>
         </div>
       </div>

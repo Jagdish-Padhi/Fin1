@@ -8,10 +8,12 @@ import { IdentityAdminView } from './modules/identity-admin/IdentityAdminView.js
 import { AssetsView } from './modules/assets/AssetsView.jsx';
 import { AssetTypesView } from './modules/asset-types/AssetTypesView.jsx';
 import { PublicVerifyPage } from './modules/public-verify/PublicVerifyPage.jsx';
+import { LandingPage } from './modules/landing/LandingPage.jsx';
 import { ShieldCheck, ArrowLeft, Lock } from 'lucide-react';
 
 function MainLayout() {
   const { user, loading } = useAuth();
+  const [view, setView] = useState('landing'); // 'landing' | 'console'
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [showPublicVerify, setShowPublicVerify] = useState(false);
 
@@ -28,12 +30,37 @@ function MainLayout() {
     );
   }
 
+  // 1. Landing Page View
+  if (view === 'landing') {
+    return (
+      <>
+        <LandingPage
+          onEnterConsole={() => setView('console')}
+          onOpenPublicVerify={() => setShowPublicVerify(true)}
+        />
+        {showPublicVerify && (
+          <PublicVerifyPage onClose={() => setShowPublicVerify(false)} />
+        )}
+      </>
+    );
+  }
+
+  // 2. Consortium Management Console View
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#17202A]">
-      <Navbar onOpenPublicVerify={() => setShowPublicVerify(true)} />
+      <Navbar
+        onOpenPublicVerify={() => setShowPublicVerify(true)}
+        onNavigateLanding={() => setView('landing')}
+        onNavigateConsole={() => setView('console')}
+        isLandingView={false}
+      />
 
       <div className="flex-1 flex overflow-hidden">
-        <Sidebar currentTab={currentTab} onSelectTab={setCurrentTab} />
+        <Sidebar
+          currentTab={currentTab}
+          onSelectTab={setCurrentTab}
+          onNavigateLanding={() => setView('landing')}
+        />
 
         <main className="flex-1 overflow-y-auto p-6 md:p-8 max-w-7xl mx-auto w-full">
           {currentTab === 'dashboard' && <DashboardView onNavigate={setCurrentTab} />}
@@ -47,17 +74,17 @@ function MainLayout() {
             currentTab !== 'identity-admin' &&
             currentTab !== 'assets' &&
             currentTab !== 'asset-types' && (
-            <div className="trust-card p-8 space-y-4 max-w-2xl">
+            <div className="trust-card p-8 space-y-4 max-w-2xl bg-white border border-[#D8E0E8]">
               <div className="flex items-center gap-3.5">
                 <div className="p-3 rounded-xl bg-[#F0F4F8] text-[#0F2A43] border border-[#D8E0E8]">
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-[#0F2A43] capitalize">
-                    {currentTab.replace('-', ' ')} Module
+                    {currentTab.replace('-', ' ')}
                   </h3>
                   <p className="text-xs text-[#5A6A7E] mt-0.5">
-                    Governed under Hyperledger Fabric 2.5 smart contract specifications
+                    Permissioned chaincode module on rwa-channel
                   </p>
                 </div>
               </div>
@@ -65,10 +92,10 @@ function MainLayout() {
               <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#D8E0E8] text-xs text-[#17202A] space-y-2">
                 <div className="font-semibold text-[#0F766E] flex items-center gap-1.5">
                   <Lock className="w-3.5 h-3.5" />
-                  Consortium Governance Policy
+                  Consortium Policy
                 </div>
                 <p className="text-[#5A6A7E] leading-relaxed">
-                  Cryptographic transaction endpoints and multi-signatory access matrices for this module are active on the chaincode ledger. Access is scoped by institutional role assignments.
+                  Cryptographic transaction endpoints for this module are active on the chaincode ledger. Access is scoped by institutional role assignments.
                 </p>
               </div>
 
@@ -77,7 +104,7 @@ function MainLayout() {
                 className="text-xs font-semibold text-[#1F5A7A] hover:text-[#0F2A43] flex items-center gap-1.5 transition pt-2"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                Return to Executive Dashboard
+                Return to Dashboard
               </button>
             </div>
           )}
