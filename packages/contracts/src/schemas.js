@@ -221,12 +221,12 @@ export const ProposeValuationSchema = z.object({
 });
 
 export const RequestMintTokenSchema = z.object({
-  assetId: z.string().min(1),
+  assetId: z.string().trim().min(1),
   standard: z.nativeEnum(TokenStandard),
-  totalUnits: z.number().int().positive(),
-  unitLabel: z.string().default('UNITS'),
+  totalUnits: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+  unitLabel: z.string().trim().min(1).max(32).default('UNITS'),
   rightsType: z.nativeEnum(RightsType),
-  representation: z.string().min(10),
+  representation: z.string().trim().min(10),
 });
 
 export const ProposeTransferSchema = z.object({

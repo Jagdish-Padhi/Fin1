@@ -10,6 +10,7 @@ import {
   TransferRuleReason,
   LifecycleReason,
   EventName,
+  RequestMintTokenSchema,
 } from '@rwa/contracts';
 
 /**
@@ -881,21 +882,26 @@ export class MockGateway {
         if (caller.role !== Role.COMPLIANCE && caller.role !== Role.ADMINISTRATOR) {
           throw new Error('Only Compliance or Administrator can execute/approve token mint');
         }
-        const asset = this.assets.get(args.assetId);
-        if (!asset) throw new Error(`Asset not found: ${args.assetId}`);
+        const input = RequestMintTokenSchema.parse(args);
+        const asset = this.assets.get(input.assetId);
+        if (!asset) throw new Error(`Asset not found: ${input.assetId}`);
+        if (asset.tokenId) throw new Error(`Asset ${asset.id} is already tokenized`);
         if (asset.status !== AssetStatus.VALUED) {
           throw new Error(`Asset must be in VALUED state before tokenization, currently ${asset.status}`);
         }
+        if (!asset.originatorParticipantId) {
+          throw new Error(`Asset ${asset.id} has no originator participant for initial token allocation`);
+        }
 
-        const id = args.id || `TKN-${Date.now()}`;
+        const id = `TKN-${txId}`;
         const token = {
           id,
           assetId: asset.id,
-          standard: args.standard || TokenStandard.FRACTIONAL,
-          totalUnits: args.totalUnits || 10000,
-          unitLabel: args.unitLabel || 'UNITS',
-          rightsType: args.rightsType || 'UNDIVIDED_FRACTION',
-          representation: args.representation || 'Undivided economic interest in asset',
+          standard: input.standard,
+          totalUnits: input.totalUnits,
+          unitLabel: input.unitLabel,
+          rightsType: input.rightsType,
+          representation: input.representation,
           initialHolderId: asset.originatorParticipantId,
           status: 'ACTIVE',
           mintedAt: this._now(),
@@ -910,6 +916,7 @@ export class MockGateway {
         const prev = asset.status;
         asset.status = AssetStatus.TOKENIZED;
         asset.tokenId = id;
+        asset.updatedAt = token.mintedAt;
 
         this._appendAudit(caller, 'TOKEN', id, 'NONE', 'ACTIVE', 'TOKEN_MINTED', `Minted ${token.totalUnits} ${token.unitLabel}`, txId);
         this._appendAudit(caller, 'ASSET', asset.id, prev, AssetStatus.TOKENIZED, 'TOKEN_MINTED', `Asset tokenized into ${id}`, txId);
@@ -1106,10 +1113,12 @@ export class MockGateway {
       case 'listTokens':
         return Array.from(this.tokens.values());
       case 'getBalance': {
+        if (!this.tokens.has(args.tokenId)) throw new Error(`Token not found: ${args.tokenId}`);
         const key = `${args.tokenId}:${args.participantId}`;
         return { units: this.balances.get(key) || 0 };
       }
       case 'listHolders': {
+        if (!this.tokens.has(args.tokenId)) throw new Error(`Token not found: ${args.tokenId}`);
         const holders = [];
         for (const [key, units] of this.balances.entries()) {
           if (key.startsWith(`${args.tokenId}:`) && units > 0) {
@@ -1118,6 +1127,18 @@ export class MockGateway {
           }
         }
         return holders;
+      }
+      case 'getTokenTrace': {
+        const token = this.tokens.get(args.tokenId);
+        if (!token) return null;
+        const asset = this.assets.get(token.assetId);
+        if (!asset) throw new Error(`Asset not found for token ${args.tokenId}: ${token.assetId}`);
+        return {
+          token,
+          asset,
+          holders: await this.evaluate(caller, 'listHolders', { tokenId: args.tokenId }),
+          auditTrail: this.auditTrail.filter((entry) => entry.entityId === args.tokenId),
+        };
       }
       case 'getTransfer':
         return this.transfers.get(args.id) || null;

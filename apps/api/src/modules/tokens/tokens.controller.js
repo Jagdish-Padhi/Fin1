@@ -1,4 +1,5 @@
 import { tokensService } from './tokens.service.js';
+import { RequestMintTokenSchema } from '@rwa/contracts';
 
 export class TokensController {
   async list(req, res, next) {
@@ -29,9 +30,19 @@ export class TokensController {
     }
   }
 
+  async getBalance(req, res, next) {
+    try {
+      const data = await tokensService.getBalance(req.user, req.params.id, req.params.participantId);
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async mint(req, res, next) {
     try {
-      const data = await tokensService.mintToken(req.user, req.body);
+      const payload = RequestMintTokenSchema.parse(req.body);
+      const data = await tokensService.mintToken(req.user, payload);
       res.status(201).json({ success: true, data });
     } catch (err) {
       next(err);

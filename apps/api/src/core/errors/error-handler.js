@@ -37,6 +37,7 @@ export function errorHandler(err, req, res, next) {
     msg.includes('already registered') ||
     msg.includes('already attached') ||
     msg.includes('already pending') ||
+    msg.includes('already tokenized') ||
     msg.includes('Only PROPOSED valuations')
   ) {
     return res.status(409).json({
@@ -96,6 +97,7 @@ export function errorHandler(err, req, res, next) {
     msg.includes('validUntil') ||
     msg.includes('must remain VERIFIED') ||
     msg.includes('must be VERIFIED') ||
+    msg.includes('must be in VALUED state') ||
     msg.includes('is not active') ||
     msg.includes('expired and cannot be approved')
   ) {

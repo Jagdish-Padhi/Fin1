@@ -48,6 +48,33 @@ Testing
 - **API Module**: `apps/api/src/modules/tokens`
 - **Key Functions**: `mintToken`, `getBalance`, `listHolders`, `getTokenTrace`
 
+`POST /api/v1/tokens/mint` is restricted to `COMPLIANCE` and `ADMINISTRATOR`. The asset must be `VALUED` and not already tokenized. Minting creates one active token, assigns its full initial supply to the asset originator, changes the asset state to `TOKENIZED`, writes audit records for the token and asset, and emits `TokenMinted`.
+
+Mint request:
+
+```json
+{
+  "assetId": "AST-123",
+  "standard": "FRACTIONAL",
+  "totalUnits": 10000,
+  "unitLabel": "UNITS",
+  "rightsType": "UNDIVIDED_FRACTION",
+  "representation": "Undivided economic interest in the asset"
+}
+```
+
+`unitLabel` is optional and defaults to `UNITS`. `totalUnits` must be a positive safe integer; token standard and rights type must be supported enum values.
+
+Authenticated read endpoints:
+- `GET /api/v1/tokens` — list tokens.
+- `GET /api/v1/tokens/:id` — token record.
+- `GET /api/v1/tokens/:id/balance/:participantId` — participant units, including zero balance.
+- `GET /api/v1/tokens/:id/holders` — non-zero token holders.
+- `GET /api/v1/tokens/:id/trace` — token, related asset, holders, and token audit trail.
+- `GET /api/v1/tokens/public-verify/:id` — public token passport without authentication.
+
+Mint returns HTTP 201 with `{ "success": true, "data": <token> }`. Invalid requests return HTTP 400, unauthorized mint requests HTTP 403, missing token/asset reads HTTP 404, and repeat minting for a tokenized asset HTTP 409. Token transfers are Phase 6 and are not part of Phase 5.
+
 ---
 
 # Phase 6: Ownership, Transfer & Rule Engine
