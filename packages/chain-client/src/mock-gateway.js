@@ -429,6 +429,211 @@ export class MockGateway {
         .digest('hex'),
       createdAt: this._now(),
     });
+
+    // Seed default Assets
+    this.assets.set('AST-LAND-001', {
+      id: 'AST-LAND-001',
+      typeKey: 'LAND',
+      typeVersion: 1,
+      originatorParticipantId: 'PRT-ISSUER-01',
+      displayName: 'Mysuru Agro Commercial Land Parcel (10,000 sqm)',
+      attributes: {
+        surveyNumber: 'SY-MYS-421',
+        district: 'Mysuru',
+        state: 'Karnataka',
+        areaSqMeters: 10000,
+        landUse: 'AGRICULTURAL',
+      },
+      attributesHash: crypto
+        .createHash('sha256')
+        .update('AST-LAND-001')
+        .digest('hex'),
+      status: AssetStatus.TOKENIZED,
+      tokenId: 'TKN-LAND-001',
+      evidenceRoot: crypto
+        .createHash('sha256')
+        .update('EVD-ROOT-LAND')
+        .digest('hex'),
+      version: 1,
+      evidence: [],
+      createdAt: this._now(),
+      updatedAt: this._now(),
+    });
+
+    this.assets.set('AST-TRACTOR-001', {
+      id: 'AST-TRACTOR-001',
+      typeKey: 'VEHICLE',
+      typeVersion: 1,
+      originatorParticipantId: 'PRT-ISSUER-01',
+      displayName: 'Mahindra 575 DI 45HP Commercial Tractor',
+      attributes: {
+        registrationNumber: 'KA-09-TR-4011',
+        chassisNumber: 'MHD575DI998822',
+        make: 'Mahindra & Mahindra',
+        model: '575 DI XP Plus',
+        manufacturingYear: 2024,
+      },
+      attributesHash: crypto
+        .createHash('sha256')
+        .update('AST-TRACTOR-001')
+        .digest('hex'),
+      status: AssetStatus.TOKENIZED,
+      tokenId: 'TKN-TRACTOR-001',
+      evidenceRoot: crypto
+        .createHash('sha256')
+        .update('EVD-ROOT-TRACTOR')
+        .digest('hex'),
+      version: 1,
+      evidence: [],
+      createdAt: this._now(),
+      updatedAt: this._now(),
+    });
+
+    this.assets.set('AST-FROZEN-001', {
+      id: 'AST-FROZEN-001',
+      typeKey: 'REAL_ESTATE',
+      typeVersion: 1,
+      originatorParticipantId: 'PRT-ISSUER-01',
+      displayName: 'Bengaluru Tech Park Office Wing C [FROZEN]',
+      attributes: {
+        surveyNumber: 'SY-BLR-881',
+        propertyId: 'PID-TP-992',
+        locality: 'Whitefield, Bengaluru',
+        builtUpSqFt: 5000,
+      },
+      attributesHash: crypto
+        .createHash('sha256')
+        .update('AST-FROZEN-001')
+        .digest('hex'),
+      status: AssetStatus.FROZEN,
+      tokenId: 'TKN-FROZEN-001',
+      freezeReason: 'High Court Compliance Hold Order #HC-9921',
+      version: 1,
+      evidence: [],
+      createdAt: this._now(),
+      updatedAt: this._now(),
+    });
+
+    // Seed default Valuations
+    this.valuations.set('VAL-LAND-001', {
+      id: 'VAL-LAND-001',
+      assetId: 'AST-LAND-001',
+      amountPaise: 500000000,
+      currency: 'INR',
+      method: 'CIRCLE_RATE',
+      methodDetails: { ratePerSqMeterPaise: 50000 },
+      source: {
+        valuerName: 'Ananya Roy',
+        valuerOrg: 'TUV SGS Certified Inspection',
+      },
+      valuationDate: '2026-10-01T00:00:00.000Z',
+      validUntil: '2027-04-01T00:00:00.000Z',
+      status: 'APPROVED',
+      proposedBy: 'USR-VALUER',
+      proposedByMspId: 'VerifierMSP',
+      approvedBy: 'USR-COMPLIANCE',
+      approvedByMspId: 'ComplianceMSP',
+      createdAt: this._now(),
+    });
+
+    this.valuations.set('VAL-TRACTOR-001', {
+      id: 'VAL-TRACTOR-001',
+      assetId: 'AST-TRACTOR-001',
+      amountPaise: 75000000,
+      currency: 'INR',
+      method: 'DEPRECIATED_COST',
+      methodDetails: { purchasePriceInr: 850000, depreciationYears: 1 },
+      source: {
+        valuerName: 'Ananya Roy',
+        valuerOrg: 'TUV SGS Certified Inspection',
+      },
+      valuationDate: '2026-10-01T00:00:00.000Z',
+      validUntil: '2027-04-01T00:00:00.000Z',
+      status: 'APPROVED',
+      proposedBy: 'USR-VALUER',
+      proposedByMspId: 'VerifierMSP',
+      approvedBy: 'USR-COMPLIANCE',
+      approvedByMspId: 'ComplianceMSP',
+      createdAt: this._now(),
+    });
+
+    // Seed default Tokens
+    this.tokens.set('TKN-LAND-001', {
+      id: 'TKN-LAND-001',
+      assetId: 'AST-LAND-001',
+      standard: TokenStandard.FRACTIONAL,
+      totalUnits: 10000,
+      unitLabel: 'SQM',
+      rightsType: 'UNDIVIDED_FRACTION',
+      representation:
+        '1 Unit = 1 SQM undivided interest in Mysuru Survey #421',
+      initialHolderId: 'PRT-ISSUER-01',
+      status: 'ACTIVE',
+      mintedAt: this._now(),
+      mintedTxId: '0x99a811cde72183921bdfa89127812bcdea819213',
+    });
+
+    this.tokens.set('TKN-TRACTOR-001', {
+      id: 'TKN-TRACTOR-001',
+      assetId: 'AST-TRACTOR-001',
+      standard: TokenStandard.WHOLE,
+      totalUnits: 1,
+      unitLabel: 'VEHICLE',
+      rightsType: 'FULL_OWNERSHIP',
+      representation:
+        'Whole asset title deed ownership for Tractor MH-12-DE-9912',
+      initialHolderId: 'PRT-ISSUER-01',
+      status: 'ACTIVE',
+      mintedAt: this._now(),
+      mintedTxId: '0x88b722abde62719221cdfa88271827bcea718221',
+    });
+
+    this.tokens.set('TKN-FROZEN-001', {
+      id: 'TKN-FROZEN-001',
+      assetId: 'AST-FROZEN-001',
+      standard: TokenStandard.FRACTIONAL,
+      totalUnits: 5000,
+      unitLabel: 'SQFT',
+      rightsType: 'UNDIVIDED_FRACTION',
+      representation:
+        'Fractional ownership in Bengaluru Tech Park Office Wing C',
+      initialHolderId: 'PRT-ISSUER-01',
+      status: 'FROZEN',
+      mintedAt: this._now(),
+      mintedTxId: '0x77c611abde52618211cdfa77182717bcea617112',
+    });
+
+    // Seed default Balances
+    this.balances.set('TKN-LAND-001:PRT-ISSUER-01', 8000);
+    this.balances.set('TKN-LAND-001:PRT-INVESTOR-01', 2000);
+    this.balances.set('TKN-TRACTOR-001:PRT-ISSUER-01', 1);
+    this.balances.set('TKN-FROZEN-001:PRT-ISSUER-01', 5000);
+
+    // Seed default Transfers
+    this.transfers.set('TRF-DEMO-001', {
+      id: 'TRF-DEMO-001',
+      tokenId: 'TKN-LAND-001',
+      fromParticipantId: 'PRT-ISSUER-01',
+      toParticipantId: 'PRT-INVESTOR-01',
+      units: 2000,
+      pricePaise: 100000000,
+      paymentRef: 'NEFT-HDFC-9918237',
+      status: TransferStatus.EXECUTED,
+      ruleResults: {
+        PARTICIPANT_ACTIVE: { passed: true },
+        KYC_VERIFIED: { passed: true },
+        SELF_TRANSFER: { passed: true },
+        ASSET_TRANSFERABLE: { passed: true },
+        SELLER_BALANCE: { passed: true },
+        MAX_HOLDING_CAP: { passed: true },
+      },
+      rejectionReasons: [],
+      proposedBy: 'USR-ISSUER',
+      proposedByMspId: 'IssuerMSP',
+      createdAt: this._now(),
+      executedAt: this._now(),
+      executedTxId: '0x123abc456def789',
+    });
   }
 
   _now() {
@@ -1702,6 +1907,26 @@ export class MockGateway {
         break;
       }
 
+      case 'cancelTransfer': {
+        const transfer = this.transfers.get(args.transferId || args.id);
+        if (!transfer)
+          throw new Error(`Transfer not found: ${args.transferId || args.id}`);
+        const prev = transfer.status;
+        transfer.status = TransferStatus.CANCELLED;
+        this._appendAudit(
+          caller,
+          'TRANSFER',
+          transfer.id,
+          prev,
+          TransferStatus.CANCELLED,
+          'TRANSFER_CANCELLED',
+          args.reason || 'Cancelled by user',
+          txId
+        );
+        result = transfer;
+        break;
+      }
+
       case 'freezeAsset': {
         if (caller.role !== Role.COMPLIANCE) {
           throw new Error('Only Compliance can freeze assets');
@@ -1909,6 +2134,12 @@ export class MockGateway {
         return this.transfers.get(args.id) || null;
       case 'listTransfers':
         return Array.from(this.transfers.values());
+      case 'getTransferHistory': {
+        const tokenId = args.tokenId || args.id;
+        return Array.from(this.transfers.values()).filter(
+          (t) => t.tokenId === tokenId
+        );
+      }
       case 'getAuditTrail': {
         let entries = [...this.auditTrail];
         if (args.entityId) {
