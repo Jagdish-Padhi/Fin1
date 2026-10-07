@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { api } from '../../shared/services/api.js';
 import { StatusBadge } from '../../shared/components/StatusBadge.jsx';
 import { HashChip } from '../../shared/components/HashChip.jsx';
-import { Search, ShieldCheck, X, CheckCircle2 } from 'lucide-react';
+import { BrandLogo } from '../../shared/components/BrandLogo.jsx';
+import { Search, X, CheckCircle2 } from 'lucide-react';
 
 export function PublicVerifyPage({ onClose }) {
   const [tokenId, setTokenId] = useState('');
@@ -36,17 +37,9 @@ export function PublicVerifyPage({ onClose }) {
       <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 md:p-8 space-y-6">
         <div className="flex items-center justify-between border-b border-[#D8E0E8] pb-4">
           <div className="flex items-center gap-3.5">
-            <img src="/logo.png" alt="AsseTrust" className="w-11 h-11 object-contain" />
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-['Outfit',sans-serif] font-extrabold text-base tracking-tight">
-                  <span className="text-[#0F2A43]">Asse</span>
-                  <span className="text-[#0F766E]">Trust</span>
-                </span>
-                <span className="text-xs text-[#5A6A7E]">Public Ledger Disclosure</span>
-              </div>
-              <h3 className="text-base font-bold text-[#17202A] tracking-tight">Asset & Token Verification</h3>
-            </div>
+            <BrandLogo showSubtitle={false} />
+            <div className="h-6 w-[1px] bg-[#D8E0E8] hidden sm:block" />
+            <h3 className="text-sm sm:text-base font-bold text-[#17202A] tracking-tight">Public Verification</h3>
           </div>
           <button
             onClick={onClose}

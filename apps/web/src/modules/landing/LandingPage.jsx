@@ -1,5 +1,6 @@
 import React from 'react';
 import { HeroTokenAnimation } from '../Animations/hero-token.jsx';
+import { BrandLogo } from '../../shared/components/BrandLogo.jsx';
 import {
   ShieldCheck,
   Search,
@@ -49,14 +50,8 @@ export function LandingPage({ onEnterConsole, onOpenPublicVerify }) {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#17202A] flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Top Navigation */}
-      <header className="h-16 md:h-20 border-b border-[#D8E0E8] bg-white/95 backdrop-blur-md px-6 md:px-12 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center gap-3.5">
-          <img src="/logo.png" alt="AsseTrust" className="w-11 h-11 md:w-12 md:h-12 object-contain hover:scale-105 transition-transform" />
-          <span className="text-2xl font-extrabold tracking-tight font-['Outfit',sans-serif]">
-            <span className="text-[#0F2A43]">Asse</span>
-            <span className="text-[#0F766E]">Trust</span>
-          </span>
-        </div>
+      <header className="h-16 border-b border-[#D8E0E8] bg-white/95 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-40">
+        <BrandLogo onClick={onEnterConsole} />
 
         <nav className="hidden md:flex items-center gap-8 text-xs font-semibold text-[#5A6A7E]">
           <a href="#features" className="hover:text-[#0F2A43] transition">Capabilities</a>
@@ -199,13 +194,7 @@ export function LandingPage({ onEnterConsole, onOpenPublicVerify }) {
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-[#D8E0E8]">
             <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <img src="/logo.png" alt="AsseTrust" className="w-10 h-10 object-contain" />
-                <span className="text-xl font-extrabold tracking-tight font-['Outfit',sans-serif]">
-                  <span className="text-[#0F2A43]">Asse</span>
-                  <span className="text-[#0F766E]">Trust</span>
-                </span>
-              </div>
+              <BrandLogo onClick={onEnterConsole} showSubtitle={false} />
               <p className="text-xs text-[#5A6A7E] max-w-sm">
                 Institutional Real-World Asset Governance & Tokenization Infrastructure.
               </p>
