@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../shared/services/api.js';
 import { AssetPassportStickerModal } from './AssetPassportStickerModal.jsx';
+import { StatusBadge } from '../../shared/components/StatusBadge.jsx';
 import {
   X,
   ShieldCheck,
@@ -16,7 +17,6 @@ import {
   Building,
   User,
   ArrowRight,
-  ExternalLink,
   RefreshCw,
 } from 'lucide-react';
 
@@ -142,39 +142,23 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
   const canEdit =
     asset?.status === 'REGISTERED' && (user?.role === 'ISSUER' || user?.role === 'ADMINISTRATOR');
 
-  const statusColors = {
-    REGISTERED: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-    UNDER_VERIFICATION: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    VERIFIED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    REJECTED: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-    TOKENIZED: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  };
-
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/70 backdrop-blur-sm flex justify-end">
-      <div className="w-full max-w-2xl bg-slate-900 border-l border-slate-800 h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-[#0F2A43]/40 backdrop-blur-xs flex justify-end">
+      <div className="w-full max-w-2xl bg-white border-l border-[#D8E0E8] h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-250">
         {/* Header */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/80">
+        <div className="p-5 border-b border-[#D8E0E8] flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-              <ShieldCheck className="w-5 h-5" />
+            <div className="p-2.5 rounded-xl bg-[#F0F4F8] border border-[#D8E0E8] text-[#0F2A43]">
+              <ShieldCheck className="w-5 h-5 text-[#0F766E]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-white tracking-tight">
+                <h2 className="text-base font-bold text-[#0F2A43] font-['Outfit',sans-serif]">
                   {loading ? 'Loading Asset...' : asset?.displayName || 'Asset Passport'}
                 </h2>
-                {asset && (
-                  <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium border ${
-                      statusColors[asset.status] || 'bg-slate-800 text-slate-300 border-slate-700'
-                    }`}
-                  >
-                    {asset.status}
-                  </span>
-                )}
+                {asset && <StatusBadge status={asset.status} />}
               </div>
-              <div className="text-xs font-mono text-slate-400 truncate max-w-sm">
+              <div className="text-xs font-mono text-[#5A6A7E] truncate max-w-sm">
                 ID: {asset?.id}
               </div>
             </div>
@@ -183,16 +167,16 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
             {asset && (
               <button
                 onClick={() => setShowSticker(true)}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition"
+                className="px-3 py-1.5 rounded-lg bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#0F2A43] text-xs font-semibold border border-[#D8E0E8] flex items-center gap-1.5 transition shadow-2xs"
                 title="Generate physical sticker"
               >
-                <Printer className="w-3.5 h-3.5 text-indigo-400" />
+                <Printer className="w-3.5 h-3.5 text-[#0F766E]" />
                 <span className="hidden sm:inline">Sticker</span>
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              className="p-1.5 rounded-lg text-[#5A6A7E] hover:text-[#0F2A43] hover:bg-[#F8FAFC] transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -200,43 +184,43 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-slate-800 px-5 bg-slate-950/40">
+        <div className="flex border-b border-[#D8E0E8] px-5 bg-[#F8FAFC]">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`py-3 px-3 text-xs font-semibold border-b-2 transition ${
+            className={`py-3 px-3 text-xs font-bold border-b-2 transition ${
               activeTab === 'overview'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-[#0F2A43] text-[#0F2A43]'
+                : 'border-transparent text-[#5A6A7E] hover:text-[#0F2A43]'
             }`}
           >
             Overview & Passport
           </button>
           <button
             onClick={() => setActiveTab('attributes')}
-            className={`py-3 px-3 text-xs font-semibold border-b-2 transition flex items-center gap-1.5 ${
+            className={`py-3 px-3 text-xs font-bold border-b-2 transition flex items-center gap-1.5 ${
               activeTab === 'attributes'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-[#0F2A43] text-[#0F2A43]'
+                : 'border-transparent text-[#5A6A7E] hover:text-[#0F2A43]'
             }`}
           >
             Dynamic Attributes
             {asset?.attributes && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-slate-400">
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[#E2E8F0] text-[#0F2A43] font-semibold">
                 {Object.keys(asset.attributes).length}
               </span>
             )}
           </button>
           <button
             onClick={() => setActiveTab('evidence')}
-            className={`py-3 px-3 text-xs font-semibold border-b-2 transition flex items-center gap-1.5 ${
+            className={`py-3 px-3 text-xs font-bold border-b-2 transition flex items-center gap-1.5 ${
               activeTab === 'evidence'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-[#0F2A43] text-[#0F2A43]'
+                : 'border-transparent text-[#5A6A7E] hover:text-[#0F2A43]'
             }`}
           >
             Evidence Vault & Merkle
             {asset?.evidenceFiles && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-500/20 text-indigo-300">
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[#F0FDFA] text-[#0F766E] font-semibold border border-[#CCFBF1]">
                 {asset.evidenceFiles.length}
               </span>
             )}
@@ -244,39 +228,38 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
         </div>
 
         {/* Body Content */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-[#F8FAFC]/50">
           {loading && (
-            <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
-              <RefreshCw className="w-6 h-6 animate-spin text-indigo-500" />
-              <span className="text-xs font-mono">Syncing asset ledger state...</span>
+            <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#5A6A7E]">
+              <RefreshCw className="w-6 h-6 animate-spin text-[#0F766E]" />
+              <span className="text-xs font-semibold font-mono">Syncing asset ledger state...</span>
             </div>
           )}
 
           {error && (
-            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECDD3] text-xs text-[#B42318] flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-[#B42318] shrink-0 mt-0.5" />
               <div>{error}</div>
             </div>
           )}
 
           {!loading && asset && activeTab === 'overview' && (
-            <div className="space-y-5">
-              {/* Submission Alert if REGISTERED */}
+            <div className="space-y-4">
+              {/* Submission Action if REGISTERED */}
               {asset.status === 'REGISTERED' && (
-                <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-950/40 to-slate-900 border border-indigo-500/30 space-y-3">
+                <div className="p-4 rounded-xl bg-[#F0FDFA] border border-[#CCFBF1] space-y-3 shadow-2xs">
                   <div className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
-                    <div className="space-y-1">
-                      <div className="text-xs font-bold text-white">Asset in Registered Stage</div>
-                      <p className="text-xs text-slate-300">
-                        Attributes can still be modified and required evidence attached before
-                        submitting for consortium verifier audit.
+                    <CheckCircle2 className="w-5 h-5 text-[#0F766E] shrink-0 mt-0.5" />
+                    <div className="space-y-0.5">
+                      <div className="text-xs font-bold text-[#0F2A43]">Asset in Registered Stage</div>
+                      <p className="text-xs text-[#5A6A7E]">
+                        Attributes can be updated and mandatory evidence attached before submitting to the consortium verifier pool.
                       </p>
                     </div>
                   </div>
 
                   {verificationError && (
-                    <div className="p-2.5 rounded-lg bg-rose-500/20 text-xs text-rose-200 border border-rose-500/30">
+                    <div className="p-2.5 rounded-lg bg-[#FEF2F2] text-xs text-[#B42318] border border-[#FECDD3]">
                       {verificationError}
                     </div>
                   )}
@@ -285,7 +268,7 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
                     <button
                       onClick={handleSubmitForVerification}
                       disabled={submittingVerification}
-                      className="w-full py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center justify-center gap-2 transition shadow-lg shadow-indigo-600/20"
+                      className="w-full py-2 px-3 rounded-lg bg-[#0F2A43] hover:bg-[#0A1E30] disabled:opacity-50 text-white text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs"
                     >
                       {submittingVerification ? (
                         <>
@@ -305,67 +288,67 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
 
               {/* Passport Metadata Grid */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                <div className="trust-card p-3.5 space-y-1">
+                  <div className="text-[10px] text-[#5A6A7E] uppercase tracking-wider font-bold">
                     Asset Class
                   </div>
-                  <div className="text-sm font-bold text-white flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-indigo-400" />
+                  <div className="text-sm font-bold text-[#0F2A43] flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#0F766E]" />
                     {asset.typeKey}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                <div className="trust-card p-3.5 space-y-1">
+                  <div className="text-[10px] text-[#5A6A7E] uppercase tracking-wider font-bold">
                     Jurisdiction
                   </div>
-                  <div className="text-sm font-bold text-white flex items-center gap-1.5">
-                    <Globe className="w-3.5 h-3.5 text-slate-400" />
+                  <div className="text-sm font-bold text-[#0F2A43] flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-[#1F5A7A]" />
                     {asset.jurisdiction || 'IN'}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
-                    Registered Issuer
+                <div className="trust-card p-3.5 space-y-1">
+                  <div className="text-[10px] text-[#5A6A7E] uppercase tracking-wider font-bold">
+                    Originating Issuer
                   </div>
-                  <div className="text-xs font-mono text-slate-300 truncate">
+                  <div className="text-xs font-mono font-semibold text-[#17202A] truncate">
                     {asset.issuerId || 'N/A'}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                <div className="trust-card p-3.5 space-y-1">
+                  <div className="text-[10px] text-[#5A6A7E] uppercase tracking-wider font-bold">
                     Designated Custodian
                   </div>
-                  <div className="text-xs font-mono text-slate-300 truncate">
+                  <div className="text-xs font-mono font-semibold text-[#17202A] truncate">
                     {asset.custodian || 'CustodianOrgMSP'}
                   </div>
                 </div>
               </div>
 
-              {/* Cryptographic Integrity Roots */}
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+              {/* Cryptographic Roots */}
+              <div className="trust-card p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-indigo-400" />
-                    Cryptographic Anchors
+                  <div className="text-xs font-bold text-[#0F2A43] flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-[#0F766E]" />
+                    Cryptographic Integrity Anchors
                   </div>
-                  <span className="text-[10px] font-mono text-slate-400">SHA-256</span>
+                  <span className="text-[10px] font-mono text-[#5A6A7E]">SHA-256</span>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-850 flex items-center justify-between text-xs font-mono">
+                  <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8] flex items-center justify-between text-xs font-mono">
                     <div className="truncate mr-2">
-                      <span className="text-slate-500 text-[10px] block">ATTRIBUTES HASH</span>
-                      <span className="text-slate-300 text-[11px]">
+                      <span className="text-[#5A6A7E] text-[10px] block font-bold">ATTRIBUTES ROOT HASH</span>
+                      <span className="text-[#17202A] text-[11px] font-semibold">
                         {asset.attributesHash || 'None'}
                       </span>
                     </div>
                     {asset.attributesHash && (
                       <button
                         onClick={() => handleCopy(asset.attributesHash)}
-                        className="p-1 rounded text-slate-400 hover:text-white"
+                        className="p-1 rounded text-[#5A6A7E] hover:text-[#0F2A43]"
                         title="Copy hash"
                       >
                         <Copy className="w-3.5 h-3.5" />
@@ -373,19 +356,17 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
                     )}
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-850 flex items-center justify-between text-xs font-mono">
+                  <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8] flex items-center justify-between text-xs font-mono">
                     <div className="truncate mr-2">
-                      <span className="text-slate-500 text-[10px] block">
-                        EVIDENCE MERKLE ROOT
-                      </span>
-                      <span className="text-indigo-400 font-semibold text-[11px]">
+                      <span className="text-[#5A6A7E] text-[10px] block font-bold">EVIDENCE MERKLE ROOT</span>
+                      <span className="text-[#0F766E] font-bold text-[11px]">
                         {asset.evidenceRoot || '0x00000000000000000000000000000000'}
                       </span>
                     </div>
                     {asset.evidenceRoot && (
                       <button
                         onClick={() => handleCopy(asset.evidenceRoot)}
-                        className="p-1 rounded text-slate-400 hover:text-white"
+                        className="p-1 rounded text-[#5A6A7E] hover:text-[#0F2A43]"
                         title="Copy Merkle root"
                       >
                         <Copy className="w-3.5 h-3.5" />
@@ -396,12 +377,12 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
               </div>
 
               {/* Audit Timestamps */}
-              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" />
+              <div className="trust-card p-3 flex items-center justify-between text-[11px] text-[#5A6A7E]">
+                <span className="flex items-center gap-1 font-medium">
+                  <Calendar className="w-3.5 h-3.5 text-[#1F5A7A]" />
                   Created: {new Date(asset.createdAt).toLocaleString()}
                 </span>
-                <span>Updated: {new Date(asset.updatedAt).toLocaleString()}</span>
+                <span className="font-medium">Updated: {new Date(asset.updatedAt).toLocaleString()}</span>
               </div>
             </div>
           )}
@@ -410,15 +391,17 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xs font-bold text-white">Dynamic Asset Attributes</h3>
-                  <p className="text-[11px] text-slate-400">
+                  <h3 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider">
+                    Dynamic Asset Attributes
+                  </h3>
+                  <p className="text-[11px] text-[#5A6A7E]">
                     Governed by {asset.typeKey} schema definition
                   </p>
                 </div>
                 {canEdit && !editingAttributes && (
                   <button
                     onClick={() => setEditingAttributes(true)}
-                    className="px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 text-xs font-semibold border border-indigo-500/30 transition"
+                    className="px-2.5 py-1 rounded-lg bg-[#F0F4F8] text-[#0F2A43] hover:bg-[#E2E8F0] text-xs font-semibold border border-[#D8E0E8] transition"
                   >
                     Edit Attributes
                   </button>
@@ -426,10 +409,10 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
               </div>
 
               {editingAttributes ? (
-                <div className="space-y-3 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <div className="space-y-3 trust-card p-4">
                   {Object.entries(editValues).map(([k, val]) => (
                     <div key={k} className="space-y-1">
-                      <label className="text-xs font-medium text-slate-300 capitalize">
+                      <label className="text-xs font-semibold text-[#17202A] capitalize">
                         {k.replace(/([A-Z])/g, ' $1')}
                       </label>
                       <input
@@ -444,29 +427,29 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
                                 : e.target.value,
                           })
                         }
-                        className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
+                        className="w-full px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8] text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
                       />
                     </div>
                   ))}
 
-                  <div className="flex justify-end gap-2 pt-2">
+                  <div className="flex justify-end gap-2 pt-2 border-t border-[#D8E0E8]">
                     <button
                       onClick={() => setEditingAttributes(false)}
-                      className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-medium"
+                      className="px-3 py-1.5 rounded-lg text-[#5A6A7E] hover:text-[#17202A] text-xs font-semibold"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSaveAttributes}
                       disabled={savingAttributes}
-                      className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5"
+                      className="px-3.5 py-1.5 rounded-lg bg-[#0F2A43] hover:bg-[#0A1E30] text-white text-xs font-semibold flex items-center gap-1.5"
                     >
-                      {savingAttributes ? 'Saving...' : 'Save & Hash'}
+                      {savingAttributes ? 'Saving...' : 'Save & Re-hash'}
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-800 rounded-xl bg-slate-950 border border-slate-800 overflow-hidden">
+                <div className="divide-y divide-[#E8EEF3] trust-card overflow-hidden">
                   {Object.entries(asset.attributes || {}).map(([key, val]) => {
                     const isRedacted =
                       val === '[REDACTED (CONSORTIUM PRIVILEGED)]' ||
@@ -474,24 +457,24 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
                     return (
                       <div
                         key={key}
-                        className="p-3.5 flex items-center justify-between text-xs hover:bg-slate-900/50"
+                        className="p-3.5 flex items-center justify-between text-xs hover:bg-[#F8FAFC]"
                       >
                         <div className="space-y-0.5">
-                          <span className="font-semibold text-slate-200 capitalize">
+                          <span className="font-bold text-[#0F2A43] capitalize">
                             {key.replace(/([A-Z])/g, ' $1')}
                           </span>
-                          <span className="text-[10px] text-slate-500 font-mono block">
+                          <span className="text-[10px] text-[#5A6A7E] font-mono block">
                             key: {key}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
                           {isRedacted ? (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#FEF2F2] text-[#B42318] border border-[#FECDD3] flex items-center gap-1">
                               <Lock className="w-3 h-3" />
-                              Redacted
+                              Redacted (Consortium Privileged)
                             </span>
                           ) : (
-                            <span className="font-mono text-slate-300 font-medium">
+                            <span className="font-mono text-[#17202A] font-semibold text-xs">
                               {typeof val === 'number'
                                 ? val.toLocaleString()
                                 : typeof val === 'object'
@@ -512,16 +495,18 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xs font-bold text-white">Anchored Evidence Vault</h3>
-                  <p className="text-[11px] text-slate-400">
+                  <h3 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider">
+                    Anchored Evidence Vault
+                  </h3>
+                  <p className="text-[11px] text-[#5A6A7E]">
                     Documents verified and anchored via SHA-256 Merkle root
                   </p>
                 </div>
               </div>
 
               {attachSuccess && (
-                <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div className="p-3 rounded-lg bg-[#F0FDF4] border border-[#BBF7D0] text-xs text-[#18794E] flex items-center gap-2 font-semibold">
+                  <CheckCircle2 className="w-4 h-4 text-[#18794E] shrink-0" />
                   <span>{attachSuccess}</span>
                 </div>
               )}
@@ -532,28 +517,28 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
                   asset.evidenceFiles.map((doc, idx) => (
                     <div
                       key={idx}
-                      className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2 hover:border-slate-700 transition"
+                      className="p-3.5 trust-card space-y-2 hover:border-[#BAC7D5] transition"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <FileCheck className="w-4 h-4 text-emerald-400" />
-                          <span className="text-xs font-bold text-white">{doc.title}</span>
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300">
+                          <FileCheck className="w-4 h-4 text-[#0F766E]" />
+                          <span className="text-xs font-bold text-[#0F2A43]">{doc.title}</span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8]">
                             {doc.docType}
                           </span>
                         </div>
-                        <span className="text-[10px] text-slate-500">
+                        <span className="text-[10px] text-[#5A6A7E] font-medium">
                           {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'Anchored'}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between bg-slate-900 p-2 rounded-lg text-[10px] font-mono">
-                        <span className="text-slate-400 truncate max-w-sm">
+                      <div className="flex items-center justify-between bg-[#F8FAFC] p-2 rounded-lg text-[10px] font-mono border border-[#D8E0E8]">
+                        <span className="text-[#5A6A7E] truncate max-w-sm">
                           SHA256: {doc.sha256}
                         </span>
                         <button
                           onClick={() => handleCopy(doc.sha256)}
-                          className="p-1 rounded text-slate-400 hover:text-white"
+                          className="p-1 rounded text-[#5A6A7E] hover:text-[#0F2A43]"
                           title="Copy hash"
                         >
                           <Copy className="w-3 h-3" />
@@ -562,7 +547,7 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
                     </div>
                   ))
                 ) : (
-                  <div className="py-8 text-center text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-slate-800">
+                  <div className="py-8 text-center text-xs text-[#5A6A7E] trust-card">
                     No evidence documents attached yet.
                   </div>
                 )}
@@ -572,16 +557,16 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
               {canEdit && (
                 <form
                   onSubmit={handleAttachEvidence}
-                  className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3"
+                  className="p-4 trust-card space-y-3"
                 >
-                  <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <Upload className="w-3.5 h-3.5 text-indigo-400" />
+                  <div className="text-xs font-bold text-[#0F2A43] flex items-center gap-1.5 uppercase tracking-wider">
+                    <Upload className="w-3.5 h-3.5 text-[#0F766E]" />
                     Attach New Evidence Document
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2.5">
                     <div>
-                      <label className="text-[10px] text-slate-400 font-semibold uppercase">
+                      <label className="text-[10px] text-[#5A6A7E] font-bold uppercase">
                         Document Type *
                       </label>
                       <input
@@ -590,11 +575,11 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
                         value={uploadDocType}
                         onChange={(e) => setUploadDocType(e.target.value.toUpperCase())}
                         required
-                        className="w-full mt-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
+                        className="w-full mt-1 px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8] text-xs text-[#17202A] font-mono focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-slate-400 font-semibold uppercase">
+                      <label className="text-[10px] text-[#5A6A7E] font-bold uppercase">
                         Document Title
                       </label>
                       <input
@@ -602,26 +587,25 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
                         placeholder="e.g. Verified Government Registry"
                         value={uploadTitle}
                         onChange={(e) => setUploadTitle(e.target.value)}
-                        className="w-full mt-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
+                        className="w-full mt-1 px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8] text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
                       />
                     </div>
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between">
-                      <label className="text-[10px] text-slate-400 font-semibold uppercase">
+                      <label className="text-[10px] text-[#5A6A7E] font-bold uppercase">
                         Document SHA-256 Hash *
                       </label>
                       <button
                         type="button"
                         onClick={() => {
-                          // generate mock deterministic sha256
                           const rand = Array.from({ length: 64 }, () =>
                             Math.floor(Math.random() * 16).toString(16)
                           ).join('');
                           setUploadHash(rand);
                         }}
-                        className="text-[10px] text-indigo-400 hover:text-indigo-300"
+                        className="text-[10px] text-[#0F766E] hover:text-[#0D655E] font-semibold"
                       >
                         Generate Hash
                       </button>
@@ -632,14 +616,14 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
                       value={uploadHash}
                       onChange={(e) => setUploadHash(e.target.value)}
                       required
-                      className="w-full mt-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
+                      className="w-full mt-1 px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8] text-xs text-[#17202A] font-mono focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={attaching || !uploadDocType || !uploadHash}
-                    className="w-full py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+                    className="w-full py-2 px-3 rounded-lg bg-[#0F2A43] hover:bg-[#0A1E30] disabled:opacity-50 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-xs"
                   >
                     {attaching ? (
                       <>

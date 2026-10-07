@@ -33,23 +33,25 @@ export function ReviewKycModal({ isOpen, onClose, participant, onUpdated }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl">
-        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F2A43]/40 backdrop-blur-xs">
+      <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-lg shadow-popover">
+        <div className="p-5 border-b border-[#D8E0E8] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+            <div className="p-2.5 rounded-xl bg-[#FEFCE8] border border-[#FEF08A] text-[#A16207]">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">Compliance KYC Review</h3>
-              <p className="text-xs text-slate-400">
-                Participant: <span className="font-mono text-indigo-400">{participant.id}</span>
+              <h3 className="text-base font-bold text-[#0F2A43] font-['Outfit',sans-serif]">
+                Compliance KYC Decision
+              </h3>
+              <p className="text-xs text-[#5A6A7E]">
+                Participant ID: <span className="font-mono text-[#0F766E] font-semibold">{participant.id}</span>
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1.5 rounded-lg text-[#5A6A7E] hover:text-[#0F2A43] hover:bg-[#F8FAFC] transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -57,125 +59,97 @@ export function ReviewKycModal({ isOpen, onClose, participant, onUpdated }) {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-400 flex items-center gap-2">
+            <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECDD3] text-xs text-[#B42318] flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
-          {/* Participant Summary */}
-          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-1.5">
-            <div className="flex justify-between">
-              <span className="text-slate-400">Legal Name:</span>
-              <span className="font-semibold text-slate-200">{participant.pii?.legalName || 'N/A'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Organization:</span>
-              <span className="font-mono text-slate-300">{participant.orgId}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Investor Class:</span>
-              <span className="text-purple-400 font-semibold">{participant.investorClass}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Current KYC:</span>
-              <span className="text-amber-400 font-mono">{participant.kycStatus}</span>
-            </div>
-          </div>
-
-          {/* Decision Selection */}
+          {/* Decision Selector */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2">Compliance Decision</label>
+            <label className="block text-xs font-semibold text-[#17202A] mb-2">Compliance Action</label>
             <div className="grid grid-cols-3 gap-2.5">
               <button
                 type="button"
                 onClick={() => setDecision('APPROVED')}
-                className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-medium transition ${
+                className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition ${
                   decision === 'APPROVED'
-                    ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400 ring-1 ring-emerald-500'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    ? 'bg-[#F0FDF4] border-[#18794E] text-[#18794E] shadow-2xs'
+                    : 'bg-[#F8FAFC] border-[#D8E0E8] text-[#5A6A7E] hover:bg-white'
                 }`}
               >
-                <CheckCircle className="w-4 h-4 mb-1" />
-                <span>Approve</span>
+                <CheckCircle className="w-4 h-4" />
+                <span>Approve KYC</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setDecision('UNDER_REVIEW')}
-                className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-medium transition ${
+                className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition ${
                   decision === 'UNDER_REVIEW'
-                    ? 'bg-amber-500/10 border-amber-500 text-amber-400 ring-1 ring-amber-500'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    ? 'bg-[#FEFCE8] border-[#A16207] text-[#A16207] shadow-2xs'
+                    : 'bg-[#F8FAFC] border-[#D8E0E8] text-[#5A6A7E] hover:bg-white'
                 }`}
               >
-                <Clock className="w-4 h-4 mb-1" />
-                <span>Under Review</span>
+                <Clock className="w-4 h-4" />
+                <span>Hold / Review</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setDecision('REJECTED')}
-                className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-medium transition ${
+                className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition ${
                   decision === 'REJECTED'
-                    ? 'bg-rose-500/10 border-rose-500 text-rose-400 ring-1 ring-rose-500'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    ? 'bg-[#FEF2F2] border-[#B42318] text-[#B42318] shadow-2xs'
+                    : 'bg-[#F8FAFC] border-[#D8E0E8] text-[#5A6A7E] hover:bg-white'
                 }`}
               >
-                <XCircle className="w-4 h-4 mb-1" />
-                <span>Reject</span>
+                <XCircle className="w-4 h-4" />
+                <span>Reject KYC</span>
               </button>
             </div>
           </div>
 
-          {/* Reason Code & Mandatory Justification */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Reason / Justification <span className="text-rose-400">*</span>
+            <label className="block text-xs font-semibold text-[#17202A] mb-1">
+              Audit Decision Justification *
             </label>
             <textarea
               required
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="e.g. Identity and tax records verified against national database without discrepancies."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+              placeholder="Provide a regulatory rationale (e.g. Identity documents cross-verified with registry)..."
+              className="w-full bg-[#F8FAFC] border border-[#D8E0E8] rounded-xl p-3 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
             />
           </div>
 
-          {/* Expiry Date (Optional) */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
-              KYC Validity Expiration Date (Optional)
+            <label className="block text-xs font-semibold text-[#17202A] mb-1">
+              KYC Expiry Date (Optional)
             </label>
             <input
               type="date"
               value={expiryDate}
               onChange={(e) => setExpiryDate(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+              className="w-full bg-[#F8FAFC] border border-[#D8E0E8] rounded-xl p-2.5 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-2 pt-3 border-t border-[#D8E0E8]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition"
+              className="px-4 py-2 text-xs font-semibold text-[#5A6A7E] hover:text-[#17202A]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className={`px-5 py-2 rounded-lg text-xs font-semibold text-white shadow-lg flex items-center gap-2 transition disabled:opacity-50 ${
-                decision === 'APPROVED'
-                  ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20'
-                  : decision === 'REJECTED'
-                    ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-600/20'
-                    : 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20'
-              }`}
+              className="px-5 py-2 text-xs font-semibold bg-[#0F2A43] hover:bg-[#0A1E30] text-white rounded-lg transition"
             >
-              {loading ? 'Submitting to Chaincode...' : `Confirm ${decision}`}
+              {loading ? 'Committing...' : 'Commit KYC Decision'}
             </button>
           </div>
         </form>

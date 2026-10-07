@@ -4,7 +4,7 @@ import { Copy, Check } from 'lucide-react';
 export function HashChip({ hash, truncate = true, label }) {
   const [copied, setCopied] = useState(false);
 
-  if (!hash) return <span className="text-slate-500 font-mono text-xs">N/A</span>;
+  if (!hash) return <span className="text-[#8795A5] font-mono text-xs">N/A</span>;
 
   const display = truncate && hash.length > 16 ? `${hash.slice(0, 8)}...${hash.slice(-6)}` : hash;
 
@@ -18,11 +18,15 @@ export function HashChip({ hash, truncate = true, label }) {
     <button
       onClick={handleCopy}
       title={`Click to copy: ${hash}`}
-      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 font-mono text-xs transition"
+      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#F8FAFC] border border-[#D8E0E8] hover:border-[#1F5A7A] hover:bg-white text-[#17202A] font-mono text-xs transition shadow-2xs"
     >
-      {label && <span className="text-slate-500 font-sans">{label}:</span>}
-      <span>{display}</span>
-      {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-slate-500" />}
+      {label && <span className="text-[#5A6A7E] font-sans text-[11px] font-medium">{label}:</span>}
+      <span className="text-[11px] font-semibold">{display}</span>
+      {copied ? (
+        <Check className="w-3 h-3 text-[#18794E]" />
+      ) : (
+        <Copy className="w-3 h-3 text-[#5A6A7E]" />
+      )}
     </button>
   );
 }

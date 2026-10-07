@@ -8,7 +8,7 @@ import { IdentityAdminView } from './modules/identity-admin/IdentityAdminView.js
 import { AssetsView } from './modules/assets/AssetsView.jsx';
 import { AssetTypesView } from './modules/asset-types/AssetTypesView.jsx';
 import { PublicVerifyPage } from './modules/public-verify/PublicVerifyPage.jsx';
-import { ShieldCheck, Layers, FileCheck, TrendingUp, Coins, ArrowRightLeft, Activity, History } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, Lock } from 'lucide-react';
 
 function MainLayout() {
   const { user, loading } = useAuth();
@@ -17,17 +17,19 @@ function MainLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-slate-400">
-          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs font-mono">Initializing EkamVistar Consortium Node...</span>
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-[#5A6A7E]">
+          <div className="w-8 h-8 border-2 border-[#0F2A43] border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-semibold font-mono tracking-wide text-[#1F5A7A]">
+            Initializing AsseTrust Security Node...
+          </span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#17202A]">
       <Navbar onOpenPublicVerify={() => setShowPublicVerify(true)} />
 
       <div className="flex-1 flex overflow-hidden">
@@ -45,31 +47,37 @@ function MainLayout() {
             currentTab !== 'identity-admin' &&
             currentTab !== 'assets' &&
             currentTab !== 'asset-types' && (
-            <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-8 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+            <div className="trust-card p-8 space-y-4 max-w-2xl">
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 rounded-xl bg-[#F0F4F8] text-[#0F2A43] border border-[#D8E0E8]">
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white capitalize">{currentTab} Module</h3>
-                  <p className="text-xs text-slate-400">
-                    Foundation Stage ready. This module runs as an independent vertical slice governed by contract specs in docs/contracts/
+                  <h3 className="text-lg font-bold text-[#0F2A43] capitalize">
+                    {currentTab.replace('-', ' ')} Module
+                  </h3>
+                  <p className="text-xs text-[#5A6A7E] mt-0.5">
+                    Governed under Hyperledger Fabric 2.5 smart contract specifications
                   </p>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800/80 text-xs text-slate-300 space-y-2">
-                <div className="font-semibold text-indigo-400">Phase 0 Architectural Independence:</div>
-                <p>
-                  API endpoints, ChainGateway mock state, and permission matrices for this module are verified and active on the backend. Vertical slice development can be continued independently without merge collisions.
+              <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#D8E0E8] text-xs text-[#17202A] space-y-2">
+                <div className="font-semibold text-[#0F766E] flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5" />
+                  Consortium Governance Policy
+                </div>
+                <p className="text-[#5A6A7E] leading-relaxed">
+                  Cryptographic transaction endpoints and multi-signatory access matrices for this module are active on the chaincode ledger. Access is scoped by institutional role assignments.
                 </p>
               </div>
 
               <button
                 onClick={() => setCurrentTab('dashboard')}
-                className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 transition"
+                className="text-xs font-semibold text-[#1F5A7A] hover:text-[#0F2A43] flex items-center gap-1.5 transition pt-2"
               >
-                ← Return to Role Dashboard
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Return to Executive Dashboard
               </button>
             </div>
           )}

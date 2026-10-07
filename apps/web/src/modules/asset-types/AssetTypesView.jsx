@@ -5,7 +5,6 @@ import {
   Building,
   Plus,
   RefreshCw,
-  ShieldCheck,
   AlertCircle,
   CheckCircle2,
   Lock,
@@ -14,7 +13,6 @@ import {
   ChevronDown,
   ChevronUp,
   X,
-  Layers,
   Archive,
 } from 'lucide-react';
 
@@ -144,12 +142,12 @@ export function AssetTypesView() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Asset Type Engine</h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <h1 className="text-2xl font-bold text-[#17202A] tracking-tight">Asset Type Engine</h1>
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0F2A43]/10 text-[#0F2A43] border border-[#0F2A43]/20">
               Parametric Schemas
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#5A6A7E] mt-0.5">
             On-chain attribute schemas, field-level privacy visibility, and required evidence policies
           </p>
         </div>
@@ -158,16 +156,16 @@ export function AssetTypesView() {
           <button
             onClick={loadTypes}
             disabled={loading}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-2 rounded-xl bg-white border border-[#D8E0E8] text-[#5A6A7E] hover:text-[#17202A] hover:bg-[#F8FAFC] transition shadow-xs"
             title="Refresh types"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#0F766E]' : ''}`} />
           </button>
 
           {isAdmin && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="py-2 px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-2 transition shadow-lg shadow-indigo-600/20"
+              className="py-2 px-3.5 rounded-xl bg-[#0F2A43] hover:bg-[#1F5A7A] text-white text-xs font-semibold flex items-center gap-2 transition shadow-sm"
             >
               <Plus className="w-4 h-4" />
               Define Asset Type
@@ -177,8 +175,8 @@ export function AssetTypesView() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-start gap-2.5">
-          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+        <div className="p-4 rounded-xl bg-[#B42318]/10 border border-[#B42318]/20 text-xs text-[#B42318] flex items-start gap-2.5">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <div>{error}</div>
         </div>
       )}
@@ -186,8 +184,8 @@ export function AssetTypesView() {
       {/* Type Cards Grid */}
       <div className="grid grid-cols-1 gap-4">
         {loading && types.length === 0 ? (
-          <div className="p-12 text-center text-slate-500 bg-slate-900/40 rounded-2xl border border-slate-800">
-            <RefreshCw className="w-6 h-6 animate-spin text-indigo-500 mx-auto mb-2" />
+          <div className="p-12 text-center text-[#5A6A7E] bg-white rounded-2xl border border-[#D8E0E8]">
+            <RefreshCw className="w-6 h-6 animate-spin text-[#0F766E] mx-auto mb-2" />
             <span className="text-xs font-mono">Loading Asset Type Schemas...</span>
           </div>
         ) : (
@@ -198,42 +196,42 @@ export function AssetTypesView() {
             return (
               <div
                 key={typeDef.key}
-                className="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden transition"
+                className="bg-white border border-[#D8E0E8] rounded-2xl overflow-hidden shadow-xs hover:border-[#1F5A7A] transition"
               >
                 {/* Header row */}
                 <div
-                  className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 cursor-pointer hover:bg-slate-800/30 transition"
+                  className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 cursor-pointer hover:bg-[#F8FAFC]/50 transition"
                   onClick={() => setExpandedKey(isExpanded ? null : typeDef.key)}
                 >
                   <div className="flex items-center gap-3.5">
                     <div
                       className={`p-3 rounded-xl border flex items-center justify-center ${
                         isDeprecated
-                          ? 'bg-slate-800 text-slate-500 border-slate-700'
-                          : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                          ? 'bg-slate-100 text-slate-500 border-slate-200'
+                          : 'bg-[#0F766E]/10 text-[#0F766E] border-[#0F766E]/20'
                       }`}
                     >
                       <Building className="w-5 h-5" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-white tracking-tight">
+                        <h3 className="text-base font-bold text-[#17202A] tracking-tight">
                           {typeDef.name}
                         </h3>
-                        <span className="font-mono text-xs text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                        <span className="font-mono text-xs text-[#0F2A43] bg-[#0F2A43]/10 px-2 py-0.5 rounded border border-[#0F2A43]/20 font-semibold">
                           {typeDef.key}
                         </span>
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium border ${
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
                             isDeprecated
-                              ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                              ? 'bg-[#B42318]/10 text-[#B42318] border-[#B42318]/20'
+                              : 'bg-[#18794E]/10 text-[#18794E] border-[#18794E]/20'
                           }`}
                         >
                           {typeDef.status || 'ACTIVE'}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1 max-w-2xl">{typeDef.description}</p>
+                      <p className="text-xs text-[#5A6A7E] mt-1 max-w-2xl">{typeDef.description}</p>
                     </div>
                   </div>
 
@@ -244,13 +242,13 @@ export function AssetTypesView() {
                           e.stopPropagation();
                           handleDeprecate(typeDef.key);
                         }}
-                        className="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold transition flex items-center gap-1.5"
+                        className="px-2.5 py-1.5 rounded-lg bg-[#B42318]/10 hover:bg-[#B42318]/20 text-[#B42318] border border-[#B42318]/20 text-xs font-semibold transition flex items-center gap-1.5"
                       >
                         <Archive className="w-3.5 h-3.5" />
                         Deprecate
                       </button>
                     )}
-                    <button className="p-1 rounded-lg text-slate-400 hover:text-white">
+                    <button className="p-1 rounded-lg text-[#5A6A7E] hover:text-[#17202A]">
                       {isExpanded ? (
                         <ChevronUp className="w-5 h-5" />
                       ) : (
@@ -262,12 +260,12 @@ export function AssetTypesView() {
 
                 {/* Expanded Details */}
                 {isExpanded && (
-                  <div className="border-t border-slate-800 p-5 bg-slate-950/40 space-y-5">
+                  <div className="border-t border-[#D8E0E8] p-5 bg-[#F8FAFC] space-y-5">
                     {/* Unique Fields & Mandatory Evidence Badges */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                        <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />
+                      <div className="p-3.5 rounded-xl bg-white border border-[#D8E0E8] space-y-2 shadow-xs">
+                        <div className="text-[10px] uppercase font-bold text-[#5A6A7E] flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#0F2A43]" />
                           Duplicate Prevention (Unique Key Fields)
                         </div>
                         <div className="flex flex-wrap gap-1.5">
@@ -275,20 +273,20 @@ export function AssetTypesView() {
                             typeDef.uniqueFields.map((f) => (
                               <span
                                 key={f}
-                                className="px-2 py-0.5 rounded text-[11px] font-mono bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
+                                className="px-2 py-0.5 rounded text-[11px] font-mono bg-[#0F2A43]/10 text-[#0F2A43] border border-[#0F2A43]/20 font-semibold"
                               >
                                 {f}
                               </span>
                             ))
                           ) : (
-                            <span className="text-xs text-slate-500">None defined</span>
+                            <span className="text-xs text-[#5A6A7E]">None defined</span>
                           )}
                         </div>
                       </div>
 
-                      <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                        <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
-                          <FileCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <div className="p-3.5 rounded-xl bg-white border border-[#D8E0E8] space-y-2 shadow-xs">
+                        <div className="text-[10px] uppercase font-bold text-[#5A6A7E] flex items-center gap-1.5">
+                          <FileCheck className="w-3.5 h-3.5 text-[#18794E]" />
                           Mandatory Evidence Documents Required
                         </div>
                         <div className="flex flex-wrap gap-1.5">
@@ -296,13 +294,13 @@ export function AssetTypesView() {
                             typeDef.mandatoryEvidence.map((d) => (
                               <span
                                 key={d}
-                                className="px-2 py-0.5 rounded text-[11px] font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                                className="px-2 py-0.5 rounded text-[11px] font-mono bg-[#18794E]/10 text-[#18794E] border border-[#18794E]/20 font-semibold"
                               >
                                 {d}
                               </span>
                             ))
                           ) : (
-                            <span className="text-xs text-slate-500">None required</span>
+                            <span className="text-xs text-[#5A6A7E]">None required</span>
                           )}
                         </div>
                       </div>
@@ -310,16 +308,16 @@ export function AssetTypesView() {
 
                     {/* Attribute Schema Table */}
                     <div className="space-y-2">
-                      <div className="text-xs font-bold text-white flex items-center justify-between">
+                      <div className="text-xs font-bold text-[#17202A] flex items-center justify-between">
                         <span>Dynamic Attribute Schema</span>
-                        <span className="text-[11px] font-mono text-slate-400">
+                        <span className="text-[11px] font-mono text-[#5A6A7E]">
                           {Object.keys(typeDef.attributeSchema || {}).length} fields
                         </span>
                       </div>
 
-                      <div className="rounded-xl border border-slate-800 overflow-hidden bg-slate-950">
+                      <div className="rounded-xl border border-[#D8E0E8] overflow-hidden bg-white shadow-xs">
                         <table className="w-full text-left text-xs">
-                          <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 uppercase font-semibold text-[10px]">
+                          <thead className="bg-[#F8FAFC] border-b border-[#D8E0E8] text-[#5A6A7E] uppercase font-semibold text-[10px]">
                             <tr>
                               <th className="py-2.5 px-3">Field Key</th>
                               <th className="py-2.5 px-3">Data Type</th>
@@ -327,35 +325,35 @@ export function AssetTypesView() {
                               <th className="py-2.5 px-3">Visibility / Privacy</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-850 text-slate-300 font-medium">
+                          <tbody className="divide-y divide-[#D8E0E8] text-[#17202A] font-medium">
                             {Object.entries(typeDef.attributeSchema || {}).map(
                               ([fieldName, rule]) => (
-                                <tr key={fieldName} className="hover:bg-slate-900/40">
-                                  <td className="py-2.5 px-3 font-mono font-semibold text-white">
+                                <tr key={fieldName} className="hover:bg-[#F8FAFC]/60 transition">
+                                  <td className="py-2.5 px-3 font-mono font-bold text-[#17202A]">
                                     {fieldName}
                                   </td>
-                                  <td className="py-2.5 px-3 font-mono text-slate-400">
+                                  <td className="py-2.5 px-3 font-mono text-[#5A6A7E]">
                                     {rule.type}
                                   </td>
                                   <td className="py-2.5 px-3">
                                     {rule.required ? (
-                                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#A16207]/10 text-[#A16207] border border-[#A16207]/20 font-bold">
                                         Mandatory
                                       </span>
                                     ) : (
-                                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400">
+                                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#F8FAFC] text-[#5A6A7E] border border-[#D8E0E8]">
                                         Optional
                                       </span>
                                     )}
                                   </td>
                                   <td className="py-2.5 px-3">
                                     {rule.visibility === 'RESTRICTED' ? (
-                                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center gap-1 w-max">
+                                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#B42318]/10 text-[#B42318] border border-[#B42318]/20 flex items-center gap-1 w-max font-semibold">
                                         <Lock className="w-3 h-3" />
                                         Restricted (PDC)
                                       </span>
                                     ) : (
-                                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1 w-max">
+                                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#0F766E]/10 text-[#0F766E] border border-[#0F766E]/20 flex items-center gap-1 w-max font-semibold">
                                         <Globe className="w-3 h-3" />
                                         Public Consortium
                                       </span>
@@ -378,16 +376,16 @@ export function AssetTypesView() {
 
       {/* Define Asset Type Modal (Admin Only) */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden my-8">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F2A43]/40 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden my-8">
+            <div className="p-4 border-b border-[#D8E0E8] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-indigo-400" />
-                <h3 className="text-sm font-bold text-white">Define New Asset Type</h3>
+                <Building className="w-4 h-4 text-[#0F766E]" />
+                <h3 className="text-sm font-bold text-[#17202A]">Define New Asset Type</h3>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white"
+                className="p-1 rounded-lg text-[#5A6A7E] hover:text-[#17202A] hover:bg-[#F8FAFC] transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -395,14 +393,14 @@ export function AssetTypesView() {
 
             <form onSubmit={handleCreateSubmit} className="p-5 space-y-4">
               {createError && (
-                <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300">
+                <div className="p-3 rounded-lg bg-[#B42318]/10 border border-[#B42318]/20 text-xs text-[#B42318]">
                   {createError}
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-400">
+                  <label className="text-[10px] uppercase font-bold text-[#5A6A7E]">
                     Type Key (Identifier) *
                   </label>
                   <input
@@ -411,11 +409,11 @@ export function AssetTypesView() {
                     value={createKey}
                     onChange={(e) => setCreateKey(e.target.value.toUpperCase())}
                     required
-                    className="w-full mt-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-full mt-1 px-3 py-1.5 rounded-lg bg-white border border-[#D8E0E8] text-xs text-[#17202A] font-mono focus:outline-none focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-400">
+                  <label className="text-[10px] uppercase font-bold text-[#5A6A7E]">
                     Display Name *
                   </label>
                   <input
@@ -424,13 +422,13 @@ export function AssetTypesView() {
                     value={createName}
                     onChange={(e) => setCreateName(e.target.value)}
                     required
-                    className="w-full mt-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full mt-1 px-3 py-1.5 rounded-lg bg-white border border-[#D8E0E8] text-xs text-[#17202A] focus:outline-none focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400">
+                <label className="text-[10px] uppercase font-bold text-[#5A6A7E]">
                   Description
                 </label>
                 <input
@@ -438,13 +436,13 @@ export function AssetTypesView() {
                   placeholder="Asset description and regulatory bounds"
                   value={createDesc}
                   onChange={(e) => setCreateDesc(e.target.value)}
-                  className="w-full mt-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full mt-1 px-3 py-1.5 rounded-lg bg-white border border-[#D8E0E8] text-xs text-[#17202A] focus:outline-none focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-400">
+                  <label className="text-[10px] uppercase font-bold text-[#5A6A7E]">
                     Unique Key Fields (comma-separated)
                   </label>
                   <input
@@ -452,11 +450,11 @@ export function AssetTypesView() {
                     placeholder="e.g. gridConnectionId, permitNumber"
                     value={createUniqueFields}
                     onChange={(e) => setCreateUniqueFields(e.target.value)}
-                    className="w-full mt-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-full mt-1 px-3 py-1.5 rounded-lg bg-white border border-[#D8E0E8] text-xs text-[#17202A] font-mono focus:outline-none focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-400">
+                  <label className="text-[10px] uppercase font-bold text-[#5A6A7E]">
                     Mandatory Evidence (comma-separated)
                   </label>
                   <input
@@ -464,7 +462,7 @@ export function AssetTypesView() {
                     placeholder="e.g. GRID_LICENSE, PPA_CONTRACT"
                     value={createMandatoryEvidence}
                     onChange={(e) => setCreateMandatoryEvidence(e.target.value)}
-                    className="w-full mt-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-full mt-1 px-3 py-1.5 rounded-lg bg-white border border-[#D8E0E8] text-xs text-[#17202A] font-mono focus:outline-none focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]"
                   />
                 </div>
               </div>
@@ -472,13 +470,13 @@ export function AssetTypesView() {
               {/* Dynamic Attribute Fields */}
               <div className="space-y-2 pt-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-[10px] uppercase font-bold text-slate-400">
+                  <label className="text-[10px] uppercase font-bold text-[#5A6A7E]">
                     Dynamic Attributes
                   </label>
                   <button
                     type="button"
                     onClick={handleAddAttributeRow}
-                    className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold"
+                    className="text-xs text-[#0F766E] hover:text-[#0D625C] font-semibold"
                   >
                     + Add Field
                   </button>
@@ -488,7 +486,7 @@ export function AssetTypesView() {
                   {createAttributes.map((attr, idx) => (
                     <div
                       key={idx}
-                      className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center gap-2"
+                      className="p-2.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8] flex items-center gap-2"
                     >
                       <input
                         type="text"
@@ -499,7 +497,7 @@ export function AssetTypesView() {
                           updated[idx].name = e.target.value;
                           setCreateAttributes(updated);
                         }}
-                        className="flex-1 px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-xs text-white font-mono"
+                        className="flex-1 px-2.5 py-1 rounded bg-white border border-[#D8E0E8] text-xs text-[#17202A] font-mono focus:outline-none focus:border-[#0F766E]"
                       />
                       <select
                         value={attr.type}
@@ -508,7 +506,7 @@ export function AssetTypesView() {
                           updated[idx].type = e.target.value;
                           setCreateAttributes(updated);
                         }}
-                        className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-xs text-slate-300"
+                        className="px-2 py-1 rounded bg-white border border-[#D8E0E8] text-xs text-[#17202A] focus:outline-none focus:border-[#0F766E]"
                       >
                         <option value="string">String</option>
                         <option value="number">Number</option>
@@ -521,12 +519,12 @@ export function AssetTypesView() {
                           updated[idx].visibility = e.target.value;
                           setCreateAttributes(updated);
                         }}
-                        className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-xs text-slate-300"
+                        className="px-2 py-1 rounded bg-white border border-[#D8E0E8] text-xs text-[#17202A] focus:outline-none focus:border-[#0F766E]"
                       >
                         <option value="PUBLIC">PUBLIC</option>
                         <option value="RESTRICTED">RESTRICTED</option>
                       </select>
-                      <label className="flex items-center gap-1 text-[10px] text-slate-400">
+                      <label className="flex items-center gap-1 text-[10px] text-[#5A6A7E] font-medium">
                         <input
                           type="checkbox"
                           checked={attr.required}
@@ -541,7 +539,7 @@ export function AssetTypesView() {
                       <button
                         type="button"
                         onClick={() => handleRemoveAttributeRow(idx)}
-                        className="p-1 rounded text-rose-400 hover:text-rose-300"
+                        className="p-1 rounded text-[#B42318] hover:text-red-700"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -550,18 +548,18 @@ export function AssetTypesView() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-800 flex justify-end gap-2">
+              <div className="pt-4 border-t border-[#D8E0E8] flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-medium"
+                  className="px-3.5 py-1.5 rounded-lg bg-white border border-[#D8E0E8] text-[#5A6A7E] hover:text-[#17202A] hover:bg-[#F8FAFC] text-xs font-semibold transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-1.5"
+                  className="px-4 py-1.5 rounded-lg bg-[#0F2A43] hover:bg-[#1F5A7A] disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
                 >
                   {submitting ? 'Anchoring...' : 'Register Schema'}
                 </button>

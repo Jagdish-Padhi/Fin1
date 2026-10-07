@@ -2,13 +2,13 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../services/api.js';
 
 export const DEMO_ROLES = [
-  { role: 'ADMINISTRATOR', email: 'admin@ekamvistar.com', label: 'Administrator (EkamVistar)', color: 'bg-rose-500/20 text-rose-300 border-rose-500/30' },
-  { role: 'ISSUER', email: 'issuer@originator.com', label: 'Issuer (Bharat Agro)', color: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
-  { role: 'VERIFIER', email: 'verifier@auditfirm.com', label: 'Verifier (TUV / SGS)', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
-  { role: 'VALUER', email: 'valuer@valuationpartners.com', label: 'Valuer (Valuation Partners)', color: 'bg-teal-500/20 text-teal-300 border-teal-500/30' },
-  { role: 'COMPLIANCE', email: 'compliance@regulatory.gov.in', label: 'Compliance (Regulatory)', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
-  { role: 'INVESTOR', email: 'investor@capitalfund.com', label: 'Investor (Samriddhi Capital)', color: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
-  { role: 'AUDITOR', email: 'auditor@kpmg-audit.com', label: 'Auditor (Consortium Audit)', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' },
+  { role: 'ADMINISTRATOR', email: 'admin@assetrust.io', label: 'Administrator (AsseTrust)', color: 'bg-[#0F2A43]/10 text-[#0F2A43] border-[#0F2A43]/20' },
+  { role: 'ISSUER', email: 'issuer@originator.com', label: 'Issuer (Origination Desk)', color: 'bg-[#1F5A7A]/10 text-[#1F5A7A] border-[#1F5A7A]/20' },
+  { role: 'VERIFIER', email: 'verifier@auditfirm.com', label: 'Verifier (TUV / SGS Quality)', color: 'bg-[#18794E]/10 text-[#18794E] border-[#18794E]/20' },
+  { role: 'VALUER', email: 'valuer@valuationpartners.com', label: 'Valuer (Institutional Appraiser)', color: 'bg-[#0F766E]/10 text-[#0F766E] border-[#0F766E]/20' },
+  { role: 'COMPLIANCE', email: 'compliance@regulatory.gov.in', label: 'Compliance (Regulator)', color: 'bg-[#A16207]/10 text-[#A16207] border-[#A16207]/20' },
+  { role: 'INVESTOR', email: 'investor@capitalfund.com', label: 'Investor (Capital Fund)', color: 'bg-[#1F5A7A]/10 text-[#1F5A7A] border-[#1F5A7A]/20' },
+  { role: 'AUDITOR', email: 'auditor@kpmg-audit.com', label: 'Auditor (Consortium Oversight)', color: 'bg-[#0F2A43]/10 text-[#0F2A43] border-[#0F2A43]/20' },
 ];
 
 const AuthContext = createContext(null);

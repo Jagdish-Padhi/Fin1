@@ -1,10 +1,10 @@
 import React from 'react';
-import { Shield, Eye, Lock } from 'lucide-react';
+import { Eye, Lock } from 'lucide-react';
 
 export function DynamicSchemaForm({ schema, values, onChange, disabled = false }) {
   if (!schema || Object.keys(schema).length === 0) {
     return (
-      <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-500 italic">
+      <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#D8E0E8] text-xs text-[#5A6A7E] italic">
         No dynamic attribute schema defined for this asset type.
       </div>
     );
@@ -34,17 +34,17 @@ export function DynamicSchemaForm({ schema, values, onChange, disabled = false }
           return (
             <div key={fieldKey} className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <label className="font-medium text-slate-300 flex items-center gap-1 capitalize">
+                <label className="font-semibold text-[#17202A] flex items-center gap-1 capitalize">
                   <span>{fieldKey.replace(/([A-Z])/g, ' $1')}</span>
-                  {isRequired && <span className="text-rose-400 font-bold">*</span>}
+                  {isRequired && <span className="text-[#B42318] font-bold">*</span>}
                 </label>
 
                 {/* Visibility Badge */}
                 <span
-                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono border ${
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono border font-medium ${
                     isRestricted
-                      ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                      : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      ? 'bg-[#B42318]/10 text-[#B42318] border-[#B42318]/20'
+                      : 'bg-[#0F766E]/10 text-[#0F766E] border-[#0F766E]/20'
                   }`}
                   title={
                     isRestricted
@@ -65,7 +65,7 @@ export function DynamicSchemaForm({ schema, values, onChange, disabled = false }
                   value={val}
                   onChange={(e) => handleChange(fieldKey, e.target.value, 'number')}
                   placeholder={`Enter ${fieldKey}...`}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-mono disabled:opacity-50"
+                  className="w-full bg-white border border-[#D8E0E8] rounded-lg px-3 py-2 text-xs text-[#17202A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E] font-mono disabled:opacity-50"
                 />
               ) : (
                 <input
@@ -75,7 +75,7 @@ export function DynamicSchemaForm({ schema, values, onChange, disabled = false }
                   value={val}
                   onChange={(e) => handleChange(fieldKey, e.target.value, 'string')}
                   placeholder={`Enter ${fieldKey}...`}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 disabled:opacity-50"
+                  className="w-full bg-white border border-[#D8E0E8] rounded-lg px-3 py-2 text-xs text-[#17202A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E] disabled:opacity-50"
                 />
               )}
             </div>

@@ -4,13 +4,11 @@ import { DynamicSchemaForm } from './DynamicSchemaForm.jsx';
 import {
   X,
   Layers,
-  FileCheck,
   Upload,
   CheckCircle2,
   AlertCircle,
   ArrowRight,
   ArrowLeft,
-  FileText,
   ShieldCheck,
 } from 'lucide-react';
 
@@ -123,59 +121,67 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F2A43]/40 backdrop-blur-sm">
+      <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
         {/* Wizard Header */}
-        <div className="sticky top-0 bg-slate-900/95 backdrop-blur border-b border-slate-800 p-6 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-white/95 backdrop-blur border-b border-[#D8E0E8] p-6 flex items-center justify-between z-10">
           <div>
-            <div className="inline-flex items-center gap-2 text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">
-              <Layers className="w-3.5 h-3.5" />
-              <span>Real-World Asset Registration Wizard (Phase 2)</span>
+            <div className="inline-flex items-center gap-2 text-xs font-semibold text-[#0F766E] uppercase tracking-wider mb-1">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Asset Registration Wizard</span>
             </div>
-            <h3 className="text-lg font-bold text-white">Create Digital Asset Passport</h3>
+            <h3 className="text-lg font-bold text-[#17202A]">Create Digital Asset Passport</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1.5 rounded-lg text-[#5A6A7E] hover:text-[#17202A] hover:bg-[#F8FAFC] transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Step Progression Bar */}
-        <div className="px-6 pt-4 pb-2 border-b border-slate-800/60 bg-slate-950/30">
+        <div className="px-6 pt-4 pb-3 border-b border-[#D8E0E8] bg-[#F8FAFC]">
           <div className="flex items-center justify-between text-xs">
             <div
-              className={`flex items-center gap-2 ${step >= 1 ? 'text-indigo-400 font-semibold' : 'text-slate-500'}`}
+              className={`flex items-center gap-2 ${step >= 1 ? 'text-[#0F2A43] font-bold' : 'text-[#5A6A7E]'}`}
             >
-              <span className="w-5 h-5 rounded-full border flex items-center justify-center text-[10px] font-mono">
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono border ${
+                step >= 1 ? 'bg-[#0F2A43] text-white border-[#0F2A43]' : 'border-[#D8E0E8] text-[#5A6A7E] bg-white'
+              }`}>
                 1
               </span>
               <span>Asset Type</span>
             </div>
-            <div className="w-8 h-[1px] bg-slate-800" />
+            <div className="w-8 h-[1px] bg-[#D8E0E8]" />
             <div
-              className={`flex items-center gap-2 ${step >= 2 ? 'text-indigo-400 font-semibold' : 'text-slate-500'}`}
+              className={`flex items-center gap-2 ${step >= 2 ? 'text-[#0F2A43] font-bold' : 'text-[#5A6A7E]'}`}
             >
-              <span className="w-5 h-5 rounded-full border flex items-center justify-center text-[10px] font-mono">
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono border ${
+                step >= 2 ? 'bg-[#0F2A43] text-white border-[#0F2A43]' : 'border-[#D8E0E8] text-[#5A6A7E] bg-white'
+              }`}>
                 2
               </span>
               <span>Attributes</span>
             </div>
-            <div className="w-8 h-[1px] bg-slate-800" />
+            <div className="w-8 h-[1px] bg-[#D8E0E8]" />
             <div
-              className={`flex items-center gap-2 ${step >= 3 ? 'text-indigo-400 font-semibold' : 'text-slate-500'}`}
+              className={`flex items-center gap-2 ${step >= 3 ? 'text-[#0F2A43] font-bold' : 'text-[#5A6A7E]'}`}
             >
-              <span className="w-5 h-5 rounded-full border flex items-center justify-center text-[10px] font-mono">
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono border ${
+                step >= 3 ? 'bg-[#0F2A43] text-white border-[#0F2A43]' : 'border-[#D8E0E8] text-[#5A6A7E] bg-white'
+              }`}>
                 3
               </span>
               <span>Evidence</span>
             </div>
-            <div className="w-8 h-[1px] bg-slate-800" />
+            <div className="w-8 h-[1px] bg-[#D8E0E8]" />
             <div
-              className={`flex items-center gap-2 ${step >= 4 ? 'text-indigo-400 font-semibold' : 'text-slate-500'}`}
+              className={`flex items-center gap-2 ${step >= 4 ? 'text-[#0F2A43] font-bold' : 'text-[#5A6A7E]'}`}
             >
-              <span className="w-5 h-5 rounded-full border flex items-center justify-center text-[10px] font-mono">
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono border ${
+                step >= 4 ? 'bg-[#0F2A43] text-white border-[#0F2A43]' : 'border-[#D8E0E8] text-[#5A6A7E] bg-white'
+              }`}>
                 4
               </span>
               <span>Review</span>
@@ -186,7 +192,7 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
         {/* Wizard Step Body */}
         <div className="p-6 space-y-6 flex-1">
           {error && (
-            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-400 flex items-center gap-2.5">
+            <div className="p-4 rounded-xl bg-[#B42318]/10 border border-[#B42318]/20 text-xs text-[#B42318] flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -195,8 +201,8 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
           {/* STEP 1: Select Type */}
           {step === 1 && (
             <div className="space-y-4">
-              <div className="text-xs font-semibold text-slate-300">
-                Select Asset Type Engine Definition
+              <div className="text-xs font-semibold text-[#17202A]">
+                Select Asset Type Specification
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {types.map((t) => {
@@ -207,25 +213,25 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
                       onClick={() => handleSelectType(t)}
                       className={`p-4 rounded-xl border cursor-pointer transition space-y-2 ${
                         isSelected
-                          ? 'bg-indigo-500/10 border-indigo-500 ring-1 ring-indigo-500'
-                          : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                          ? 'bg-[#0F766E]/5 border-[#0F766E] ring-1 ring-[#0F766E]'
+                          : 'bg-white border-[#D8E0E8] hover:border-[#1F5A7A] hover:shadow-xs'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-sm text-white">{t.displayName || t.key}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-slate-800 text-indigo-400 border border-slate-700">
+                        <span className="font-bold text-sm text-[#17202A]">{t.displayName || t.key}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-[#F8FAFC] text-[#0F2A43] border border-[#D8E0E8] font-semibold">
                           {t.token?.standard || 'WHOLE'}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 line-clamp-2">
+                      <p className="text-xs text-[#5A6A7E] line-clamp-2">
                         {t.key === 'LAND'
                           ? 'Agricultural & commercial land parcels with title chain search and revenue survey verification.'
                           : 'Commercial vehicles, tractors, and heavy machinery with Vahan RC verification.'}
                       </p>
-                      <div className="flex items-center gap-3 text-[11px] text-slate-500 pt-1 border-t border-slate-800/80">
+                      <div className="flex items-center gap-3 text-[11px] text-[#5A6A7E] pt-2 border-t border-[#D8E0E8]">
                         <span>Version {t.version || 1}</span>
                         <span>•</span>
-                        <span>{t.evidenceRequirements?.length || 0} Required Docs</span>
+                        <span>{t.evidenceRequirements?.length || 0} Required Documents</span>
                       </div>
                     </div>
                   );
@@ -238,22 +244,22 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
           {step === 2 && (
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5">Asset Label / Title</label>
+                <label className="block text-xs font-semibold text-[#17202A] mb-1.5">Asset Label / Title</label>
                 <input
                   type="text"
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="e.g. John Deere 5310 4WD Tractor"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-white border border-[#D8E0E8] rounded-lg px-3 py-2 text-xs text-[#17202A] focus:outline-none focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]"
                 />
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-950/40 border border-slate-800 space-y-3">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
+              <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#D8E0E8] space-y-3">
+                <div className="flex items-center justify-between text-xs font-semibold text-[#17202A]">
                   <span>Dynamic Type Attributes ({selectedTypeKey})</span>
-                  <span className="text-[10px] text-slate-500">
-                    Schema-validated on ledger (PDC restricted fields hidden from public)
+                  <span className="text-[10px] text-[#5A6A7E]">
+                    PDC restricted fields stored confidentially
                   </span>
                 </div>
                 <DynamicSchemaForm
@@ -268,12 +274,14 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
           {/* STEP 3: Evidence Upload Checklist */}
           {step === 3 && (
             <div className="space-y-4">
-              <div className="text-xs font-semibold text-slate-300">
-                Mandatory & Optional Evidence Documents ({selectedTypeDef?.evidenceRequirements?.length || 0})
+              <div>
+                <div className="text-xs font-semibold text-[#17202A]">
+                  Mandatory & Supporting Evidence Documents ({selectedTypeDef?.evidenceRequirements?.length || 0})
+                </div>
+                <p className="text-xs text-[#5A6A7E] mt-0.5">
+                  Documents are stored off-chain. Each file's SHA-256 cryptographic digest is anchored on-chain.
+                </p>
               </div>
-              <p className="text-xs text-slate-400">
-                Documents are AES-256 encrypted off-chain. Each file's SHA-256 hash is bound into the on-chain Merkle evidence root.
-              </p>
 
               <div className="space-y-3">
                 {selectedTypeDef?.evidenceRequirements?.map((req) => {
@@ -281,20 +289,20 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
                   return (
                     <div
                       key={req.docType}
-                      className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs"
+                      className="p-4 rounded-xl bg-white border border-[#D8E0E8] flex items-center justify-between text-xs shadow-xs"
                     >
                       <div className="space-y-1">
-                        <div className="font-semibold text-slate-200 flex items-center gap-2">
+                        <div className="font-semibold text-[#17202A] flex items-center gap-2">
                           <span>{req.docType}</span>
                           {req.required && (
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold">
+                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#A16207]/10 text-[#A16207] border border-[#A16207]/20 font-bold">
                               Mandatory
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-slate-400">{req.description}</div>
+                        <div className="text-[11px] text-[#5A6A7E]">{req.description}</div>
                         {isUploaded && (
-                          <div className="text-[10px] text-emerald-400 font-mono flex items-center gap-1 pt-1">
+                          <div className="text-[10px] text-[#18794E] font-mono flex items-center gap-1 pt-1 font-semibold">
                             <CheckCircle2 className="w-3 h-3" />
                             <span>
                               {evidenceFiles[req.docType].fileName} • SHA-256:{' '}
@@ -309,8 +317,8 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
                         onClick={() => handleSimulateEvidence(req.docType, `${req.docType.toLowerCase()}_certified.pdf`)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
                           isUploaded
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                            : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md'
+                            ? 'bg-[#18794E]/10 text-[#18794E] border border-[#18794E]/20'
+                            : 'bg-[#0F2A43] hover:bg-[#1F5A7A] text-white shadow-xs'
                         }`}
                       >
                         <Upload className="w-3.5 h-3.5" />
@@ -326,28 +334,28 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
           {/* STEP 4: Review Summary */}
           {step === 4 && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3 text-xs">
-                <div className="font-bold text-sm text-white flex items-center justify-between">
+              <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#D8E0E8] space-y-3 text-xs">
+                <div className="font-bold text-sm text-[#17202A] flex items-center justify-between">
                   <span>{displayName}</span>
-                  <span className="text-xs px-2 py-0.5 rounded font-mono bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                  <span className="text-xs px-2 py-0.5 rounded font-mono bg-[#0F2A43]/10 text-[#0F2A43] border border-[#0F2A43]/20 font-bold">
                     {selectedTypeKey}:v{selectedTypeDef?.version || 1}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800">
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#D8E0E8]">
                   {Object.entries(attributes).map(([k, v]) => (
                     <div key={k}>
-                      <span className="text-slate-500 text-[11px] capitalize">{k}:</span>{' '}
-                      <span className="text-slate-200 font-medium">{String(v)}</span>
+                      <span className="text-[#5A6A7E] text-[11px] capitalize">{k}:</span>{' '}
+                      <span className="text-[#17202A] font-semibold">{String(v)}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-2">
-                <div className="font-semibold text-slate-300">Attached Evidence Root:</div>
-                <div className="text-[11px] text-slate-400">
-                  {Object.keys(evidenceFiles).length} documents ready to be cryptographically anchored.
+              <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#D8E0E8] text-xs space-y-2">
+                <div className="font-semibold text-[#17202A]">Cryptographic Evidence Anchors:</div>
+                <div className="text-[11px] text-[#5A6A7E]">
+                  {Object.keys(evidenceFiles).length} documents prepared to be cryptographically committed to the ledger root.
                 </div>
               </div>
             </div>
@@ -355,12 +363,12 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
         </div>
 
         {/* Wizard Footer Controls */}
-        <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 p-4 flex items-center justify-between">
+        <div className="sticky bottom-0 bg-white border-t border-[#D8E0E8] p-4 flex items-center justify-between">
           <button
             type="button"
             disabled={step === 1 || submitting}
             onClick={() => setStep((s) => Math.max(1, s - 1))}
-            className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition disabled:opacity-30 flex items-center gap-1.5"
+            className="px-4 py-2 rounded-lg text-xs font-semibold text-[#5A6A7E] hover:text-[#17202A] hover:bg-[#F8FAFC] transition disabled:opacity-30 flex items-center gap-1.5"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Previous</span>
@@ -371,7 +379,7 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
               <button
                 type="button"
                 onClick={() => setStep((s) => Math.min(4, s + 1))}
-                className="px-5 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1.5 transition shadow-lg shadow-indigo-600/20"
+                className="px-5 py-2 rounded-lg text-xs font-semibold bg-[#0F2A43] hover:bg-[#1F5A7A] text-white flex items-center gap-1.5 transition shadow-sm"
               >
                 <span>Continue</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -381,12 +389,12 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
                 type="button"
                 disabled={submitting}
                 onClick={handleSubmit}
-                className="px-6 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-2 transition shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+                className="px-6 py-2 rounded-lg text-xs font-semibold bg-[#0F766E] hover:bg-[#0D625C] text-white flex items-center gap-2 transition shadow-sm disabled:opacity-50"
               >
                 {submitting ? (
                   <>
                     <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Anchoring to Fabric Ledger...</span>
+                    <span>Anchoring to Ledger...</span>
                   </>
                 ) : (
                   <>

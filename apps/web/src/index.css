@@ -3,29 +3,107 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
+  --bg-trust: #F8FAFC;
+  --text-trust: #17202A;
+  --primary-trust: #0F2A43;
+  --secondary-trust: #1F5A7A;
+  --accent-trust: #0F766E;
+  --border-trust: #D8E0E8;
+  --success-trust: #18794E;
+  --warning-trust: #A16207;
+  --error-trust: #B42318;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #030712;
-  color: #f3f4f6;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #F8FAFC;
+  color: #17202A;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Custom scrollbars */
+/* Custom scrollbars for clean institutional light theme */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #F1F5F9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 3px;
+  background: #CBD5E1;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #94A3B8;
+}
+
+/* Enterprise Trust Design System Utility Classes */
+.trust-card {
+  background-color: #FFFFFF;
+  border: 1px solid #D8E0E8;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px 0 rgba(15, 42, 67, 0.04), 0 1px 2px -1px rgba(15, 42, 67, 0.04);
+}
+
+.trust-card-hover {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.trust-card-hover:hover {
+  border-color: #BAC7D5;
+  box-shadow: 0 4px 12px -2px rgba(15, 42, 67, 0.08), 0 2px 6px -2px rgba(15, 42, 67, 0.04);
+}
+
+.trust-input {
+  background-color: #FFFFFF;
+  border: 1px solid #D8E0E8;
+  color: #17202A;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  transition: all 0.15s ease-in-out;
+}
+.trust-input:focus {
+  outline: none;
+  border-color: #1F5A7A;
+  box-shadow: 0 0 0 3px rgba(31, 90, 122, 0.12);
+}
+
+.trust-btn-primary {
+  background-color: #0F2A43;
+  color: #FFFFFF;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.15s ease-in-out;
+}
+.trust-btn-primary:hover {
+  background-color: #0A1E30;
+  box-shadow: 0 4px 12px -2px rgba(15, 42, 67, 0.2);
+}
+
+.trust-btn-accent {
+  background-color: #0F766E;
+  color: #FFFFFF;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.15s ease-in-out;
+}
+.trust-btn-accent:hover {
+  background-color: #0D655E;
+  box-shadow: 0 4px 12px -2px rgba(15, 118, 110, 0.25);
+}
+
+.trust-btn-secondary {
+  background-color: #FFFFFF;
+  color: #17202A;
+  border: 1px solid #D8E0E8;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+}
+.trust-btn-secondary:hover {
+  background-color: #F8FAFC;
+  border-color: #BAC7D5;
+  color: #0F2A43;
 }

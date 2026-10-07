@@ -1,42 +1,51 @@
 import React from 'react';
 
 const STATUS_STYLES = {
-  // Asset statuses
-  REGISTERED: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  UNDER_VERIFICATION: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  CHANGES_REQUESTED: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
-  VERIFIED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  VALUED: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
-  TOKENIZED: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  ACTIVE: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  FROZEN: 'bg-red-500/10 text-red-400 border-red-500/20',
-  REDEEMED: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
-  RETIRED: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
-  REJECTED: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+  // Positive / Verified / Active statuses
+  APPROVED: 'bg-[#F0FDF4] text-[#18794E] border-[#BBF7D0]',
+  VERIFIED: 'bg-[#F0FDF4] text-[#18794E] border-[#BBF7D0]',
+  ACTIVE: 'bg-[#F0FDF4] text-[#18794E] border-[#BBF7D0]',
+  EXECUTED: 'bg-[#F0FDF4] text-[#18794E] border-[#BBF7D0]',
 
-  // Participant & KYC statuses
-  APPROVED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  SUBMITTED: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  UNDER_REVIEW: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  SUSPENDED: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  BLACKLISTED: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-  INACTIVE: 'bg-slate-700/40 text-slate-400 border-slate-700',
-  QUALIFIED: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  INSTITUTIONAL: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-  RETAIL: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+  // Warning / In-progress / Verification queue
+  UNDER_VERIFICATION: 'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]',
+  UNDER_REVIEW: 'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]',
+  SUBMITTED: 'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]',
+  CHANGES_REQUESTED: 'bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]',
+  PENDING_COMPLIANCE: 'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]',
+  PROPOSED: 'bg-[#F0F4F8] text-[#1F5A7A] border-[#D8E0E8]',
 
-  // Transfer statuses
-  PROPOSED: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-  EXECUTED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  PENDING_COMPLIANCE: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  // Negative / Restricted / Flagged
+  REJECTED: 'bg-[#FEF2F2] text-[#B42318] border-[#FECDD3]',
+  FROZEN: 'bg-[#FEF2F2] text-[#B42318] border-[#FECDD3]',
+  BLACKLISTED: 'bg-[#FEF2F2] text-[#B42318] border-[#FECDD3]',
+  SUSPENDED: 'bg-[#FFF7ED] text-[#C2410C] border-[#FFEDD5]',
+
+  // Registered / Minted / Tokens
+  REGISTERED: 'bg-[#F0FDFA] text-[#0F766E] border-[#CCFBF1]',
+  VALUED: 'bg-[#F0FDFA] text-[#0F766E] border-[#CCFBF1]',
+  TOKENIZED: 'bg-[#F0F4F8] text-[#0F2A43] border-[#CBD5E1]',
+
+  // Archival / Neutral
+  INACTIVE: 'bg-[#F1F5F9] text-[#5A6A7E] border-[#D8E0E8]',
+  RETIRED: 'bg-[#F1F5F9] text-[#5A6A7E] border-[#D8E0E8]',
+  REDEEMED: 'bg-[#F1F5F9] text-[#5A6A7E] border-[#D8E0E8]',
+  DEPRECATED: 'bg-[#F1F5F9] text-[#5A6A7E] border-[#D8E0E8]',
+
+  // Classification tiers
+  QUALIFIED: 'bg-[#F8FAFC] text-[#0F2A43] border-[#D8E0E8]',
+  INSTITUTIONAL: 'bg-[#F8FAFC] text-[#0F2A43] border-[#D8E0E8]',
+  RETAIL: 'bg-[#F8FAFC] text-[#1F5A7A] border-[#D8E0E8]',
 };
 
 export function StatusBadge({ status }) {
-  const style = STATUS_STYLES[status] || 'bg-slate-800 text-slate-300 border-slate-700';
+  const style = STATUS_STYLES[status] || 'bg-[#F8FAFC] text-[#5A6A7E] border-[#D8E0E8]';
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${style}`}>
-      <span className="w-1.5 h-1.5 mr-1.5 rounded-full bg-current opacity-75" />
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold border ${style}`}
+    >
+      <span className="w-1.5 h-1.5 mr-1.5 rounded-full bg-current opacity-80" />
       {status}
     </span>
   );

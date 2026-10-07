@@ -3,16 +3,20 @@ import { useAuth } from '../../shared/context/AuthContext.jsx';
 import { api } from '../../shared/services/api.js';
 import { StatusBadge } from '../../shared/components/StatusBadge.jsx';
 import { HashChip } from '../../shared/components/HashChip.jsx';
-import { MoneyDisplay } from '../../shared/components/MoneyDisplay.jsx';
 import {
   Layers,
   Coins,
   ArrowRightLeft,
   ShieldCheck,
   CheckCircle2,
-  AlertTriangle,
   Clock,
-  Sparkles,
+  ArrowUpRight,
+  Building,
+  UserCheck,
+  FileCheck,
+  TrendingUp,
+  Activity,
+  History,
 } from 'lucide-react';
 
 export function DashboardView({ onNavigate }) {
@@ -45,213 +49,193 @@ export function DashboardView({ onNavigate }) {
   }, [user]);
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 p-6 md:p-8">
-        <div className="relative z-10 max-w-2xl space-y-2">
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Phase 0 Foundation Active</span>
+    <div className="space-y-6">
+      {/* Institutional Hero Banner */}
+      <div className="trust-card p-6 md:p-8 bg-gradient-to-r from-[#FFFFFF] via-[#F8FAFC] to-[#F0FDFA] border border-[#D8E0E8] relative overflow-hidden">
+        <div className="max-w-2xl space-y-2 relative z-10">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F0FDFA] border border-[#CCFBF1] text-[#0F766E] text-[11px] font-semibold">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Consortium Security Node • Verified Channel</span>
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+          <h2 className="text-2xl md:text-3xl font-bold text-[#0F2A43] tracking-tight font-['Outfit',sans-serif]">
             Welcome, {user?.name}
           </h2>
-          <p className="text-sm text-slate-300 leading-relaxed">
-            Consortium workspace initialized for <span className="text-indigo-400 font-semibold">{user?.mspId}</span> with role <span className="text-indigo-400 font-semibold">{user?.role}</span>. All actions are cryptographically signed, governed by chaincode rules, and auditable across 6 consortium member organizations.
+          <p className="text-xs text-[#5A6A7E] leading-relaxed">
+            Consortium node authenticated for{' '}
+            <span className="text-[#0F2A43] font-semibold">{user?.mspId}</span> with institutional role{' '}
+            <span className="text-[#0F766E] font-semibold">{user?.role}</span>. All operations are
+            cryptographically signed, anchored on Hyperledger Fabric 2.5, and auditable across all 6 member organizations.
           </p>
+        </div>
+
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-4 text-right">
+          <div className="p-4 rounded-xl bg-white border border-[#D8E0E8] shadow-2xs space-y-1">
+            <span className="text-[10px] uppercase font-bold text-[#5A6A7E] block">Consortium Ledger</span>
+            <span className="text-sm font-bold font-mono text-[#0F2A43]">Block #{stats.blockHeight || 1}</span>
+          </div>
         </div>
       </div>
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-medium uppercase tracking-wider">Registered Assets</span>
-            <Layers className="w-4 h-4 text-blue-400" />
+        <div className="trust-card p-5 space-y-2 hover:border-[#BAC7D5] transition">
+          <div className="flex items-center justify-between text-[#5A6A7E]">
+            <span className="text-xs font-bold uppercase tracking-wider">Registered Assets</span>
+            <div className="p-2 rounded-lg bg-[#F0F4F8] text-[#1F5A7A]">
+              <Layers className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-bold text-white">{stats.totalAssets}</div>
-          <div className="text-[11px] text-slate-500">Land & Vehicle Passports</div>
+          <div className="text-2xl font-extrabold text-[#0F2A43]">{stats.totalAssets}</div>
+          <div className="text-[11px] text-[#5A6A7E]">Cryptographically Anchored Passports</div>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-medium uppercase tracking-wider">Active Tokens</span>
-            <Coins className="w-4 h-4 text-purple-400" />
+        <div className="trust-card p-5 space-y-2 hover:border-[#BAC7D5] transition">
+          <div className="flex items-center justify-between text-[#5A6A7E]">
+            <span className="text-xs font-bold uppercase tracking-wider">Tokenized Securities</span>
+            <div className="p-2 rounded-lg bg-[#F0FDFA] text-[#0F766E]">
+              <Coins className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-bold text-white">{stats.totalTokens}</div>
-          <div className="text-[11px] text-slate-500">Whole & Fractional Units</div>
+          <div className="text-2xl font-extrabold text-[#0F766E]">{stats.totalTokens}</div>
+          <div className="text-[11px] text-[#5A6A7E]">Whole & Fractional Offerings</div>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-medium uppercase tracking-wider">Ledger Transfers</span>
-            <ArrowRightLeft className="w-4 h-4 text-emerald-400" />
+        <div className="trust-card p-5 space-y-2 hover:border-[#BAC7D5] transition">
+          <div className="flex items-center justify-between text-[#5A6A7E]">
+            <span className="text-xs font-bold uppercase tracking-wider">Rule Transfers</span>
+            <div className="p-2 rounded-lg bg-[#F0F4F8] text-[#1F5A7A]">
+              <ArrowRightLeft className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-bold text-white">{stats.totalTransfers}</div>
-          <div className="text-[11px] text-slate-500">Rule-evaluated & Recorded</div>
+          <div className="text-2xl font-extrabold text-[#1F5A7A]">{stats.totalTransfers}</div>
+          <div className="text-[11px] text-[#5A6A7E]">Compliance-Gated Settlements</div>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-medium uppercase tracking-wider">Fabric Block Height</span>
-            <ShieldCheck className="w-4 h-4 text-indigo-400" />
+        <div className="trust-card p-5 space-y-2 hover:border-[#BAC7D5] transition">
+          <div className="flex items-center justify-between text-[#5A6A7E]">
+            <span className="text-xs font-bold uppercase tracking-wider">Fabric Consensus</span>
+            <div className="p-2 rounded-lg bg-[#F0FDF4] text-[#18794E]">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-bold text-indigo-400 font-mono">#{stats.blockHeight}</div>
-          <div className="text-[11px] text-emerald-400">Consensus in sync</div>
+          <div className="text-2xl font-extrabold text-[#18794E]">Healthy</div>
+          <div className="text-[11px] text-[#5A6A7E]">Raft Cluster Operational</div>
         </div>
       </div>
 
-      {/* Role-Specific Directives */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-6 space-y-4">
-          <h3 className="text-base font-semibold text-white flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            Capabilities for {user?.role}
+      {/* Role-Specific Action Grid */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-[#0F2A43] uppercase tracking-wider">
+            Governance Workflows ({user?.role})
           </h3>
-          <ul className="text-xs text-slate-300 space-y-2.5">
-            {user?.role === 'ADMINISTRATOR' && (
-              <>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5" />
-                  <span>Configure dynamic asset types (VEHICLE, LAND, and INVOICE extensible definitions)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5" />
-                  <span>Manage consortium member organizations and issue user credentials</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5" />
-                  <span>Enforce segregation of duties: Admin cannot self-verify or self-transfer assets</span>
-                </li>
-              </>
-            )}
-
-            {user?.role === 'ISSUER' && (
-              <>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5" />
-                  <span>Register real-world assets with metadata and supporting document evidence</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5" />
-                  <span>Upload encrypted evidence (RC, Title deeds, survey maps) with SHA-256 integrity proofs</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5" />
-                  <span>Submit asset packages for independent verification by accredited verifiers</span>
-                </li>
-              </>
-            )}
-
-            {user?.role === 'VERIFIER' && (
-              <>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5" />
-                  <span>Inspect asset evidence and record pass/fail results against type checklists</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5" />
-                  <span>Request changes or approve verified state with non-repudiable verifier signature</span>
-                </li>
-              </>
-            )}
-
-            {user?.role === 'VALUER' && (
-              <>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-teal-400 mt-1.5" />
-                  <span>Propose valuations using configured methods (Depreciated Cost, Market Comparable, Circle Rate)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-teal-400 mt-1.5" />
-                  <span>Maker-checker enforcement: Valuer proposes, Compliance / second valuer approves</span>
-                </li>
-              </>
-            )}
-
-            {user?.role === 'COMPLIANCE' && (
-              <>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5" />
-                  <span>Approve participant KYC status and manage jurisdiction / investor class limits</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5" />
-                  <span>Approve token minting requests and co-endorse asset lifecycle state transitions</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5" />
-                  <span>Enforce regulatory freezes or holds on non-compliant assets</span>
-                </li>
-              </>
-            )}
-
-            {user?.role === 'INVESTOR' && (
-              <>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-1.5" />
-                  <span>Hold whole or fractional real-world asset tokens with verifiable ledger proofs</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-1.5" />
-                  <span>Propose peer-to-peer transfers subject to on-chain compliance rules</span>
-                </li>
-              </>
-            )}
-
-            {user?.role === 'AUDITOR' && (
-              <>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5" />
-                  <span>Read-only inspection access over public and consortium private data collections</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5" />
-                  <span>Examine full transaction histories, rejected transfer reason codes, and drift reports</span>
-                </li>
-              </>
-            )}
-          </ul>
+          <span className="text-xs text-[#5A6A7E]">Direct Action Shortcuts</span>
         </div>
 
-        {/* Live Immutable Audit Stream */}
-        <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-white flex items-center gap-2">
-              <Clock className="w-4 h-4 text-indigo-400" />
-              Latest Ledger Actions
-            </h3>
-            <button
-              onClick={fetchStats}
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-medium"
-            >
-              Refresh
-            </button>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div
+            onClick={() => onNavigate('assets')}
+            className="trust-card p-5 cursor-pointer hover:border-[#1F5A7A] transition group space-y-2"
+          >
+            <div className="flex items-center justify-between">
+              <div className="p-2.5 rounded-xl bg-[#F0F4F8] text-[#0F2A43] group-hover:bg-[#0F2A43] group-hover:text-white transition">
+                <Layers className="w-5 h-5" />
+              </div>
+              <ArrowUpRight className="w-4 h-4 text-[#8795A5] group-hover:text-[#0F2A43] transition" />
+            </div>
+            <div className="text-sm font-bold text-[#0F2A43]">Real-World Asset Directory</div>
+            <p className="text-xs text-[#5A6A7E]">
+              Explore registered asset passports, dynamic schemas, and Merkle evidence vaults.
+            </p>
           </div>
 
-          <div className="space-y-3">
-            {stats.recentEntries.length === 0 ? (
-              <div className="text-xs text-slate-500 py-6 text-center">
-                Genesis block initialized. No user mutations yet.
+          <div
+            onClick={() => onNavigate('participants')}
+            className="trust-card p-5 cursor-pointer hover:border-[#1F5A7A] transition group space-y-2"
+          >
+            <div className="flex items-center justify-between">
+              <div className="p-2.5 rounded-xl bg-[#F0F4F8] text-[#1F5A7A] group-hover:bg-[#1F5A7A] group-hover:text-white transition">
+                <Building className="w-5 h-5" />
               </div>
-            ) : (
-              stats.recentEntries.slice(0, 5).map((entry, idx) => (
-                <div key={idx} className="bg-slate-950/60 border border-slate-800/80 rounded-lg p-3 text-xs space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-200">
-                      {entry.actorRole} ({entry.actorOrg})
-                    </span>
-                    <StatusBadge status={entry.toState} />
-                  </div>
-                  <div className="text-slate-400 text-[11px] truncate">{entry.reasonText}</div>
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-800/50 text-[10px] text-slate-500">
-                    <span>Block #{entry.blockNumber}</span>
-                    <HashChip hash={entry.txId} />
-                  </div>
-                </div>
-              ))
-            )}
+              <ArrowUpRight className="w-4 h-4 text-[#8795A5] group-hover:text-[#1F5A7A] transition" />
+            </div>
+            <div className="text-sm font-bold text-[#0F2A43]">Participant Directory & KYC</div>
+            <p className="text-xs text-[#5A6A7E]">
+              Manage participant eligibility, KYC verification workflows, and transfer limit caps.
+            </p>
           </div>
+
+          <div
+            onClick={() => onNavigate('asset-types')}
+            className="trust-card p-5 cursor-pointer hover:border-[#0F766E] transition group space-y-2"
+          >
+            <div className="flex items-center justify-between">
+              <div className="p-2.5 rounded-xl bg-[#F0FDFA] text-[#0F766E] group-hover:bg-[#0F766E] group-hover:text-white transition">
+                <FileCheck className="w-5 h-5" />
+              </div>
+              <ArrowUpRight className="w-4 h-4 text-[#8795A5] group-hover:text-[#0F766E] transition" />
+            </div>
+            <div className="text-sm font-bold text-[#0F2A43]">Asset Type Engine</div>
+            <p className="text-xs text-[#5A6A7E]">
+              Inspect parametric attribute schemas, required evidence rules, and field privacy levels.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Ledger Audit Trail */}
+      <div className="trust-card overflow-hidden">
+        <div className="p-4 border-b border-[#D8E0E8] flex items-center justify-between bg-[#F8FAFC]">
+          <div className="flex items-center gap-2">
+            <History className="w-4 h-4 text-[#1F5A7A]" />
+            <h3 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider">
+              Recent Consortium Ledger Activity
+            </h3>
+          </div>
+          <span className="text-[11px] font-mono text-[#5A6A7E]">Immutable Audit Feed</span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#F8FAFC] border-b border-[#D8E0E8] text-[#5A6A7E] uppercase text-[10px] font-bold tracking-wider">
+              <tr>
+                <th className="py-2.5 px-4">Entity Type</th>
+                <th className="py-2.5 px-4">Entity ID</th>
+                <th className="py-2.5 px-4">Action</th>
+                <th className="py-2.5 px-4">Tx Hash</th>
+                <th className="py-2.5 px-4">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#E8EEF3] text-[#17202A]">
+              {stats.recentEntries && stats.recentEntries.length > 0 ? (
+                stats.recentEntries.slice(0, 6).map((entry, idx) => (
+                  <tr key={idx} className="hover:bg-[#F8FAFC] transition">
+                    <td className="py-3 px-4 font-semibold text-[#0F2A43]">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8]">
+                        {entry.entityType || 'TRANSACTION'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 font-mono text-xs">{entry.entityId}</td>
+                    <td className="py-3 px-4">
+                      <span className="font-semibold text-[#0F766E]">{entry.action}</span>
+                    </td>
+                    <td className="py-3 px-4 font-mono">
+                      <HashChip hash={entry.txId} />
+                    </td>
+                    <td className="py-3 px-4 text-[#5A6A7E] text-[11px]">
+                      {entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString() : 'Recent'}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="py-8 text-center text-[#5A6A7E]">
+                    Consortium channel initialized. Ready for transactions.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
