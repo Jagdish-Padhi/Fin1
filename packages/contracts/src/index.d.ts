@@ -158,7 +158,7 @@ export declare const EventName: {
   ASSET_RETIRED: 'AssetRetired';
 };
 
-export declare const TransferRuleReason: Record<string, string>;
+export declare const TransferRuleReason: Record<string, { code: string; message: string }>;
 export declare const LifecycleReason: Record<string, string>;
 
 export declare const RegisterParticipantSchema: any;

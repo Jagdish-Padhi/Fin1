@@ -96,7 +96,15 @@ Total Test Result: PASSED
 # Phase 6: Ownership, Transfer & Rule Engine
 - **Contract**: `TransferContract.ts`
 - **API Module**: `apps/api/src/modules/transfers`
-- **Key Functions**: `proposeTransfer`, `evaluateTransfer`, `executeTransfer` (recording rejections)
+- **Web Feature**: `apps/web/src/modules/transfers/TransfersView.jsx`
+- **Key Functions**: `proposeTransfer`, `evaluateTransfer`, `executeTransfer`, `getTransferHistory`, `cancelTransfer`
+- **Status**: COMPLETED & TESTED
+- **Critical Rule 3.4-1**: Persisted rejections with reason codes without failing transaction
+- **Testing**:
+  - Chaincode: 36 tests passed (100%)
+  - API: 32 tests passed (100%)
+  - Build: PASSED
+  - Worktree: CLEAN
 
 ---
 

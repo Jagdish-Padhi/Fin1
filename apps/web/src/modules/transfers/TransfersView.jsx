@@ -10,53 +10,106 @@ import {
   ShieldCheck,
   AlertCircle,
   HelpCircle,
+  Search,
+  Filter,
+  Layers,
+  Coins,
+  ShieldAlert,
+  ArrowUpRight,
+  TrendingUp,
+  Info,
+  Clock,
+  Check,
+  X,
+  RefreshCw,
 } from 'lucide-react';
 
 export function TransfersView() {
   const { user } = useAuth();
   const [transfers, setTransfers] = useState([]);
+  const [tokens, setTokens] = useState([]);
+  const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+
+  // Modal State
   const [showProposeModal, setShowProposeModal] = useState(false);
+  const [selectedTransferForDetails, setSelectedTransferForDetails] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Form State
   const [tokenId, setTokenId] = useState('');
-  const [fromHolder, setFromHolder] = useState('PARTICIPANT-ISSUER-001');
-  const [toHolder, setToHolder] = useState('PARTICIPANT-INVESTOR-001');
-  const [amount, setAmount] = useState(100);
-  const [purpose, setPurpose] = useState('SECONDARY_TRADE');
+  const [fromParticipantId, setFromParticipantId] = useState('');
+  const [toParticipantId, setToParticipantId] = useState('');
+  const [units, setUnits] = useState(100);
+  const [pricePaise, setPricePaise] = useState(0);
+  const [paymentRef, setPaymentRef] = useState('');
 
   // Rule Evaluation test state
   const [evalResult, setEvalResult] = useState(null);
   const [evaluating, setEvaluating] = useState(false);
 
-  const canPropose = user?.role === 'ISSUER' || user?.role === 'INVESTOR';
-  const canExecute = user?.role === 'COMPLIANCE' || user?.role === 'ADMINISTRATOR' || user?.role === 'INVESTOR';
+  const canPropose =
+    user?.role === 'ISSUER' ||
+    user?.role === 'INVESTOR' ||
+    user?.role === 'COMPLIANCE' ||
+    user?.role === 'ADMINISTRATOR';
+  const canExecute =
+    user?.role === 'COMPLIANCE' ||
+    user?.role === 'ADMINISTRATOR' ||
+    user?.role === 'INVESTOR' ||
+    user?.role === 'ISSUER';
 
-  const loadTransfers = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      const res = await api.getTransfers();
-      setTransfers(res.data || []);
+      const [transfersRes, tokensRes, participantsRes] = await Promise.allSettled([
+        api.getTransfers(),
+        api.getTokens(),
+        api.getParticipants(),
+      ]);
+
+      if (transfersRes.status === 'fulfilled') {
+        setTransfers(transfersRes.value.data || []);
+      }
+      if (tokensRes.status === 'fulfilled') {
+        setTokens(tokensRes.value.data || []);
+        if (tokensRes.value.data?.length > 0 && !tokenId) {
+          setTokenId(tokensRes.value.data[0].id);
+        }
+      }
+      if (participantsRes.status === 'fulfilled') {
+        setParticipants(participantsRes.value.data || []);
+        if (participantsRes.value.data?.length > 1 && !fromParticipantId) {
+          setFromParticipantId(participantsRes.value.data[0].id);
+          setToParticipantId(participantsRes.value.data[1].id);
+        }
+      }
     } catch (err) {
-      console.error('Failed to load transfers:', err);
+      console.error('Failed to load transfers data:', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadTransfers();
+    loadData();
   }, []);
 
   const handleEvaluateRules = async () => {
+    if (!tokenId || !fromParticipantId || !toParticipantId || !units) {
+      alert('Please fill in Token, Sender, Receiver, and Units before simulating.');
+      return;
+    }
     try {
       setEvaluating(true);
       const res = await api.evaluateTransfer({
         tokenId,
-        fromHolder,
-        toHolder,
-        amount: Number(amount),
+        fromParticipantId,
+        toParticipantId,
+        units: Number(units),
+        pricePaise: Number(pricePaise) || 0,
       });
       setEvalResult(res.data);
     } catch (err) {
@@ -72,13 +125,15 @@ export function TransfersView() {
       setSubmitting(true);
       await api.proposeTransfer({
         tokenId,
-        fromHolder,
-        toHolder,
-        amount: Number(amount),
-        purpose,
+        fromParticipantId,
+        toParticipantId,
+        units: Number(units),
+        pricePaise: Number(pricePaise) || 0,
+        paymentRef,
       });
       setShowProposeModal(false);
-      await loadTransfers();
+      setEvalResult(null);
+      await loadData();
     } catch (err) {
       alert(err.message || 'Transfer proposal failed');
     } finally {
@@ -90,15 +145,33 @@ export function TransfersView() {
     if (!confirm('Execute atomic on-chain settlement for this transfer?')) return;
     try {
       await api.executeTransfer(transferId);
-      await loadTransfers();
+      await loadData();
     } catch (err) {
       alert(err.message || 'Transfer execution failed');
     }
   };
 
+  // Stats calculation
+  const totalTransfers = transfers.length;
+  const executedTransfers = transfers.filter((t) => t.status === 'EXECUTED').length;
+  const rejectedTransfers = transfers.filter((t) => t.status === 'REJECTED').length;
+  const proposedTransfers = transfers.filter((t) => t.status === 'PROPOSED').length;
+
+  const filteredTransfers = transfers.filter((t) => {
+    const matchesStatus =
+      statusFilter === 'ALL' || t.status === statusFilter;
+    const matchesSearch =
+      !searchQuery ||
+      t.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.tokenId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.fromParticipantId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.toParticipantId?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
+
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Top Banner & Title */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#D8E0E8]">
         <div>
           <h2 className="text-xl font-bold text-[#0F2A43] flex items-center gap-2">
@@ -106,22 +179,102 @@ export function TransfersView() {
             Settlement & Transfer Rule Engine
           </h2>
           <p className="text-xs text-[#5A6A7E] mt-1">
-            Automated compliance evaluation (KYC, jurisdiction, concentration caps, lockups) and atomic on-chain settlement.
+            Governed secondary transfers on Hyperledger Fabric with deterministic rule validation, KYC/concentration caps, and first-class rejection audit.
           </p>
         </div>
 
-        {canPropose && (
+        <div className="flex items-center gap-3">
           <button
-            onClick={() => {
-              setEvalResult(null);
-              setShowProposeModal(true);
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#0F2A43] hover:bg-[#1F5A7A] text-white rounded-lg text-xs font-semibold shadow-xs transition"
+            onClick={loadData}
+            disabled={loading}
+            className="p-2 border border-[#D8E0E8] rounded-lg text-[#5A6A7E] hover:bg-[#F8FAFC] transition"
+            title="Refresh list"
           >
-            <PlusCircle className="w-4 h-4" />
-            Propose Transfer
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
-        )}
+
+          {canPropose && (
+            <button
+              onClick={() => {
+                setEvalResult(null);
+                setShowProposeModal(true);
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#0F2A43] hover:bg-[#1F5A7A] text-white rounded-lg text-xs font-semibold shadow-xs transition"
+            >
+              <PlusCircle className="w-4 h-4" />
+              Propose Transfer
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Metrics Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-4 bg-white border border-[#D8E0E8] rounded-xl shadow-2xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-[#5A6A7E]">Total Transfer Logs</span>
+            <Layers className="w-4 h-4 text-[#1F5A7A]" />
+          </div>
+          <p className="text-2xl font-bold text-[#0F2A43] mt-2">{totalTransfers}</p>
+          <p className="text-[11px] text-[#5A6A7E] mt-1">Immutable records on ledger</p>
+        </div>
+
+        <div className="p-4 bg-white border border-[#D8E0E8] rounded-xl shadow-2xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-[#5A6A7E]">Settled (Executed)</span>
+            <CheckCircle2 className="w-4 h-4 text-[#18794E]" />
+          </div>
+          <p className="text-2xl font-bold text-[#18794E] mt-2">{executedTransfers}</p>
+          <p className="text-[11px] text-[#5A6A7E] mt-1">Atomic balance debits/credits</p>
+        </div>
+
+        <div className="p-4 bg-white border border-[#D8E0E8] rounded-xl shadow-2xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-[#5A6A7E]">Rejections Persisted</span>
+            <ShieldAlert className="w-4 h-4 text-[#B42318]" />
+          </div>
+          <p className="text-2xl font-bold text-[#B42318] mt-2">{rejectedTransfers}</p>
+          <p className="text-[11px] text-[#5A6A7E] mt-1">First-class audit records (Rule 3.4-1)</p>
+        </div>
+
+        <div className="p-4 bg-white border border-[#D8E0E8] rounded-xl shadow-2xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-[#5A6A7E]">Pending Execution</span>
+            <Clock className="w-4 h-4 text-[#A16207]" />
+          </div>
+          <p className="text-2xl font-bold text-[#A16207] mt-2">{proposedTransfers}</p>
+          <p className="text-[11px] text-[#5A6A7E] mt-1">Awaiting compliance / settlement</p>
+        </div>
+      </div>
+
+      {/* Filter & Search Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 border border-[#D8E0E8] rounded-xl">
+        <div className="flex items-center gap-2 flex-wrap">
+          {['ALL', 'PROPOSED', 'EXECUTED', 'REJECTED', 'CANCELLED'].map((status) => (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                statusFilter === status
+                  ? 'bg-[#0F2A43] text-white'
+                  : 'bg-[#F8FAFC] text-[#5A6A7E] hover:bg-[#E2E8F0] border border-[#D8E0E8]'
+              }`}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative min-w-[260px]">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5A6A7E]" />
+          <input
+            type="text"
+            placeholder="Search transfer ID, token, participant..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-1.5 text-xs border border-[#D8E0E8] rounded-lg focus:outline-hidden focus:ring-1 focus:ring-[#1F5A7A]"
+          />
+        </div>
       </div>
 
       {/* Transfers Table */}
@@ -131,12 +284,12 @@ export function TransfersView() {
             <thead className="bg-[#F8FAFC] border-b border-[#D8E0E8] text-[#5A6A7E] uppercase font-semibold">
               <tr>
                 <th className="px-4 py-3">Transfer ID</th>
-                <th className="px-4 py-3">Token</th>
-                <th className="px-4 py-3">From Holder</th>
-                <th className="px-4 py-3">To Holder</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Compliance Status</th>
-                <th className="px-4 py-3">Settlement</th>
+                <th className="px-4 py-3">Security Token</th>
+                <th className="px-4 py-3">From Participant</th>
+                <th className="px-4 py-3">To Participant</th>
+                <th className="px-4 py-3">Units</th>
+                <th className="px-4 py-3">Price (₹)</th>
+                <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -144,55 +297,83 @@ export function TransfersView() {
               {loading ? (
                 <tr>
                   <td colSpan="8" className="p-8 text-center text-[#5A6A7E]">
-                    Loading transfer operations...
+                    <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[#1F5A7A]" />
+                    Loading transfer operations from blockchain...
                   </td>
                 </tr>
-              ) : transfers.length === 0 ? (
+              ) : filteredTransfers.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="p-8 text-center text-[#5A6A7E]">
-                    No transfer transactions recorded on ledger yet.
+                    No transfer records found matching the criteria.
                   </td>
                 </tr>
               ) : (
-                transfers.map((t) => {
+                filteredTransfers.map((t) => {
                   const isExecuted = t.status === 'EXECUTED';
+                  const isRejected = t.status === 'REJECTED';
+                  const isProposed = t.status === 'PROPOSED';
+                  const priceInr = t.pricePaise ? (t.pricePaise / 100).toLocaleString('en-IN') : '0';
+
                   return (
                     <tr key={t.id} className="hover:bg-[#F8FAFC] transition">
                       <td className="px-4 py-3 font-mono font-bold text-[#0F2A43]">{t.id}</td>
-                      <td className="px-4 py-3 font-mono text-[#1F5A7A]">{t.tokenId}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{t.fromHolder}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{t.toHolder}</td>
-                      <td className="px-4 py-3 font-bold font-mono">
-                        {Number(t.amount).toLocaleString()}
+                      <td className="px-4 py-3 font-mono text-[#1F5A7A]">
+                        {t.tokenId}
                       </td>
-                      <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#ECFDF5] text-[#18794E] border border-[#A7F3D0]">
-                          PASSED
-                        </span>
+                      <td className="px-4 py-3 font-mono text-xs">{t.fromParticipantId}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{t.toParticipantId}</td>
+                      <td className="px-4 py-3 font-bold font-mono text-xs">
+                        {Number(t.units).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs">
+                        ₹{priceInr}
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
                             isExecuted
                               ? 'bg-[#F0FDF4] text-[#18794E] border-[#BBF7D0]'
+                              : isRejected
+                              ? 'bg-[#FEF2F2] text-[#B42318] border-[#FECDD3]'
                               : 'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]'
                           }`}
                         >
-                          {t.status || 'PENDING'}
+                          {isExecuted && <CheckCircle2 className="w-3 h-3" />}
+                          {isRejected && <XCircle className="w-3 h-3" />}
+                          {isProposed && <Clock className="w-3 h-3" />}
+                          {t.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        {canExecute && !isExecuted ? (
-                          <button
-                            onClick={() => handleExecute(t.id)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#0F2A43] hover:bg-[#1F5A7A] text-white rounded text-[11px] font-semibold transition"
-                          >
-                            <Play className="w-3 h-3" />
-                            Execute
-                          </button>
-                        ) : (
-                          <span className="text-[#5A6A7E] text-[11px]">Settled</span>
-                        )}
+                        <div className="flex items-center justify-end gap-2">
+                          {isRejected && (
+                            <button
+                              onClick={() => setSelectedTransferForDetails(t)}
+                              className="px-2 py-1 bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#B42318] border border-[#FECDD3] rounded text-[11px] font-semibold transition"
+                            >
+                              View Reasons ({t.rejectionReasons?.length || 1})
+                            </button>
+                          )}
+
+                          {canExecute && isProposed && (
+                            <button
+                              onClick={() => handleExecute(t.id)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#0F2A43] hover:bg-[#1F5A7A] text-white rounded text-[11px] font-semibold transition"
+                            >
+                              <Play className="w-3 h-3" />
+                              Execute Settlement
+                            </button>
+                          )}
+
+                          {isExecuted && (
+                            <button
+                              onClick={() => setSelectedTransferForDetails(t)}
+                              className="px-2 py-1 text-[#5A6A7E] hover:text-[#0F2A43] text-[11px] font-medium"
+                            >
+                              Details
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -205,124 +386,362 @@ export function TransfersView() {
 
       {/* Propose Transfer Modal with Real-time Rule Simulation */}
       {showProposeModal && (
-        <div className="fixed inset-0 z-50 bg-[#0F2A43]/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#D8E0E8] rounded-xl max-w-lg w-full p-6 shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-[#0F2A43]">Propose Security Token Transfer</h3>
+        <div className="fixed inset-0 z-50 bg-[#0F2A43]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#D8E0E8] rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#D8E0E8]">
+              <h3 className="text-sm font-bold text-[#0F2A43] flex items-center gap-2">
+                <ArrowRightLeft className="w-4 h-4 text-[#1F5A7A]" />
+                Propose Token Transfer
+              </h3>
+              <button
+                onClick={() => setShowProposeModal(false)}
+                className="p-1 hover:bg-[#F0F4F8] rounded text-[#5A6A7E]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
             <p className="text-xs text-[#5A6A7E]">
-              Evaluated against on-chain smart rules before atomic settlement execution.
+              Transfers are evaluated against smart compliance rules on Hyperledger Fabric. You can run a real-time dry-run simulation before submitting.
             </p>
 
             <form onSubmit={handlePropose} className="space-y-3 text-xs">
               <div>
-                <label className="block text-[#5A6A7E] font-medium mb-1">Security Token ID</label>
-                <input
-                  type="text"
-                  placeholder="e.g. TOKEN-BLR-001"
-                  value={tokenId}
-                  onChange={(e) => setTokenId(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
-                  required
-                />
+                <label className="block text-[#5A6A7E] font-medium mb-1">
+                  Select Security Token
+                </label>
+                {tokens.length > 0 ? (
+                  <select
+                    value={tokenId}
+                    onChange={(e) => setTokenId(e.target.value)}
+                    className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono bg-white"
+                    required
+                  >
+                    {tokens.map((tok) => (
+                      <option key={tok.id} value={tok.id}>
+                        {tok.id} ({tok.standard} — {tok.totalUnits} {tok.unitLabel})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    placeholder="e.g. TKN-0x12345..."
+                    value={tokenId}
+                    onChange={(e) => setTokenId(e.target.value)}
+                    className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
+                    required
+                  />
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#5A6A7E] font-medium mb-1">From Holder ID</label>
-                  <input
-                    type="text"
-                    value={fromHolder}
-                    onChange={(e) => setFromHolder(e.target.value)}
-                    className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
-                    required
-                  />
+                  <label className="block text-[#5A6A7E] font-medium mb-1">
+                    From Participant (Seller)
+                  </label>
+                  {participants.length > 0 ? (
+                    <select
+                      value={fromParticipantId}
+                      onChange={(e) => setFromParticipantId(e.target.value)}
+                      className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono bg-white"
+                      required
+                    >
+                      {participants.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.id} ({p.kycStatus})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      placeholder="PRT-ISSUER-01"
+                      value={fromParticipantId}
+                      onChange={(e) => setFromParticipantId(e.target.value)}
+                      className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
+                      required
+                    />
+                  )}
                 </div>
+
                 <div>
-                  <label className="block text-[#5A6A7E] font-medium mb-1">To Recipient ID</label>
-                  <input
-                    type="text"
-                    value={toHolder}
-                    onChange={(e) => setToHolder(e.target.value)}
-                    className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
-                    required
-                  />
+                  <label className="block text-[#5A6A7E] font-medium mb-1">
+                    To Participant (Buyer)
+                  </label>
+                  {participants.length > 0 ? (
+                    <select
+                      value={toParticipantId}
+                      onChange={(e) => setToParticipantId(e.target.value)}
+                      className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono bg-white"
+                      required
+                    >
+                      {participants.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.id} ({p.kycStatus})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      placeholder="PRT-INVESTOR-01"
+                      value={toParticipantId}
+                      onChange={(e) => setToParticipantId(e.target.value)}
+                      className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
+                      required
+                    />
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#5A6A7E] font-medium mb-1">Transfer Units</label>
+                  <label className="block text-[#5A6A7E] font-medium mb-1">
+                    Transfer Units
+                  </label>
                   <input
                     type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    value={units}
+                    onChange={(e) => setUnits(e.target.value)}
                     className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
                     min="1"
                     required
                   />
                 </div>
+
                 <div>
-                  <label className="block text-[#5A6A7E] font-medium mb-1">Purpose</label>
-                  <select
-                    value={purpose}
-                    onChange={(e) => setPurpose(e.target.value)}
-                    className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg bg-white"
-                  >
-                    <option value="SECONDARY_TRADE">Secondary Trade</option>
-                    <option value="PRIMARY_ISSUANCE">Primary Allocation</option>
-                    <option value="REDEMPTION">Redemption</option>
-                  </select>
+                  <label className="block text-[#5A6A7E] font-medium mb-1">
+                    Settlement Price (₹ INR)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 500000"
+                    value={pricePaise ? pricePaise / 100 : ''}
+                    onChange={(e) => setPricePaise(Number(e.target.value) * 100)}
+                    className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
+                    min="0"
+                  />
                 </div>
               </div>
 
-              {/* Real-time Rule Check Simulator */}
+              <div>
+                <label className="block text-[#5A6A7E] font-medium mb-1">
+                  Payment Reference (Off-chain Settlement)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. NEFT-HDFC-9918237"
+                  value={paymentRef}
+                  onChange={(e) => setPaymentRef(e.target.value)}
+                  className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
+                />
+              </div>
+
+              {/* Pre-flight Rule Check Simulator */}
               <div className="pt-2">
                 <button
                   type="button"
                   onClick={handleEvaluateRules}
                   disabled={evaluating || !tokenId}
-                  className="w-full py-1.5 px-3 bg-[#F0F4F8] hover:bg-[#E2E8F0] text-[#0F2A43] border border-[#D8E0E8] rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+                  className="w-full py-2 px-3 bg-[#F0F4F8] hover:bg-[#E2E8F0] text-[#0F2A43] border border-[#D8E0E8] rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition"
                 >
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#1F5A7A]" />
+                  <ShieldCheck className="w-4 h-4 text-[#1F5A7A]" />
                   {evaluating ? 'Simulating On-Chain Rules...' : 'Simulate Rule Evaluation Engine'}
                 </button>
 
                 {evalResult && (
-                  <div className="mt-2 p-3 bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg text-xs space-y-1">
-                    <div className="flex items-center justify-between font-semibold">
-                      <span>Engine Verdict:</span>
-                      <span className={evalResult.canTransfer ? 'text-[#18794E]' : 'text-[#B42318]'}>
-                        {evalResult.canTransfer ? 'ELIGIBLE TO SETTLE' : 'FAILED CHECKS'}
+                  <div className="mt-3 p-3 bg-[#F8FAFC] border border-[#D8E0E8] rounded-xl text-xs space-y-2">
+                    <div className="flex items-center justify-between font-bold pb-1 border-b border-[#D8E0E8]">
+                      <span>On-Chain Simulation Result:</span>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          evalResult.passed
+                            ? 'bg-[#F0FDF4] text-[#18794E] border border-[#BBF7D0]'
+                            : 'bg-[#FEF2F2] text-[#B42318] border border-[#FECDD3]'
+                        }`}
+                      >
+                        {evalResult.passed ? 'ALL CHECKS PASSED' : 'REJECTION WILL OCCUR'}
                       </span>
                     </div>
-                    {evalResult.checks?.map((c, i) => (
-                      <div key={i} className="text-[11px] text-[#5A6A7E] flex items-center justify-between">
-                        <span>{c.rule}</span>
-                        <span className={c.passed ? 'text-[#18794E]' : 'text-[#B42318]'}>
-                          {c.passed ? 'PASS' : 'FAIL'}
-                        </span>
+
+                    <div className="space-y-1">
+                      {evalResult.results &&
+                        Object.entries(evalResult.results).map(([ruleName, r]) => (
+                          <div
+                            key={ruleName}
+                            className="flex items-center justify-between text-[11px] py-0.5"
+                          >
+                            <span className="text-[#5A6A7E] font-medium">{ruleName}</span>
+                            <span
+                              className={`flex items-center gap-1 font-bold ${
+                                r.passed ? 'text-[#18794E]' : 'text-[#B42318]'
+                              }`}
+                            >
+                              {r.passed ? (
+                                <>
+                                  <Check className="w-3 h-3" /> PASS
+                                </>
+                              ) : (
+                                <>
+                                  <X className="w-3 h-3" /> FAIL
+                                </>
+                              )}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+
+                    {evalResult.rejectionReasons?.length > 0 && (
+                      <div className="p-2 bg-[#FEF2F2] border border-[#FECDD3] rounded-lg text-[11px] text-[#B42318] space-y-1 mt-2">
+                        <p className="font-bold">Violations Detected:</p>
+                        <ul className="list-disc list-inside space-y-0.5">
+                          {evalResult.rejectionReasons.map((reason, idx) => (
+                            <li key={idx}>
+                              <span className="font-semibold font-mono">{reason.code}</span>: {reason.message}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#D8E0E8]">
                 <button
                   type="button"
                   onClick={() => setShowProposeModal(false)}
-                  className="px-4 py-2 border border-[#D8E0E8] rounded-lg text-[#5A6A7E]"
+                  className="px-4 py-2 border border-[#D8E0E8] rounded-lg text-[#5A6A7E] hover:bg-[#F8FAFC]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-[#0F2A43] text-white rounded-lg font-semibold hover:bg-[#1F5A7A]"
+                  className="px-4 py-2 bg-[#0F2A43] text-white rounded-lg font-semibold hover:bg-[#1F5A7A] transition"
                 >
-                  {submitting ? 'Submitting...' : 'Propose Transfer'}
+                  {submitting ? 'Submitting to Chain...' : 'Propose Transfer'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Transfer Details & Rejections Modal */}
+      {selectedTransferForDetails && (
+        <div className="fixed inset-0 z-50 bg-[#0F2A43]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#D8E0E8] rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-[#D8E0E8]">
+              <h3 className="text-sm font-bold text-[#0F2A43] flex items-center gap-2">
+                <Info className="w-4 h-4 text-[#1F5A7A]" />
+                Transfer Audit Record: {selectedTransferForDetails.id}
+              </h3>
+              <button
+                onClick={() => setSelectedTransferForDetails(null)}
+                className="p-1 hover:bg-[#F0F4F8] rounded text-[#5A6A7E]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 p-3 bg-[#F8FAFC] rounded-lg border border-[#D8E0E8]">
+              <div>
+                <p className="text-[10px] uppercase text-[#5A6A7E]">Status</p>
+                <p className="font-bold font-mono text-[#0F2A43] mt-0.5">
+                  {selectedTransferForDetails.status}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase text-[#5A6A7E]">Token ID</p>
+                <p className="font-mono text-[#1F5A7A] truncate mt-0.5">
+                  {selectedTransferForDetails.tokenId}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase text-[#5A6A7E]">Seller (From)</p>
+                <p className="font-mono text-[#17202A] mt-0.5">
+                  {selectedTransferForDetails.fromParticipantId}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase text-[#5A6A7E]">Buyer (To)</p>
+                <p className="font-mono text-[#17202A] mt-0.5">
+                  {selectedTransferForDetails.toParticipantId}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase text-[#5A6A7E]">Units Transferred</p>
+                <p className="font-bold text-[#0F2A43] mt-0.5">
+                  {selectedTransferForDetails.units}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase text-[#5A6A7E]">Settlement Price</p>
+                <p className="font-mono text-[#0F2A43] mt-0.5">
+                  ₹{selectedTransferForDetails.pricePaise ? (selectedTransferForDetails.pricePaise / 100).toLocaleString('en-IN') : '0'}
+                </p>
+              </div>
+            </div>
+
+            {selectedTransferForDetails.rejectionReasons?.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-bold text-[#B42318] flex items-center gap-1.5">
+                  <ShieldAlert className="w-4 h-4" />
+                  On-Chain Rejection Diagnostic Breakdown:
+                </h4>
+                <div className="space-y-2">
+                  {selectedTransferForDetails.rejectionReasons.map((reason, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 bg-[#FEF2F2] border border-[#FECDD3] rounded-lg text-xs space-y-1"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-[#B42318]">
+                          {reason.code}
+                        </span>
+                        <span className="text-[10px] bg-[#FECDD3] text-[#B42318] px-1.5 py-0.5 rounded font-semibold">
+                          RULE VIOLATION
+                        </span>
+                      </div>
+                      <p className="text-[#5A6A7E] text-[11px]">{reason.message}</p>
+                      {reason.observedValue !== undefined && (
+                        <p className="text-[11px] font-mono text-[#17202A]">
+                          Observed: {JSON.stringify(reason.observedValue)}
+                        </p>
+                      )}
+                      {reason.limit !== undefined && (
+                        <p className="text-[11px] font-mono text-[#17202A]">
+                          Limit: {JSON.stringify(reason.limit)}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-1 pt-2 border-t border-[#D8E0E8] text-[11px] text-[#5A6A7E]">
+              <p>Created At: {selectedTransferForDetails.createdAt}</p>
+              {selectedTransferForDetails.executedAt && (
+                <p>Executed At: {selectedTransferForDetails.executedAt}</p>
+              )}
+              {selectedTransferForDetails.executedTxId && (
+                <p className="font-mono truncate">
+                  Tx ID: {selectedTransferForDetails.executedTxId}
+                </p>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-3">
+              <button
+                onClick={() => setSelectedTransferForDetails(null)}
+                className="px-4 py-1.5 bg-[#0F2A43] text-white rounded-lg font-semibold hover:bg-[#1F5A7A]"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
