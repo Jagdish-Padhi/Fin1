@@ -5,6 +5,8 @@ import { Sidebar } from './shared/components/Sidebar.jsx';
 import { DashboardView } from './modules/dashboard/DashboardView.jsx';
 import { ParticipantsView } from './modules/participants/ParticipantsView.jsx';
 import { IdentityAdminView } from './modules/identity-admin/IdentityAdminView.jsx';
+import { AssetsView } from './modules/assets/AssetsView.jsx';
+import { AssetTypesView } from './modules/asset-types/AssetTypesView.jsx';
 import { PublicVerifyPage } from './modules/public-verify/PublicVerifyPage.jsx';
 import { ShieldCheck, Layers, FileCheck, TrendingUp, Coins, ArrowRightLeft, Activity, History } from 'lucide-react';
 
@@ -35,10 +37,14 @@ function MainLayout() {
           {currentTab === 'dashboard' && <DashboardView onNavigate={setCurrentTab} />}
           {currentTab === 'participants' && <ParticipantsView />}
           {currentTab === 'identity-admin' && <IdentityAdminView />}
+          {currentTab === 'assets' && <AssetsView />}
+          {currentTab === 'asset-types' && <AssetTypesView />}
 
           {currentTab !== 'dashboard' &&
             currentTab !== 'participants' &&
-            currentTab !== 'identity-admin' && (
+            currentTab !== 'identity-admin' &&
+            currentTab !== 'assets' &&
+            currentTab !== 'asset-types' && (
             <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-8 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">

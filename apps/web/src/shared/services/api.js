@@ -54,6 +54,67 @@ export class ApiClient {
     return this.request('/assets');
   }
 
+  getAsset(id) {
+    return this.request(`/assets/${encodeURIComponent(id)}`);
+  }
+
+  getAssetById(id) {
+    return this.getAsset(id);
+  }
+
+  submitAssetForVerification(assetId) {
+    return this.submitForVerification(assetId);
+  }
+
+  registerAsset(data) {
+    return this.request('/assets', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  updateAssetAttributes(id, attributes, reason) {
+    return this.request(`/assets/${encodeURIComponent(id)}/attributes`, {
+      method: 'PATCH',
+      body: JSON.stringify({ attributes, reason }),
+    });
+  }
+
+  attachEvidence(assetId, data) {
+    return this.request(`/assets/${encodeURIComponent(assetId)}/evidence`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  submitForVerification(assetId) {
+    return this.request(`/assets/${encodeURIComponent(assetId)}/submit-verification`, {
+      method: 'POST',
+    });
+  }
+
+  getAssetTypes() {
+    return this.request('/asset-types');
+  }
+
+  getAssetType(key, version = 1) {
+    return this.request(`/asset-types/${encodeURIComponent(key)}?version=${version}`);
+  }
+
+  defineAssetType(data) {
+    return this.request('/asset-types', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  deprecateAssetType(key, version = 1, reason) {
+    return this.request(`/asset-types/${encodeURIComponent(key)}/deprecate`, {
+      method: 'POST',
+      body: JSON.stringify({ version, reason }),
+    });
+  }
+
   getTokens() {
     return this.request('/tokens');
   }

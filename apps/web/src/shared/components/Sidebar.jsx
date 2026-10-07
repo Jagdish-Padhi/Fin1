@@ -23,7 +23,8 @@ export function Sidebar({ currentTab, onSelectTab }) {
     ...(user?.role === 'ADMINISTRATOR'
       ? [{ id: 'identity-admin', label: 'Consortium Org & Users', icon: UserCheck, badge: 'Admin' }]
       : []),
-    { id: 'assets', label: 'Assets & Registration', icon: Layers },
+    { id: 'assets', label: 'Assets & Passports', icon: Layers, badge: 'Phase 2' },
+    { id: 'asset-types', label: 'Asset Type Engine', icon: Building, badge: 'Phase 2' },
     { id: 'verification', label: 'Verification Queue', icon: FileCheck },
     { id: 'valuation', label: 'Valuation & Pricing', icon: TrendingUp },
     { id: 'tokens', label: 'Tokens & Cap Tables', icon: Coins },

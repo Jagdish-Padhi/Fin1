@@ -10,13 +10,31 @@ assetsRouter.use(authenticate);
 
 assetsRouter.get('/', (req, res, next) => assetsController.list(req, res, next));
 assetsRouter.get('/:id', (req, res, next) => assetsController.getById(req, res, next));
+
+// Issuer asset registration
 assetsRouter.post(
   '/',
   requireRole(Role.ISSUER),
   (req, res, next) => assetsController.register(req, res, next)
 );
+
+// Issuer attribute modification prior to submission
+assetsRouter.patch(
+  '/:id/attributes',
+  requireRole(Role.ISSUER),
+  (req, res, next) => assetsController.updateAttributes(req, res, next)
+);
+
+// Evidence attachment
+assetsRouter.post(
+  '/:id/evidence',
+  requireRole(Role.ISSUER),
+  (req, res, next) => assetsController.attachEvidence(req, res, next)
+);
+
+// Submit asset for independent verification
 assetsRouter.post(
   '/:id/submit-verification',
   requireRole(Role.ISSUER),
-  (req, res, next) => assetsController.submitVerification(req, res, next)
+  (req, res, next) => assetsController.submitForVerification(req, res, next)
 );

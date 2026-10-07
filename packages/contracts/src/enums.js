@@ -60,6 +60,17 @@ export const AssetStatus = {
   RETIRED: 'RETIRED',
 };
 
+export const AssetTypeStatus = {
+  ACTIVE: 'ACTIVE',
+  DEPRECATED: 'DEPRECATED',
+};
+
+export const FieldVisibility = {
+  PUBLIC: 'PUBLIC',
+  CONSORTIUM: 'CONSORTIUM',
+  RESTRICTED: 'RESTRICTED',
+};
+
 export const TokenStandard = {
   WHOLE: 'WHOLE',
   FRACTIONAL: 'FRACTIONAL',

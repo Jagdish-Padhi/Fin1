@@ -29,6 +29,71 @@ export function errorHandler(err, req, res, next) {
     });
   }
 
+  // Chaincode / domain error mapping
+  const msg = err?.message || '';
+  if (
+    msg.includes('Duplicate') ||
+    msg.includes('already exists') ||
+    msg.includes('already registered') ||
+    msg.includes('already attached')
+  ) {
+    return res.status(409).json({
+      success: false,
+      error: {
+        code: ErrorCode.CONFLICT || 'CONFLICT',
+        message: msg,
+        correlationId,
+      },
+    });
+  }
+
+  if (
+    msg.includes('Unauthorized') ||
+    msg.includes('Only Issuer') ||
+    msg.includes('Only Administrator') ||
+    msg.includes('Only Compliance') ||
+    msg.includes('Segregation of duties')
+  ) {
+    return res.status(403).json({
+      success: false,
+      error: {
+        code: ErrorCode.FORBIDDEN,
+        message: msg,
+        correlationId,
+      },
+    });
+  }
+
+  if (msg.includes('not found') || msg.includes('Not found')) {
+    return res.status(404).json({
+      success: false,
+      error: {
+        code: ErrorCode.NOT_FOUND,
+        message: msg,
+        correlationId,
+      },
+    });
+  }
+
+  if (
+    msg.includes('Schema validation') ||
+    msg.includes('Missing required field') ||
+    msg.includes('deprecated') ||
+    msg.includes('Missing mandatory evidence') ||
+    msg.includes('blocked') ||
+    msg.includes('Cannot') ||
+    msg.includes('Invalid')
+  ) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: ErrorCode.BAD_REQUEST,
+        message: msg,
+        correlationId,
+      },
+    });
+  }
+
   console.error(`[UnhandledError] [${correlationId}]`, err);
 
   return res.status(500).json({

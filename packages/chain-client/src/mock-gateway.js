@@ -38,21 +38,27 @@ export class MockGateway {
   }
 
   initDefaultSeed() {
-    // Seed default types: VEHICLE (whole) & LAND (fractional)
+    // Seed default types: VEHICLE, REAL_ESTATE, INVOICE, COMMODITY, LAND
     this.assetTypes.set('VEHICLE:1', {
       key: 'VEHICLE',
       version: 1,
       displayName: 'Commercial & Agricultural Vehicles',
+      uniqueFields: ['registrationNumber', 'chassisNumber'],
       attributeSchema: {
         registrationNumber: { type: 'string', required: true, visibility: 'PUBLIC' },
-        chassisNumber: { type: 'string', required: true, visibility: 'RESTRICTED' },
+        chassisNumber: { type: 'string', required: true, visibility: 'PUBLIC' },
         make: { type: 'string', required: true, visibility: 'PUBLIC' },
         model: { type: 'string', required: true, visibility: 'PUBLIC' },
-        year: { type: 'number', required: true, visibility: 'PUBLIC' },
+        year: { type: 'number', required: false, visibility: 'PUBLIC' },
+        manufacturingYear: { type: 'number', required: false, visibility: 'PUBLIC' },
+        fuelType: { type: 'string', required: false, visibility: 'PUBLIC' },
+        fleetOperator: { type: 'string', required: false, visibility: 'PUBLIC' },
+        purchasePriceInr: { type: 'number', required: false, visibility: 'RESTRICTED' },
       },
       evidenceRequirements: [
-        { docType: 'RC', required: true, description: 'Registration Certificate' },
-        { docType: 'INSURANCE', required: true, description: 'Valid Commercial Insurance' },
+        { docType: 'RC_BOOK', required: true, description: 'Vehicle Registration Certificate' },
+        { docType: 'INSURANCE_POLICY', required: true, description: 'Valid Commercial Insurance Policy' },
+        { docType: 'FITNESS_CERT', required: true, description: 'Transport Department Fitness Certificate' },
       ],
       verificationChecklist: [
         { key: 'RC_VALID', label: 'Verify RC with Vahan / Transport Dept', required: true },
@@ -71,10 +77,108 @@ export class MockGateway {
       },
     });
 
+    this.assetTypes.set('REAL_ESTATE:1', {
+      key: 'REAL_ESTATE',
+      version: 1,
+      displayName: 'Commercial Real Estate & Grade-A Offices',
+      uniqueFields: ['surveyNumber', 'propertyId'],
+      attributeSchema: {
+        surveyNumber: { type: 'string', required: true, visibility: 'PUBLIC' },
+        propertyId: { type: 'string', required: true, visibility: 'PUBLIC' },
+        locality: { type: 'string', required: true, visibility: 'PUBLIC' },
+        builtUpSqFt: { type: 'number', required: true, visibility: 'PUBLIC' },
+        occupancyRate: { type: 'number', required: false, visibility: 'PUBLIC' },
+        purchasePriceInr: { type: 'number', required: false, visibility: 'RESTRICTED' },
+      },
+      evidenceRequirements: [
+        { docType: 'TITLE_DEED', required: true, description: 'Registered Title Deed' },
+        { docType: 'ENCUMBRANCE_CERT', required: true, description: 'Encumbrance Certificate' },
+        { docType: 'TAX_RECEIPT', required: true, description: 'Municipal Property Tax Receipt' },
+      ],
+      verificationChecklist: [
+        { key: 'TITLE_SEARCH', label: '30-Year Search Report by Empaneled Advocate', required: true },
+        { key: 'PHYSICAL_INSPECTION', label: 'Physical Geo-tagged Site Survey', required: true },
+      ],
+      valuation: { methods: ['DISCOUNTED_CASH_FLOW', 'CAP_RATE'], validityDays: 180 },
+      token: { standard: TokenStandard.FRACTIONAL, minUnits: 100, maxUnits: 1000000 },
+      transferRules: [
+        { id: 'PARTY_KYC_VERIFIED', type: 'PARTY_KYC_VERIFIED' },
+        { id: 'MAX_HOLDING_BPS', type: 'MAX_HOLDING_BPS', params: { maxBps: 2500 } },
+      ],
+      terminalReasons: {
+        REDEEMED: ['CONSOLIDATED_BUYOUT'],
+        RETIRED: ['DEMOLISHED', 'GOVT_ACQUISITION'],
+      },
+    });
+
+    this.assetTypes.set('INVOICE:1', {
+      key: 'INVOICE',
+      version: 1,
+      displayName: 'Supply Chain Trade Receivables',
+      uniqueFields: ['invoiceNumber'],
+      attributeSchema: {
+        invoiceNumber: { type: 'string', required: true, visibility: 'PUBLIC' },
+        supplierGstin: { type: 'string', required: true, visibility: 'PUBLIC' },
+        buyerGstin: { type: 'string', required: true, visibility: 'PUBLIC' },
+        amountPaise: { type: 'number', required: true, visibility: 'PUBLIC' },
+        dueDate: { type: 'string', required: true, visibility: 'PUBLIC' },
+        discountRateBps: { type: 'number', required: false, visibility: 'RESTRICTED' },
+      },
+      evidenceRequirements: [
+        { docType: 'INVOICE_PDF', required: true, description: 'Signed Digitized Commercial Invoice' },
+        { docType: 'EWAY_BILL', required: true, description: 'GST E-Way Bill Consignment Proof' },
+      ],
+      verificationChecklist: [
+        { key: 'E_INVOICE_PORTAL', label: 'IRN Validated on GST Portal', required: true },
+        { key: 'BUYER_ACCEPTANCE', label: 'Buyer Written Goods Receipt & Acceptance', required: true },
+      ],
+      valuation: { methods: ['FACE_VALUE_DISCOUNTED'], validityDays: 90 },
+      token: { standard: TokenStandard.WHOLE },
+      transferRules: [
+        { id: 'PARTY_KYC_VERIFIED', type: 'PARTY_KYC_VERIFIED' },
+      ],
+      terminalReasons: {
+        REDEEMED: ['PAID_IN_FULL'],
+        RETIRED: ['WRITTEN_OFF_BAD_DEBT'],
+      },
+    });
+
+    this.assetTypes.set('COMMODITY:1', {
+      key: 'COMMODITY',
+      version: 1,
+      displayName: 'Warehoused Agricultural & Metal Commodities',
+      uniqueFields: ['batchId', 'warehouseReceiptNo'],
+      attributeSchema: {
+        batchId: { type: 'string', required: true, visibility: 'PUBLIC' },
+        warehouseReceiptNo: { type: 'string', required: true, visibility: 'PUBLIC' },
+        commodityType: { type: 'string', required: true, visibility: 'PUBLIC' },
+        quantityKg: { type: 'number', required: true, visibility: 'PUBLIC' },
+        grade: { type: 'string', required: false, visibility: 'PUBLIC' },
+        storageLocation: { type: 'string', required: true, visibility: 'PUBLIC' },
+      },
+      evidenceRequirements: [
+        { docType: 'WAREHOUSE_RECEIPT', required: true, description: 'Negotiable Electronic Warehouse Receipt (e-NWR)' },
+        { docType: 'ASSAYING_CERT', required: true, description: 'Quality & Assaying Lab Certificate' },
+      ],
+      verificationChecklist: [
+        { key: 'WDRA_VERIFIED', label: 'WDRA Accredited Warehouse Audit Verified', required: true },
+      ],
+      valuation: { methods: ['SPOT_MARKET_BENCHMARK'], validityDays: 30 },
+      token: { standard: TokenStandard.FRACTIONAL, minUnits: 10, maxUnits: 100000 },
+      transferRules: [
+        { id: 'PARTY_KYC_VERIFIED', type: 'PARTY_KYC_VERIFIED' },
+      ],
+      terminalReasons: {
+        REDEEMED: ['PHYSICAL_DELIVERY_TAKEN'],
+        RETIRED: ['DAMAGED_EXPIRED'],
+      },
+    });
+
     this.assetTypes.set('LAND:1', {
       key: 'LAND',
       version: 1,
       displayName: 'Agricultural & Commercial Land Parcels',
+      uniqueFields: ['surveyNumber'],
       attributeSchema: {
         surveyNumber: { type: 'string', required: true, visibility: 'PUBLIC' },
         district: { type: 'string', required: true, visibility: 'PUBLIC' },
@@ -346,11 +450,31 @@ export class MockGateway {
         if (caller.role !== Role.ADMINISTRATOR) {
           throw new Error('Only Administrator can define asset types');
         }
-        const key = `${args.key}:${args.version}`;
-        this.assetTypes.set(key, args);
+        const key = `${args.key}:${args.version || 1}`;
+        const typeRecord = {
+          ...args,
+          version: args.version || 1,
+          status: args.status || 'ACTIVE',
+        };
+        this.assetTypes.set(key, typeRecord);
         this._appendAudit(caller, 'ASSET_TYPE', key, 'NONE', 'ACTIVE', 'TYPE_PUBLISHED', 'Asset type published', txId);
-        this._emit(EventName.ASSET_TYPE_DEFINED, { key: args.key, version: args.version }, txId);
-        result = args;
+        this._emit(EventName.ASSET_TYPE_DEFINED, { key: args.key, version: typeRecord.version }, txId);
+        result = typeRecord;
+        break;
+      }
+
+      case 'deprecateAssetType': {
+        if (caller.role !== Role.ADMINISTRATOR && caller.role !== Role.COMPLIANCE) {
+          throw new Error('Only Administrator or Compliance can deprecate asset types');
+        }
+        const key = `${args.key}:${args.version || 1}`;
+        const typeDef = this.assetTypes.get(key);
+        if (!typeDef) throw new Error(`Asset type ${key} not found`);
+        const prev = typeDef.status;
+        typeDef.status = 'DEPRECATED';
+        this._appendAudit(caller, 'ASSET_TYPE', key, prev, 'DEPRECATED', 'TYPE_DEPRECATED', args.reason || '', txId);
+        this._emit('AssetTypeDeprecated', { key: args.key, version: typeDef.version }, txId);
+        result = typeDef;
         break;
       }
 
@@ -358,11 +482,37 @@ export class MockGateway {
         if (caller.role !== Role.ISSUER) {
           throw new Error('Only Issuer can register assets');
         }
-        const id = args.id || `AST-${Date.now()}`;
         const typeKey = `${args.typeKey}:${args.typeVersion || 1}`;
         const typeDef = this.assetTypes.get(typeKey);
         if (!typeDef) throw new Error(`Asset type ${typeKey} not found`);
 
+        // Edge case: Deprecated type blocks new registrations
+        if (typeDef.status === 'DEPRECATED') {
+          throw new Error(`Cannot register asset under deprecated asset type (${typeKey})`);
+        }
+
+        // Schema validation: check required fields in attributeSchema
+        const schema = typeDef.attributeSchema || {};
+        for (const [field, rule] of Object.entries(schema)) {
+          if (rule.required && (args.attributes[field] === undefined || args.attributes[field] === null || args.attributes[field] === '')) {
+            throw new Error(`Schema validation error: Missing required field '${field}'`);
+          }
+        }
+
+        // Duplicate asset detection on unique identity fields
+        const idFields = ['registrationNumber', 'chassisNumber', 'surveyNumber', 'invoiceNumber'];
+        for (const field of idFields) {
+          const val = args.attributes[field];
+          if (val) {
+            for (const existing of this.assets.values()) {
+              if (existing.attributes && existing.attributes[field] === val && existing.typeKey === args.typeKey) {
+                throw new Error(`Duplicate asset detected: Real-world asset with ${field} '${val}' already registered (${existing.id})`);
+              }
+            }
+          }
+        }
+
+        const id = args.id || `AST-${Date.now()}`;
         const asset = {
           id,
           typeKey: args.typeKey,
@@ -374,11 +524,47 @@ export class MockGateway {
           status: AssetStatus.REGISTERED,
           evidenceRoot: '',
           version: 1,
+          evidence: [],
           createdAt: this._now(),
+          updatedAt: this._now(),
         };
         this.assets.set(id, asset);
         this._appendAudit(caller, 'ASSET', id, 'NONE', AssetStatus.REGISTERED, 'ASSET_REGISTERED', 'Asset submitted', txId);
         this._emit(EventName.ASSET_REGISTERED, asset, txId);
+        result = asset;
+        break;
+      }
+
+      case 'updateAssetAttributes': {
+        if (caller.role !== Role.ISSUER) {
+          throw new Error('Only Issuer can update asset attributes');
+        }
+        const asset = this.assets.get(args.assetId);
+        if (!asset) throw new Error(`Asset not found: ${args.assetId}`);
+
+        // Edge case: Attribute changes after submission to verification are blocked
+        if (asset.status !== AssetStatus.REGISTERED && asset.status !== AssetStatus.CHANGES_REQUESTED) {
+          throw new Error(`Attribute change blocked: Asset is in status '${asset.status}'`);
+        }
+
+        const typeKey = `${asset.typeKey}:${asset.typeVersion}`;
+        const typeDef = this.assetTypes.get(typeKey);
+        const updatedAttrs = { ...asset.attributes, ...args.attributes };
+        if (typeDef?.attributeSchema) {
+          for (const [field, rule] of Object.entries(typeDef.attributeSchema)) {
+            if (rule.required && (updatedAttrs[field] === undefined || updatedAttrs[field] === null || updatedAttrs[field] === '')) {
+              throw new Error(`Schema validation error: Missing required field '${field}'`);
+            }
+          }
+        }
+
+        asset.attributes = updatedAttrs;
+        asset.attributesHash = crypto.createHash('sha256').update(JSON.stringify(asset.attributes)).digest('hex');
+        asset.version++;
+        asset.updatedAt = this._now();
+
+        this._appendAudit(caller, 'ASSET', asset.id, asset.status, asset.status, 'ATTRIBUTES_UPDATED', args.reason || '', txId);
+        this._emit('AssetAttributesUpdated', { assetId: asset.id, version: asset.version }, txId);
         result = asset;
         break;
       }
@@ -389,6 +575,14 @@ export class MockGateway {
         if (asset.status !== AssetStatus.REGISTERED && asset.status !== AssetStatus.CHANGES_REQUESTED) {
           throw new Error(`Cannot attach evidence when asset is in status ${asset.status}`);
         }
+
+        // Duplicate-hash detection across other assets
+        for (const existingEv of this.evidence.values()) {
+          if (existingEv.sha256 === args.sha256 && existingEv.assetId !== args.assetId) {
+            throw new Error(`Duplicate evidence detected: Evidence with SHA-256 already attached to asset ${existingEv.assetId}`);
+          }
+        }
+
         const evId = args.id || `EVD-${Date.now()}`;
         const evidence = {
           id: evId,
@@ -404,15 +598,46 @@ export class MockGateway {
           createdAt: this._now(),
         };
         this.evidence.set(evId, evidence);
+
+        // Keep track of evidence in asset and recompute Merkle root
+        asset.evidence = asset.evidence || [];
+        // Replace previous version of same docType if exists
+        asset.evidence = asset.evidence.filter((e) => e.docType !== args.docType);
+        asset.evidence.push(evidence);
+
+        // Compute Merkle / evidence root from active evidence leaves
+        const leaves = asset.evidence.map((e) => e.sha256).sort();
+        asset.evidenceRoot = crypto.createHash('sha256').update(leaves.join(':')).digest('hex');
+
         this._appendAudit(caller, 'EVIDENCE', evId, 'NONE', 'ATTACHED', 'EVIDENCE_ATTACHED', args.fileName, txId);
         this._emit(EventName.EVIDENCE_ATTACHED, evidence, txId);
-        result = evidence;
+        result = {
+          ...evidence,
+          evidenceFiles: asset.evidence,
+          evidenceRoot: asset.evidenceRoot,
+        };
         break;
       }
 
       case 'submitForVerification': {
         const asset = this.assets.get(args.assetId);
         if (!asset) throw new Error(`Asset not found: ${args.assetId}`);
+        if (asset.status !== AssetStatus.REGISTERED && asset.status !== AssetStatus.CHANGES_REQUESTED) {
+          throw new Error(`Cannot submit asset for verification from status '${asset.status}'`);
+        }
+
+        // Edge case: Missing mandatory evidence blocks submission
+        const typeKey = `${asset.typeKey}:${asset.typeVersion}`;
+        const typeDef = this.assetTypes.get(typeKey);
+        if (typeDef?.evidenceRequirements) {
+          const attachedTypes = new Set((asset.evidence || []).map((e) => e.docType));
+          for (const req of typeDef.evidenceRequirements) {
+            if (req.required && !attachedTypes.has(req.docType)) {
+              throw new Error(`Missing mandatory evidence document: '${req.description || req.docType}'`);
+            }
+          }
+        }
+
         const prev = asset.status;
         asset.status = AssetStatus.UNDER_VERIFICATION;
         const caseId = `VER-${Date.now()}`;
@@ -422,12 +647,16 @@ export class MockGateway {
           status: 'PENDING_REVIEW',
           assignedTo: null,
           checks: {},
+          slaDueAt: new Date(Date.now() + 72 * 3600 * 1000).toISOString(),
           createdAt: this._now(),
         };
         this.verificationCases.set(caseId, vCase);
         this._appendAudit(caller, 'ASSET', asset.id, prev, AssetStatus.UNDER_VERIFICATION, 'SUBMITTED_TO_VERIFIER', 'Awaiting verification', txId);
         this._emit(EventName.VERIFICATION_STARTED, { caseId, assetId: asset.id }, txId);
-        result = { asset, verificationCase: vCase };
+        result = {
+          ...asset,
+          verificationCase: vCase,
+        };
         break;
       }
 
@@ -749,10 +978,13 @@ export class MockGateway {
 
   async evaluate(caller, fnName, args = {}) {
     switch (fnName) {
-      case 'getAsset':
-        return this.assets.get(args.id) || null;
+      case 'getAsset': {
+        const raw = this.assets.get(args.id);
+        if (!raw) return null;
+        return this._filterAssetVisibility(raw, caller);
+      }
       case 'listAssets':
-        return Array.from(this.assets.values());
+        return Array.from(this.assets.values()).map((a) => this._filterAssetVisibility(a, caller));
       case 'getAssetType':
         return this.assetTypes.get(`${args.key}:${args.version || 1}`) || null;
       case 'listAssetTypes':
@@ -807,6 +1039,31 @@ export class MockGateway {
       default:
         throw new Error(`Unknown query function: ${fnName}`);
     }
+  }
+
+  _filterAssetVisibility(asset, caller) {
+    if (!asset) return null;
+    const typeKey = `${asset.typeKey}:${asset.typeVersion}`;
+    const typeDef = this.assetTypes.get(typeKey);
+    const schema = typeDef?.attributeSchema || {};
+
+    const copy = { ...asset, attributes: { ...asset.attributes } };
+
+    const isRestrictedPrivileged =
+      caller?.role === Role.VERIFIER ||
+      caller?.role === Role.COMPLIANCE ||
+      caller?.role === Role.AUDITOR ||
+      caller?.userId === asset.originatorParticipantId ||
+      caller?.participantId === asset.originatorParticipantId;
+
+    if (!isRestrictedPrivileged) {
+      for (const [key, rule] of Object.entries(schema)) {
+        if (rule.visibility === 'RESTRICTED') {
+          delete copy.attributes[key];
+        }
+      }
+    }
+    return copy;
   }
 
   _evaluateRules(transfer, token, asset) {
@@ -887,6 +1144,42 @@ export class MockGateway {
       results,
       rejectionReasons,
     };
+  }
+
+  _filterAssetVisibility(asset, caller) {
+    if (!asset) return null;
+    const cloned = JSON.parse(JSON.stringify(asset));
+    if (!caller) return cloned;
+
+    const hasPrivilegedAccess =
+      caller.role === Role.ADMINISTRATOR ||
+      caller.role === Role.VERIFIER ||
+      caller.role === Role.VALUER ||
+      caller.role === Role.COMPLIANCE ||
+      caller.role === Role.AUDITOR ||
+      (caller.role === Role.ISSUER &&
+        (caller.participantId === asset.originatorParticipantId ||
+          caller.userId === asset.originatorParticipantId ||
+          !asset.originatorParticipantId));
+
+    if (hasPrivilegedAccess) {
+      return cloned;
+    }
+
+    // Redact RESTRICTED fields for INVESTOR or public
+    const typeKey = `${cloned.typeKey}:${cloned.typeVersion || 1}`;
+    const typeDef = this.assetTypes.get(typeKey);
+    const schema = typeDef?.attributeSchema || {};
+
+    if (cloned.attributes) {
+      for (const [key, rule] of Object.entries(schema)) {
+        if (rule.visibility === 'RESTRICTED' && cloned.attributes[key] !== undefined) {
+          cloned.attributes[key] = '[REDACTED (CONSORTIUM PRIVILEGED)]';
+        }
+      }
+    }
+
+    return cloned;
   }
 
   subscribe(callback) {

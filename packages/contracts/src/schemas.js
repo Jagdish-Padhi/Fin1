@@ -70,62 +70,114 @@ export const AdminCreateOrgSchema = z.object({
   name: z.string().min(2),
 });
 
-export const AssetTypeDefinitionSchema = z.object({
-  key: z.string().min(2).toUpperCase(),
-  version: z.number().int().positive(),
-  displayName: z.string().min(2),
-  attributeSchema: z.record(z.any()),
-  evidenceRequirements: z.array(
-    z.object({
-      docType: z.string(),
-      required: z.boolean(),
-      description: z.string().optional(),
-    })
-  ),
-  verificationChecklist: z.array(
-    z.object({
-      key: z.string(),
-      label: z.string(),
-      required: z.boolean(),
-    })
-  ),
-  valuation: z.object({
-    methods: z.array(z.string()),
-    validityDays: z.number().int().positive(),
-  }),
-  token: z.object({
-    standard: z.nativeEnum(TokenStandard),
-    minUnits: z.number().int().positive().optional(),
-    maxUnits: z.number().int().positive().optional(),
-  }),
-  transferRules: z.array(
-    z.object({
-      id: z.string(),
-      type: z.string(),
-      params: z.record(z.any()).optional(),
-    })
-  ),
-  terminalReasons: z.object({
-    REDEEMED: z.array(z.string()),
-    RETIRED: z.array(z.string()),
-  }),
-});
+export const AssetTypeDefinitionSchema = z
+  .object({
+    key: z.string().min(2).toUpperCase(),
+    version: z.number().int().positive().default(1),
+    displayName: z.string().min(2).optional(),
+    name: z.string().min(2).optional(),
+    description: z.string().optional(),
+    category: z.string().optional(),
+    defaultJurisdiction: z.string().optional(),
+    uniqueFields: z.array(z.string()).default([]),
+    mandatoryEvidence: z.array(z.string()).default([]),
+    attributeSchema: z.record(z.any()).default({}),
+    evidenceRequirements: z
+      .array(
+        z.object({
+          docType: z.string(),
+          required: z.boolean(),
+          description: z.string().optional(),
+        })
+      )
+      .default([]),
+    verificationChecklist: z
+      .array(
+        z.object({
+          key: z.string(),
+          label: z.string(),
+          required: z.boolean(),
+        })
+      )
+      .default([]),
+    valuation: z
+      .object({
+        methods: z.array(z.string()),
+        validityDays: z.number().int().positive(),
+      })
+      .default({ methods: ['MARKET_COMPARABLE'], validityDays: 180 }),
+    token: z
+      .object({
+        standard: z.nativeEnum(TokenStandard),
+        minUnits: z.number().int().positive().optional(),
+        maxUnits: z.number().int().positive().optional(),
+      })
+      .default({ standard: TokenStandard.WHOLE }),
+    transferRules: z
+      .array(
+        z.object({
+          id: z.string(),
+          type: z.string(),
+          params: z.record(z.any()).optional(),
+        })
+      )
+      .default([]),
+    terminalReasons: z
+      .object({
+        REDEEMED: z.array(z.string()).default([]),
+        RETIRED: z.array(z.string()).default([]),
+      })
+      .default({ REDEEMED: [], RETIRED: [] }),
+  })
+  .transform((val) => {
+    const displayName = val.displayName || val.name || val.key;
+    const evidenceReqs =
+      val.evidenceRequirements.length > 0
+        ? val.evidenceRequirements
+        : val.mandatoryEvidence.map((docType) => ({
+            docType,
+            required: true,
+            description: docType,
+          }));
+    return {
+      ...val,
+      displayName,
+      evidenceRequirements: evidenceReqs,
+    };
+  });
 
 export const RegisterAssetSchema = z.object({
+  id: z.string().optional(),
   typeKey: z.string().min(2).toUpperCase(),
   typeVersion: z.number().int().positive().default(1),
   displayName: z.string().min(2),
+  jurisdiction: z.string().optional(),
+  custodian: z.string().optional(),
   attributes: z.record(z.any()),
 });
 
-export const AttachEvidenceSchema = z.object({
-  assetId: z.string().min(1),
-  docType: z.string().min(1),
-  fileName: z.string().min(1),
-  mimeType: z.string().min(1),
-  fileSize: z.number().int().positive(),
-  sha256: z.string().length(64),
+export const UpdateAssetAttributesSchema = z.object({
+  attributes: z.record(z.any()),
+  reason: z.string().optional(),
 });
+
+export const AttachEvidenceSchema = z
+  .object({
+    assetId: z.string().min(1).optional(),
+    docType: z.string().min(1),
+    fileName: z.string().min(1).optional(),
+    title: z.string().optional(),
+    mimeType: z.string().default('application/pdf'),
+    fileSize: z.number().int().positive().optional(),
+    sizeBytes: z.number().int().positive().optional(),
+    sha256: z.string().length(64),
+    storageKey: z.string().optional(),
+  })
+  .transform((val) => ({
+    ...val,
+    fileName: val.fileName || val.title || `${val.docType}.pdf`,
+    fileSize: val.fileSize || val.sizeBytes || 1048576,
+  }));
 
 export const RecordVerificationCheckSchema = z.object({
   caseId: z.string().min(1),

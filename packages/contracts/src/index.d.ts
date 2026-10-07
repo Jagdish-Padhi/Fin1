@@ -56,6 +56,17 @@ export declare const AssetStatus: {
   RETIRED: 'RETIRED';
 };
 
+export declare const AssetTypeStatus: {
+  ACTIVE: 'ACTIVE';
+  DEPRECATED: 'DEPRECATED';
+};
+
+export declare const FieldVisibility: {
+  PUBLIC: 'PUBLIC';
+  CONSORTIUM: 'CONSORTIUM';
+  RESTRICTED: 'RESTRICTED';
+};
+
 export declare const TokenStandard: {
   WHOLE: 'WHOLE';
   FRACTIONAL: 'FRACTIONAL';
