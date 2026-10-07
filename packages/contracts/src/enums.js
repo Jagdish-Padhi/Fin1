@@ -1,0 +1,139 @@
+/**
+ * PS-01: EkamVistar Real-World Asset Tokenization Platform
+ * Shared Domain Enums
+ */
+
+export const Role = {
+  ADMINISTRATOR: 'ADMINISTRATOR',
+  ISSUER: 'ISSUER',
+  VERIFIER: 'VERIFIER',
+  VALUER: 'VALUER',
+  COMPLIANCE: 'COMPLIANCE',
+  INVESTOR: 'INVESTOR',
+  AUDITOR: 'AUDITOR',
+};
+
+export const OrgMsp = {
+  EkamVistarMSP: 'EkamVistarMSP',
+  IssuerMSP: 'IssuerMSP',
+  VerifierMSP: 'VerifierMSP',
+  ComplianceMSP: 'ComplianceMSP',
+  InvestorMSP: 'InvestorMSP',
+  AuditorMSP: 'AuditorMSP',
+};
+
+export const ParticipantKind = {
+  INDIVIDUAL: 'INDIVIDUAL',
+  ENTITY: 'ENTITY',
+};
+
+export const KycStatus = {
+  SUBMITTED: 'SUBMITTED',
+  UNDER_REVIEW: 'UNDER_REVIEW',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+};
+
+export const InvestorClass = {
+  RETAIL: 'RETAIL',
+  QUALIFIED: 'QUALIFIED',
+  INSTITUTIONAL: 'INSTITUTIONAL',
+};
+
+export const AssetStatus = {
+  REGISTERED: 'REGISTERED',
+  UNDER_VERIFICATION: 'UNDER_VERIFICATION',
+  CHANGES_REQUESTED: 'CHANGES_REQUESTED',
+  REJECTED: 'REJECTED',
+  VERIFIED: 'VERIFIED',
+  VALUED: 'VALUED',
+  TOKENIZED: 'TOKENIZED',
+  FROZEN: 'FROZEN',
+  REDEEMED: 'REDEEMED',
+  RETIRED: 'RETIRED',
+};
+
+export const TokenStandard = {
+  WHOLE: 'WHOLE',
+  FRACTIONAL: 'FRACTIONAL',
+};
+
+export const RightsType = {
+  FULL_OWNERSHIP: 'FULL_OWNERSHIP',
+  UNDIVIDED_FRACTION: 'UNDIVIDED_FRACTION',
+  RECEIVABLE_CLAIM: 'RECEIVABLE_CLAIM',
+};
+
+export const TransferStatus = {
+  PROPOSED: 'PROPOSED',
+  ACCEPTED: 'ACCEPTED',
+  RULES_EVALUATED: 'RULES_EVALUATED',
+  EXECUTED: 'EXECUTED',
+  REJECTED: 'REJECTED',
+  PENDING_COMPLIANCE: 'PENDING_COMPLIANCE',
+  CANCELLED: 'CANCELLED',
+  EXPIRED: 'EXPIRED',
+};
+
+export const VerificationDecision = {
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CHANGES_REQUESTED: 'CHANGES_REQUESTED',
+};
+
+export const CheckResult = {
+  PASS: 'PASS',
+  FAIL: 'FAIL',
+  NOT_APPLICABLE: 'NOT_APPLICABLE',
+};
+
+export const ValuationStatus = {
+  PROPOSED: 'PROPOSED',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  SUPERSEDED: 'SUPERSEDED',
+  EXPIRED: 'EXPIRED',
+};
+
+export const ChainCommandStatus = {
+  QUEUED: 'QUEUED',
+  SUBMITTED: 'SUBMITTED',
+  COMMITTED: 'COMMITTED',
+  FAILED: 'FAILED',
+};
+
+export const ErrorCode = {
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  FORBIDDEN: 'FORBIDDEN',
+  NOT_FOUND: 'NOT_FOUND',
+  BAD_REQUEST: 'BAD_REQUEST',
+  CONFLICT: 'CONFLICT',
+  PRECONDITION_FAILED: 'PRECONDITION_FAILED',
+  RULE_VIOLATION: 'RULE_VIOLATION',
+  INVALID_STATE_TRANSITION: 'INVALID_STATE_TRANSITION',
+  SEGREGATION_OF_DUTIES_VIOLATION: 'SEGREGATION_OF_DUTIES_VIOLATION',
+  INSUFFICIENT_BALANCE: 'INSUFFICIENT_BALANCE',
+  CHAIN_COMMUNICATION_ERROR: 'CHAIN_COMMUNICATION_ERROR',
+  INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
+};
+
+export const EventName = {
+  PARTICIPANT_REGISTERED: 'ParticipantRegistered',
+  KYC_UPDATED: 'KycUpdated',
+  ASSET_TYPE_DEFINED: 'AssetTypeDefined',
+  ASSET_REGISTERED: 'AssetRegistered',
+  EVIDENCE_ATTACHED: 'EvidenceAttached',
+  VERIFICATION_STARTED: 'VerificationStarted',
+  VERIFICATION_DECIDED: 'VerificationDecided',
+  VALUATION_PROPOSED: 'ValuationProposed',
+  VALUATION_APPROVED: 'ValuationApproved',
+  TOKEN_MINTED: 'TokenMinted',
+  TRANSFER_PROPOSED: 'TransferProposed',
+  TRANSFER_EXECUTED: 'TransferExecuted',
+  TRANSFER_REJECTED: 'TransferRejected',
+  LIFECYCLE_TRANSITIONED: 'LifecycleTransitioned',
+  ASSET_FROZEN: 'AssetFrozen',
+  ASSET_UNFROZEN: 'AssetUnfrozen',
+  ASSET_REDEEMED: 'AssetRedeemed',
+  ASSET_RETIRED: 'AssetRetired',
+};
