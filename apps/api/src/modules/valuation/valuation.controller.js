@@ -1,4 +1,5 @@
 import { valuationService } from './valuation.service.js';
+import { ProposeValuationSchema } from '@rwa/contracts';
 
 export class ValuationController {
   async list(req, res, next) {
@@ -21,7 +22,8 @@ export class ValuationController {
 
   async propose(req, res, next) {
     try {
-      const data = await valuationService.proposeValuation(req.user, req.body);
+      const payload = ProposeValuationSchema.parse(req.body);
+      const data = await valuationService.proposeValuation(req.user, payload);
       res.status(201).json({ success: true, data });
     } catch (err) {
       next(err);

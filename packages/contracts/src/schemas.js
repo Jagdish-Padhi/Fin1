@@ -194,19 +194,30 @@ export const VerificationDecisionSchema = z.object({
 });
 
 export const ProposeValuationSchema = z.object({
-  assetId: z.string().min(1),
-  amountPaise: z.number().int().positive(),
-  currency: z.string().default('INR'),
-  method: z.string().min(2),
+  id: z.string().trim().min(1).optional(),
+  assetId: z.string().trim().min(1),
+  amountPaise: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+  currency: z.literal('INR').default('INR'),
+  method: z.string().trim().min(2),
   methodDetails: z.record(z.any()).default({}),
   source: z.object({
-    valuerName: z.string().min(2),
-    valuerOrg: z.string().min(2),
-    reportReference: z.string().optional(),
-    reportHash: z.string().optional(),
+    valuerName: z.string().trim().min(2),
+    valuerOrg: z.string().trim().min(2),
+    reportReference: z.string().trim().min(1).optional(),
+    reportHash: z.string().regex(/^[a-fA-F0-9]{64}$/, 'Must be a 64-character SHA-256 hex digest').optional(),
   }),
-  valuationDate: z.string().datetime().or(z.string()),
-  validUntil: z.string().datetime().or(z.string()),
+  valuationDate: z.string().datetime(),
+  validUntil: z.string().datetime(),
+}).superRefine((valuation, context) => {
+  const valuationDate = Date.parse(valuation.valuationDate);
+  const validUntil = Date.parse(valuation.validUntil);
+  if (validUntil <= valuationDate) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['validUntil'],
+      message: 'validUntil must be after valuationDate',
+    });
+  }
 });
 
 export const RequestMintTokenSchema = z.object({

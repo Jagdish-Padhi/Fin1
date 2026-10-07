@@ -185,7 +185,10 @@ describe('Phase 4: ValuationContract', () => {
       participantId: 'PRT-COMPLIANCE',
     }, state);
 
-    const result = JSON.parse(await contract.approveValuation(approverCtx, 'VAL-01'));
+    const result = JSON.parse(await contract.approveValuation(
+      approverCtx,
+      JSON.stringify({ valuationId: 'VAL-01' })
+    ));
     assert.equal(result.valuation.status, ValuationStatus.APPROVED);
     assert.equal(result.valuation.approvedBy, 'USR-COMPLIANCE');
     assert.equal(result.asset.status, AssetStatus.VALUED);
@@ -234,7 +237,10 @@ describe('Phase 4: ValuationContract', () => {
     await contract.proposeValuation(ctx, proposal(dates));
     await assert.rejects(contract.proposeValuation(ctx, proposal(dates)), /already pending/);
 
-    assert.equal(JSON.parse(await contract.getValuation(ctx, 'VAL-01')).status, ValuationStatus.PROPOSED);
+    assert.equal(
+      JSON.parse(await contract.getValuation(ctx, JSON.stringify({ id: 'VAL-01' }))).status,
+      ValuationStatus.PROPOSED
+    );
     assert.equal(JSON.parse(await contract.listValuations(ctx)).length, 1);
   });
 });

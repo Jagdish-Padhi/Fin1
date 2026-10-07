@@ -5,7 +5,7 @@ import { requireRole } from '../lib/ctx.js';
 import { Keys } from '../lib/Keys.js';
 import { AuditLog } from '../lib/AuditLog.js';
 import { EventAggregator } from '../lib/EventAggregator.js';
-import { Role, AssetStatus, AssetTypeStatus, EventName, ValuationStatus, VerificationDecision } from '@rwa/contracts';
+import { Role, AssetStatus, EventName, ValuationStatus, VerificationDecision } from '@rwa/contracts';
 
 export interface ValuationRecord {
   id: string;
@@ -68,6 +68,25 @@ export class ValuationContract extends Contract {
       throw new Error(`${field} must be a valid date`);
     }
     return new Date(parsed).toISOString();
+  }
+
+  private _getValuationId(input: string, property: 'id' | 'valuationId'): string {
+    if (typeof input !== 'string' || input.trim() === '') {
+      throw new Error(`${property} is required`);
+    }
+    const trimmed = input.trim();
+    if (!trimmed.startsWith('{')) return trimmed;
+
+    let payload: unknown;
+    try {
+      payload = JSON.parse(trimmed);
+    } catch {
+      throw new Error(`Invalid ${property} JSON`);
+    }
+    if (!this._isRecord(payload) || typeof payload[property] !== 'string' || payload[property].trim() === '') {
+      throw new Error(`${property} is required`);
+    }
+    return payload[property].trim();
   }
 
   private async _getAsset(ctx: Context, assetId: string): Promise<any> {
@@ -160,10 +179,10 @@ export class ValuationContract extends Contract {
       throw new Error('method is required');
     }
     const method = data.method.trim();
-    if (!this._isRecord(data.methodDetails || {})) {
+    if (data.methodDetails !== undefined && !this._isRecord(data.methodDetails)) {
       throw new Error('methodDetails must be a JSON object');
     }
-    const methodDetails = (data.methodDetails || {}) as Record<string, unknown>;
+    const methodDetails = (data.methodDetails === undefined ? {} : data.methodDetails) as Record<string, unknown>;
     if (!this._isRecord(data.source)) {
       throw new Error('source is required and must be a JSON object');
     }
@@ -207,12 +226,16 @@ export class ValuationContract extends Contract {
       throw new Error(`Asset type not found: ${asset.typeKey} v${asset.typeVersion || 1}`);
     }
     const typeDef = JSON.parse(typeBytes.toString());
-    if (typeDef.status !== AssetTypeStatus.ACTIVE) {
-      throw new Error(`Asset type ${asset.typeKey} v${asset.typeVersion || 1} is not active`);
-    }
     const allowedMethods = typeDef.valuation?.methods;
     if (!Array.isArray(allowedMethods) || !allowedMethods.includes(method)) {
       throw new Error(`Valuation method '${method}' is not allowed for asset type ${asset.typeKey}`);
+    }
+    const validityDays = typeDef.valuation?.validityDays;
+    if (Number.isSafeInteger(validityDays) && validityDays > 0) {
+      const latestValidUntil = Date.parse(valuationDate) + validityDays * 24 * 60 * 60 * 1000;
+      if (Date.parse(validUntil) > latestValidUntil) {
+        throw new Error(`validUntil exceeds the asset type validity limit of ${validityDays} days`);
+      }
     }
 
     const issuerMspId = await this._getIssuerMspId(ctx, asset);
@@ -293,11 +316,9 @@ export class ValuationContract extends Contract {
 
   @Transaction()
   @Returns('string')
-  async approveValuation(ctx: Context, valuationId: string): Promise<string> {
+  async approveValuation(ctx: Context, valuationInput: string): Promise<string> {
     const caller = requireRole(ctx, Role.COMPLIANCE, Role.VALUER);
-    if (!valuationId || valuationId.trim() === '') {
-      throw new Error('valuationId is required');
-    }
+    const valuationId = this._getValuationId(valuationInput, 'valuationId');
 
     const valuationKey = this._getKey(valuationId);
     const valuationBytes = await ctx.stub.getState(valuationKey);
@@ -374,7 +395,8 @@ export class ValuationContract extends Contract {
 
   @Transaction(false)
   @Returns('string')
-  async getValuation(ctx: Context, valuationId: string): Promise<string> {
+  async getValuation(ctx: Context, valuationInput: string): Promise<string> {
+    const valuationId = this._getValuationId(valuationInput, 'id');
     const bytes = await ctx.stub.getState(this._getKey(valuationId));
     if (!bytes || bytes.length === 0) {
       throw new Error(`Valuation not found: ${valuationId}`);

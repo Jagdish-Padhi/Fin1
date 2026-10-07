@@ -699,6 +699,8 @@ export class MockGateway {
 
         if (args.decision === VerificationDecision.APPROVED) {
           asset.status = AssetStatus.VERIFIED;
+          asset.verifiedBy = caller.userId || caller.participantId || caller.mspId;
+          asset.verifiedByMspId = caller.mspId;
         } else if (args.decision === VerificationDecision.CHANGES_REQUESTED) {
           asset.status = AssetStatus.CHANGES_REQUESTED;
         } else if (args.decision === VerificationDecision.REJECTED) {
@@ -712,28 +714,102 @@ export class MockGateway {
       }
 
       case 'proposeValuation': {
-        if (caller.role !== Role.VERIFIER && caller.role !== Role.VALUER) {
-          throw new Error('Only Verifier / Valuer can propose valuations');
+        if (caller.role !== Role.VALUER) {
+          throw new Error('Only Valuer can propose valuations');
         }
         const asset = this.assets.get(args.assetId);
         if (!asset) throw new Error(`Asset not found: ${args.assetId}`);
-        if (asset.status !== AssetStatus.VERIFIED && asset.status !== AssetStatus.VALUED && asset.status !== AssetStatus.TOKENIZED) {
-          throw new Error(`Asset must be at least VERIFIED to receive valuation, currently: ${asset.status}`);
+        if (asset.status !== AssetStatus.VERIFIED) {
+          throw new Error(`Asset must be VERIFIED before valuation, currently: ${asset.status}`);
+        }
+
+        if (!Number.isSafeInteger(args.amountPaise) || args.amountPaise <= 0) {
+          throw new Error('amountPaise must be a positive safe integer');
+        }
+        if (args.currency !== 'INR') {
+          throw new Error('Only INR valuations are supported');
+        }
+        if (typeof args.method !== 'string' || !args.method.trim()) {
+          throw new Error('method is required');
+        }
+        const typeDef = this.assetTypes.get(`${asset.typeKey}:${asset.typeVersion || 1}`);
+        if (!typeDef) throw new Error(`Asset type ${asset.typeKey} not found`);
+        if (!Array.isArray(typeDef.valuation?.methods) || !typeDef.valuation.methods.includes(args.method)) {
+          throw new Error(`Valuation method '${args.method}' is not allowed for asset type ${asset.typeKey}`);
+        }
+        if (!args.source || typeof args.source.valuerName !== 'string' || args.source.valuerName.trim().length < 2) {
+          throw new Error('source.valuerName must contain at least 2 characters');
+        }
+        if (typeof args.source.valuerOrg !== 'string' || args.source.valuerOrg.trim().length < 2) {
+          throw new Error('source.valuerOrg must contain at least 2 characters');
+        }
+        if (args.source.reportHash !== undefined && !/^[a-fA-F0-9]{64}$/.test(args.source.reportHash)) {
+          throw new Error('source.reportHash must be a 64-character SHA-256 hex digest');
+        }
+        const valuationDateMs = Date.parse(args.valuationDate);
+        const validUntilMs = Date.parse(args.validUntil);
+        const nowMs = Date.parse(this._now());
+        if (!Number.isFinite(valuationDateMs) || valuationDateMs > nowMs) {
+          throw new Error('valuationDate must be valid and cannot be in the future');
+        }
+        if (!Number.isFinite(validUntilMs) || validUntilMs <= nowMs || validUntilMs <= valuationDateMs) {
+          throw new Error('validUntil must be after valuationDate and the current transaction time');
+        }
+        const validityDays = typeDef.valuation?.validityDays;
+        if (Number.isSafeInteger(validityDays) && validityDays > 0) {
+          const latestValidUntil = valuationDateMs + validityDays * 24 * 60 * 60 * 1000;
+          if (validUntilMs > latestValidUntil) {
+            throw new Error(`validUntil exceeds the asset type validity limit of ${validityDays} days`);
+          }
+        }
+
+        const originator = this.participants.get(asset.originatorParticipantId);
+        if (!originator?.mspId) {
+          throw new Error(`Originator organization not found for participant ${asset.originatorParticipantId}`);
+        }
+        if (caller.mspId === originator.mspId) {
+          throw new Error('Segregation of duties violation: Valuer organization cannot be the issuer organization');
+        }
+        const verifier = asset.verifiedBy || [...this.verificationCases.values()]
+          .find((item) => item.assetId === asset.id && item.decision === VerificationDecision.APPROVED)?.decidedBy;
+        if (!verifier) {
+          throw new Error(`Approved verifier identity not found for asset ${asset.id}`);
+        }
+        const proposerId = caller.userId || caller.participantId || caller.mspId;
+        if (proposerId === verifier) {
+          throw new Error('Segregation of duties violation: Asset verifier cannot propose its valuation');
+        }
+        if ([...this.valuations.values()].some(
+          (item) => item.assetId === asset.id && item.status === ValuationStatus.PROPOSED
+        )) {
+          throw new Error(`A valuation proposal is already pending for asset ${asset.id}`);
         }
 
         const id = args.id || `VAL-${Date.now()}`;
+        if (this.valuations.has(id)) {
+          throw new Error(`Valuation with ID ${id} already exists`);
+        }
+        const normalizedValuationDate = new Date(valuationDateMs).toISOString();
+        const normalizedValidUntil = new Date(validUntilMs).toISOString();
         const valuation = {
           id,
           assetId: args.assetId,
+          version: 1,
           amountPaise: args.amountPaise,
-          currency: args.currency || 'INR',
-          method: args.method,
+          currency: args.currency,
+          method: args.method.trim(),
           methodDetails: args.methodDetails || {},
-          source: args.source,
-          valuationDate: args.valuationDate,
-          validUntil: args.validUntil,
+          source: {
+            ...args.source,
+            valuerName: args.source.valuerName.trim(),
+            valuerOrg: args.source.valuerOrg.trim(),
+            reportHash: args.source.reportHash?.toLowerCase(),
+          },
+          valuationDate: normalizedValuationDate,
+          validUntil: normalizedValidUntil,
           status: ValuationStatus.PROPOSED,
-          proposedBy: caller.userId,
+          proposedBy: proposerId,
+          proposedByMspId: caller.mspId,
           createdAt: this._now(),
         };
         this.valuations.set(id, valuation);
@@ -744,28 +820,60 @@ export class MockGateway {
       }
 
       case 'approveValuation': {
-        if (caller.role !== Role.COMPLIANCE && caller.role !== Role.ADMINISTRATOR) {
-          throw new Error('Only Compliance or Administrator can approve valuation (Maker-Checker)');
+        if (caller.role !== Role.COMPLIANCE && caller.role !== Role.VALUER) {
+          throw new Error('Only Compliance or a second Valuer can approve valuation (Maker-Checker)');
         }
         const valuation = this.valuations.get(args.valuationId);
         if (!valuation) throw new Error(`Valuation not found: ${args.valuationId}`);
-        if (valuation.proposedBy === caller.userId) {
+        if (valuation.status !== ValuationStatus.PROPOSED) {
+          throw new Error(`Only PROPOSED valuations can be approved, currently: ${valuation.status}`);
+        }
+        const approverId = caller.userId || caller.participantId || caller.mspId;
+        if (valuation.proposedBy === approverId) {
           throw new Error('Maker-Checker violation: Valuation approver cannot be the same person who proposed it');
         }
 
-        valuation.status = ValuationStatus.APPROVED;
-        valuation.approvedBy = caller.userId;
-
         const asset = this.assets.get(valuation.assetId);
-        if (asset && asset.status === AssetStatus.VERIFIED) {
-          const prev = asset.status;
-          asset.status = AssetStatus.VALUED;
-          this._appendAudit(caller, 'ASSET', asset.id, prev, AssetStatus.VALUED, 'VALUATION_APPROVED', 'Asset successfully valued', txId);
+        if (!asset) throw new Error(`Asset not found: ${valuation.assetId}`);
+        if (asset.status !== AssetStatus.VERIFIED) {
+          throw new Error(`Asset must remain VERIFIED until valuation approval, currently: ${asset.status}`);
+        }
+        const verifier = asset.verifiedBy || [...this.verificationCases.values()]
+          .find((item) => item.assetId === asset.id && item.decision === VerificationDecision.APPROVED)?.decidedBy;
+        if (!verifier) {
+          throw new Error(`Approved verifier identity not found for asset ${asset.id}`);
+        }
+        if (approverId === verifier) {
+          throw new Error('Segregation of duties violation: Asset verifier cannot approve its valuation');
+        }
+        const originator = this.participants.get(asset.originatorParticipantId);
+        if (!originator?.mspId) {
+          throw new Error(`Originator organization not found for participant ${asset.originatorParticipantId}`);
+        }
+        if (caller.mspId === originator.mspId) {
+          throw new Error('Segregation of duties violation: Issuer organization cannot approve the valuation');
+        }
+        if (Date.parse(valuation.validUntil) <= Date.parse(this._now())) {
+          throw new Error('Valuation has expired and cannot be approved');
         }
 
-        this._appendAudit(caller, 'VALUATION', valuation.id, ValuationStatus.PROPOSED, ValuationStatus.APPROVED, 'VALUATION_APPROVED', 'Valuation confirmed', txId);
-        this._emit(EventName.VALUATION_APPROVED, valuation, txId);
-        result = valuation;
+        const previousAssetStatus = asset.status;
+        valuation.status = ValuationStatus.APPROVED;
+        valuation.approvedBy = approverId;
+        valuation.approvedByMspId = caller.mspId;
+        valuation.approvedAt = this._now();
+        asset.status = AssetStatus.VALUED;
+        asset.valuationId = valuation.id;
+        asset.updatedAt = this._now();
+
+        this._appendAudit(caller, 'VALUATION', valuation.id, ValuationStatus.PROPOSED, ValuationStatus.APPROVED, 'VALUATION_APPROVED', `Valuation approved for asset ${asset.id}`, txId);
+        this._appendAudit(caller, 'ASSET', asset.id, previousAssetStatus, AssetStatus.VALUED, 'VALUATION_APPROVED', `Valuation ${valuation.id} approved`, txId);
+        this._emit(EventName.VALUATION_APPROVED, {
+          valuation,
+          assetId: asset.id,
+          assetStatus: asset.status,
+        }, txId);
+        result = { valuation, asset };
         break;
       }
 
