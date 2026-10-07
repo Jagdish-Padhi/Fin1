@@ -5,7 +5,13 @@ import { requireRole } from '../lib/ctx.js';
 import { Keys } from '../lib/Keys.js';
 import { AuditLog } from '../lib/AuditLog.js';
 import { EventAggregator } from '../lib/EventAggregator.js';
-import { Role, AssetStatus, EventName, VerificationDecision, CheckResult } from '@rwa/contracts';
+import {
+  Role,
+  AssetStatus,
+  EventName,
+  VerificationDecision,
+  CheckResult,
+} from '@rwa/contracts';
 
 export interface VerificationCheckRecord {
   result: string;
@@ -30,7 +36,10 @@ export interface VerificationCaseRecord {
   updatedAt: string;
 }
 
-@Info({ title: 'VerificationContract', description: 'Governs verification checklist execution and approval' })
+@Info({
+  title: 'VerificationContract',
+  description: 'Governs verification checklist execution and approval',
+})
 export class VerificationContract extends Contract {
   constructor() {
     super('VerificationContract');
@@ -58,7 +67,11 @@ export class VerificationContract extends Contract {
 
   @Transaction()
   @Returns('string')
-  async assignVerifier(ctx: Context, caseId: string, verifierUserId?: string): Promise<string> {
+  async assignVerifier(
+    ctx: Context,
+    caseId: string,
+    verifierUserId?: string
+  ): Promise<string> {
     requireRole(ctx, Role.ADMINISTRATOR, Role.COMPLIANCE, Role.VERIFIER);
 
     const key = this._getKey(caseId);
@@ -68,8 +81,14 @@ export class VerificationContract extends Contract {
     }
 
     const record: VerificationCaseRecord = JSON.parse(bytes.toString());
-    const caller = requireRole(ctx, Role.ADMINISTRATOR, Role.COMPLIANCE, Role.VERIFIER);
-    record.assignedTo = verifierUserId || caller.userId || caller.participantId || null;
+    const caller = requireRole(
+      ctx,
+      Role.ADMINISTRATOR,
+      Role.COMPLIANCE,
+      Role.VERIFIER
+    );
+    record.assignedTo =
+      verifierUserId || caller.userId || caller.participantId || null;
     record.updatedAt = this._getTxTimestamp(ctx);
 
     await ctx.stub.putState(key, Buffer.from(JSON.stringify(record)));
@@ -78,7 +97,14 @@ export class VerificationContract extends Contract {
 
   @Transaction()
   @Returns('string')
-  async recordCheck(ctx: Context, caseId: string, checkKey: string, result: string, notes: string = '', sourceRef?: string): Promise<string> {
+  async recordCheck(
+    ctx: Context,
+    caseId: string,
+    checkKey: string,
+    result: string,
+    notes: string = '',
+    sourceRef?: string
+  ): Promise<string> {
     const caller = requireRole(ctx, Role.VERIFIER);
 
     const key = this._getKey(caseId);
@@ -87,36 +113,56 @@ export class VerificationContract extends Contract {
       throw new Error(`Verification case not found: ${caseId}`);
     }
 
-    const validResultValues = [CheckResult.PASS, CheckResult.FAIL, CheckResult.NOT_APPLICABLE];
+    const validResultValues = [
+      CheckResult.PASS,
+      CheckResult.FAIL,
+      CheckResult.NOT_APPLICABLE,
+    ];
     if (!validResultValues.includes(result as any)) {
-      throw new Error(`Invalid verification check result '${result}'. Allowed: ${validResultValues.join(', ')}`);
+      throw new Error(
+        `Invalid verification check result '${result}'. Allowed: ${validResultValues.join(', ')}`
+      );
+    }
+    if (typeof checkKey !== 'string' || checkKey.trim() === '') {
+      throw new Error('checkKey is required');
     }
 
     const record: VerificationCaseRecord = JSON.parse(bytes.toString());
-    record.checks[checkKey] = {
+    if (record.decision) {
+      throw new Error(`Verification case already decided: ${caseId}`);
+    }
+    const previousStatus = record.status;
+    const normalizedCheckKey = checkKey.trim();
+    const checkedAt = this._getTxTimestamp(ctx);
+    record.checks[normalizedCheckKey] = {
       result,
       notes: notes || '',
       sourceRef: sourceRef || '',
       checkedBy: caller.userId || caller.participantId || caller.mspId,
-      checkedAt: this._getTxTimestamp(ctx),
+      checkedAt,
     };
     record.status = 'IN_PROGRESS';
-    record.updatedAt = record.checks[checkKey].checkedAt;
+    record.updatedAt = checkedAt;
 
     await ctx.stub.putState(key, Buffer.from(JSON.stringify(record)));
 
     const events = new EventAggregator();
-    events.add('VerificationCheckRecorded', { caseId, checkKey, result, checkedBy: record.checks[checkKey].checkedBy });
+    events.add('VerificationCheckRecorded', {
+      caseId,
+      checkKey: normalizedCheckKey,
+      result,
+      checkedBy: record.checks[normalizedCheckKey].checkedBy,
+    });
     events.commit(ctx);
 
     await AuditLog.append(
       ctx,
       'VERIFICATION',
       caseId,
+      previousStatus,
       record.status,
       'CHECK_RECORDED',
-      'CHECK_RECORDED',
-      `${checkKey}:${result}`
+      `${normalizedCheckKey}:${result}`
     );
 
     return JSON.stringify(record);
@@ -124,7 +170,14 @@ export class VerificationContract extends Contract {
 
   @Transaction()
   @Returns('string')
-  async recordVerificationCheck(ctx: Context, caseId: string, checkKey: string, result: string, notes: string = '', sourceRef?: string): Promise<string> {
+  async recordVerificationCheck(
+    ctx: Context,
+    caseId: string,
+    checkKey: string,
+    result: string,
+    notes: string = '',
+    sourceRef?: string
+  ): Promise<string> {
     return this.recordCheck(ctx, caseId, checkKey, result, notes, sourceRef);
   }
 
@@ -138,12 +191,20 @@ export class VerificationContract extends Contract {
     reasonText?: string
   ): Promise<string> {
     const caller = requireRole(ctx, Role.VERIFIER);
-    const allowedDecisions = [VerificationDecision.APPROVED, VerificationDecision.REJECTED, VerificationDecision.CHANGES_REQUESTED];
+    const allowedDecisions = [
+      VerificationDecision.APPROVED,
+      VerificationDecision.REJECTED,
+      VerificationDecision.CHANGES_REQUESTED,
+    ];
     if (!allowedDecisions.includes(decision as any)) {
-      throw new Error(`Invalid verification decision '${decision}'. Allowed: ${allowedDecisions.join(', ')}`);
+      throw new Error(
+        `Invalid verification decision '${decision}'. Allowed: ${allowedDecisions.join(', ')}`
+      );
     }
-    if (!reasonCode || reasonCode.trim().length === 0) {
-      throw new Error('A reasonCode is required for every verification decision');
+    if (typeof reasonCode !== 'string' || reasonCode.trim().length === 0) {
+      throw new Error(
+        'A reasonCode is required for every verification decision'
+      );
     }
 
     const key = this._getKey(caseId);
@@ -153,15 +214,25 @@ export class VerificationContract extends Contract {
     }
 
     const record: VerificationCaseRecord = JSON.parse(bytes.toString());
+    if (record.decision) {
+      throw new Error(`Verification case already decided: ${caseId}`);
+    }
     const assetKey = this._getAssetKey(record.assetId);
     const assetBytes = await ctx.stub.getState(assetKey);
     if (!assetBytes || assetBytes.length === 0) {
-      throw new Error(`Asset not found for verification case ${caseId}: ${record.assetId}`);
+      throw new Error(
+        `Asset not found for verification case ${caseId}: ${record.assetId}`
+      );
     }
 
     const asset = JSON.parse(assetBytes.toString());
-    if (asset.originatorParticipantId === caller.participantId || asset.originatorParticipantId === caller.userId) {
-      throw new Error('Segregation of duties violation: Originator cannot verify their own asset');
+    if (
+      asset.originatorParticipantId === caller.participantId ||
+      asset.originatorParticipantId === caller.userId
+    ) {
+      throw new Error(
+        'Segregation of duties violation: Originator cannot verify their own asset'
+      );
     }
 
     const priorStatus = asset.status;
@@ -208,25 +279,62 @@ export class VerificationContract extends Contract {
 
   @Transaction()
   @Returns('string')
-  async approveVerification(ctx: Context, caseId: string, reasonCode: string = 'APPROVED', reasonText?: string): Promise<string> {
-    return this.decideVerification(ctx, caseId, VerificationDecision.APPROVED, reasonCode, reasonText || 'Approved by verifier');
+  async approveVerification(
+    ctx: Context,
+    caseId: string,
+    reasonCode: string = 'APPROVED',
+    reasonText?: string
+  ): Promise<string> {
+    return this.decideVerification(
+      ctx,
+      caseId,
+      VerificationDecision.APPROVED,
+      reasonCode,
+      reasonText || 'Approved by verifier'
+    );
   }
 
   @Transaction()
   @Returns('string')
-  async rejectVerification(ctx: Context, caseId: string, reasonCode: string, reasonText?: string): Promise<string> {
-    return this.decideVerification(ctx, caseId, VerificationDecision.REJECTED, reasonCode, reasonText || 'Rejected by verifier');
+  async rejectVerification(
+    ctx: Context,
+    caseId: string,
+    reasonCode: string,
+    reasonText?: string
+  ): Promise<string> {
+    return this.decideVerification(
+      ctx,
+      caseId,
+      VerificationDecision.REJECTED,
+      reasonCode,
+      reasonText || 'Rejected by verifier'
+    );
   }
 
   @Transaction()
   @Returns('string')
-  async requestChanges(ctx: Context, caseId: string, reasonCode: string, reasonText?: string): Promise<string> {
-    return this.decideVerification(ctx, caseId, VerificationDecision.CHANGES_REQUESTED, reasonCode, reasonText || 'Changes requested by verifier');
+  async requestChanges(
+    ctx: Context,
+    caseId: string,
+    reasonCode: string,
+    reasonText?: string
+  ): Promise<string> {
+    return this.decideVerification(
+      ctx,
+      caseId,
+      VerificationDecision.CHANGES_REQUESTED,
+      reasonCode,
+      reasonText || 'Changes requested by verifier'
+    );
   }
 
   @Transaction()
   @Returns('string')
-  async reopenVerification(ctx: Context, caseId: string, reasonText: string = 'Verification reopened for resubmission'): Promise<string> {
+  async reopenVerification(
+    ctx: Context,
+    caseId: string,
+    reasonText: string = 'Verification reopened for resubmission'
+  ): Promise<string> {
     requireRole(ctx, Role.VERIFIER, Role.ADMINISTRATOR, Role.COMPLIANCE);
 
     const key = this._getKey(caseId);
@@ -245,7 +353,15 @@ export class VerificationContract extends Contract {
     delete record.decidedBy;
 
     await ctx.stub.putState(key, Buffer.from(JSON.stringify(record)));
-    await AuditLog.append(ctx, 'VERIFICATION', caseId, previous, 'PENDING_REVIEW', 'VERIFICATION_REOPENED', reasonText);
+    await AuditLog.append(
+      ctx,
+      'VERIFICATION',
+      caseId,
+      previous,
+      'PENDING_REVIEW',
+      'VERIFICATION_REOPENED',
+      reasonText
+    );
 
     return JSON.stringify(record);
   }
@@ -273,7 +389,9 @@ export class VerificationContract extends Contract {
     while (!result.done) {
       if (result.value && result.value.value) {
         try {
-          const record = JSON.parse(Buffer.from(result.value.value).toString('utf8'));
+          const record = JSON.parse(
+            Buffer.from(result.value.value).toString('utf8')
+          );
           cases.push(record);
         } catch {
           // ignore parse errors

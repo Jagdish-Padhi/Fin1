@@ -38,6 +38,7 @@ export function errorHandler(err, req, res, next) {
     msg.includes('already attached') ||
     msg.includes('already pending') ||
     msg.includes('already tokenized') ||
+    msg.includes('already decided') ||
     msg.includes('Only PROPOSED valuations')
   ) {
     return res.status(409).json({
