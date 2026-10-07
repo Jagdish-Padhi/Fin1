@@ -1,0 +1,24 @@
+{
+  email admin@ekamvistar.com
+}
+
+# Replace :80 / domain with actual VM domain
+:80 {
+  # API reverse proxy
+  handle /api/* {
+    reverse_proxy api:5000
+  }
+
+  handle /healthz {
+    reverse_proxy api:5000
+  }
+
+  handle /readyz {
+    reverse_proxy api:5000
+  }
+
+  # Web frontend
+  handle {
+    reverse_proxy web:80
+  }
+}

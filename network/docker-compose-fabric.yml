@@ -1,0 +1,107 @@
+version: '3.8'
+
+networks:
+  rwa-net:
+    name: rwa-net
+
+services:
+  orderer1.ekamvistar.com:
+    image: hyperledger/fabric-orderer:2.5
+    container_name: orderer1.ekamvistar.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_BOOTSTRAPFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=true
+    ports:
+      - "7050:7050"
+    networks:
+      - rwa-net
+
+  peer0.ekamvistar.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: peer0.ekamvistar.com
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.ekamvistar.com
+      - CORE_PEER_ADDRESS=peer0.ekamvistar.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.ekamvistar.com:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.ekamvistar.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.ekamvistar.com:7051
+      - CORE_PEER_LOCALMSPID=EkamVistarMSP
+    ports:
+      - "7051:7051"
+    networks:
+      - rwa-net
+
+  peer0.issuer.ekamvistar.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: peer0.issuer.ekamvistar.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.issuer.ekamvistar.com
+      - CORE_PEER_ADDRESS=peer0.issuer.ekamvistar.com:8051
+      - CORE_PEER_LOCALMSPID=IssuerMSP
+    ports:
+      - "8051:8051"
+    networks:
+      - rwa-net
+
+  peer0.verifier.ekamvistar.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: peer0.verifier.ekamvistar.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.verifier.ekamvistar.com
+      - CORE_PEER_ADDRESS=peer0.verifier.ekamvistar.com:9051
+      - CORE_PEER_LOCALMSPID=VerifierMSP
+    ports:
+      - "9051:9051"
+    networks:
+      - rwa-net
+
+  peer0.compliance.ekamvistar.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: peer0.compliance.ekamvistar.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.compliance.ekamvistar.com
+      - CORE_PEER_ADDRESS=peer0.compliance.ekamvistar.com:10051
+      - CORE_PEER_LOCALMSPID=ComplianceMSP
+    ports:
+      - "10051:10051"
+    networks:
+      - rwa-net
+
+  peer0.investor.ekamvistar.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: peer0.investor.ekamvistar.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.investor.ekamvistar.com
+      - CORE_PEER_ADDRESS=peer0.investor.ekamvistar.com:11051
+      - CORE_PEER_LOCALMSPID=InvestorMSP
+    ports:
+      - "11051:11051"
+    networks:
+      - rwa-net
+
+  peer0.auditor.ekamvistar.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: peer0.auditor.ekamvistar.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.auditor.ekamvistar.com
+      - CORE_PEER_ADDRESS=peer0.auditor.ekamvistar.com:12051
+      - CORE_PEER_LOCALMSPID=AuditorMSP
+    ports:
+      - "12051:12051"
+    networks:
+      - rwa-net

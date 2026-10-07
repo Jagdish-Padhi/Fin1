@@ -1,0 +1,14 @@
+[
+  {
+    "name": "pdcOrigination",
+    "policy": "OR('IssuerMSP.member', 'VerifierMSP.member', 'ComplianceMSP.member', 'AuditorMSP.member')",
+    "requiredPeerCount": 1,
+    "maxPeerCount": 3,
+    "blockToLive": 0,
+    "memberOnlyRead": true,
+    "memberOnlyWrite": true,
+    "endorsementPolicy": {
+      "signaturePolicy": "OR('IssuerMSP.peer', 'VerifierMSP.peer', 'ComplianceMSP.peer')"
+    }
+  }
+]
