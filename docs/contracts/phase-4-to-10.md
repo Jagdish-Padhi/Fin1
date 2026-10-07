@@ -75,6 +75,22 @@ Authenticated read endpoints:
 
 Mint returns HTTP 201 with `{ "success": true, "data": <token> }`. Invalid requests return HTTP 400, unauthorized mint requests HTTP 403, missing token/asset reads HTTP 404, and repeat minting for a tokenized asset HTTP 409. Token transfers are Phase 6 and are not part of Phase 5.
 
+API
+- Token minting endpoint
+- Balance endpoint
+- Holder and traceability queries
+
+Flow
+VALUED → Mint Token → TOKENIZED → Originator receives tokens
+
+Testing
+- Chaincode: 25 tests passed
+- API: 26 tests passed
+- Build: PASSED
+- Prettier: PASSED
+- Worktree: CLEAN
+- Commit: 017463c feat: implement tokenization and traceability
+Total Test Result: PASSED
 ---
 
 # Phase 6: Ownership, Transfer & Rule Engine
