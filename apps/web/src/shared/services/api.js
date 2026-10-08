@@ -116,9 +116,22 @@ export class ApiClient {
       body: formData,
     });
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type') || '';
+    let data;
+    if (contentType.includes('application/json')) {
+      data = await response.json().catch(() => ({}));
+    } else {
+      const text = await response.text();
+      if (!response.ok) {
+        if (response.status === 413) {
+          throw new Error('Document file is too large. Maximum supported upload size is 25 MB.');
+        }
+        throw new Error(`Upload error (${response.status}): ${text.slice(0, 100) || response.statusText}`);
+      }
+    }
+
     if (!response.ok) {
-      throw new Error(data?.message || data?.error?.message || 'File upload failed');
+      throw new Error(data?.message || data?.error?.message || `File upload failed (${response.status})`);
     }
     return data;
   }

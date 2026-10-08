@@ -1,11 +1,13 @@
 import React from 'react';
 import { X, QrCode, Printer, CheckCircle2 } from 'lucide-react';
+import { ModalPortal } from '../../shared/components/ModalPortal.jsx';
 
 export function AssetPassportStickerModal({ isOpen, onClose, asset }) {
   if (!isOpen || !asset) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F2A43]/40 backdrop-blur-sm">
+    <ModalPortal isOpen={isOpen} onClose={onClose}>
+      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[#0F2A43]/40 backdrop-blur-sm">
       <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
         <div className="p-4 border-b border-[#D8E0E8] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -71,5 +73,6 @@ export function AssetPassportStickerModal({ isOpen, onClose, asset }) {
         </div>
       </div>
     </div>
-  );
+  </ModalPortal>
+);
 }

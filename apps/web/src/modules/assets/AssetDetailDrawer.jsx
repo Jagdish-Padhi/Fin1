@@ -20,6 +20,8 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
+import { ModalPortal } from '../../shared/components/ModalPortal.jsx';
+
 export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdated }) {
   const [asset, setAsset] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -143,9 +145,10 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
     asset?.status === 'REGISTERED' && (user?.role === 'ISSUER' || user?.role === 'ADMINISTRATOR');
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-[#0F2A43]/40 backdrop-blur-xs flex justify-end">
-      <div className="w-full max-w-2xl bg-white border-l border-[#D8E0E8] h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-250">
-        {/* Header */}
+    <ModalPortal isOpen={isOpen} onClose={onClose}>
+      <div className="fixed inset-0 z-[60] overflow-hidden bg-[#0F2A43]/40 backdrop-blur-xs flex justify-end">
+        <div className="w-full max-w-2xl bg-white border-l border-[#D8E0E8] h-screen flex flex-col shadow-2xl animate-in slide-in-from-right duration-250">
+          {/* Header */}
         <div className="p-5 border-b border-[#D8E0E8] flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-[#F0F4F8] border border-[#D8E0E8] text-[#0F2A43]">
@@ -580,43 +583,37 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
                     </div>
                     <div>
                       <label className="text-[10px] text-[#5A6A7E] font-bold uppercase">
-                        Document Title
+                        Select Physical File *
                       </label>
                       <input
-                        type="text"
-                        placeholder="e.g. Verified Government Registry"
-                        value={uploadTitle}
-                        onChange={(e) => setUploadTitle(e.target.value)}
-                        className="w-full mt-1 px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8] text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setUploadTitle(file.name);
+                            const buffer = await file.arrayBuffer();
+                            const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                            const hashArray = Array.from(new Uint8Array(hashBuffer));
+                            const sha256 = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+                            setUploadHash(sha256);
+                          }
+                        }}
+                        className="w-full mt-1 text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#0F2A43] file:text-white hover:file:bg-[#1F5A7A] cursor-pointer"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between">
-                      <label className="text-[10px] text-[#5A6A7E] font-bold uppercase">
-                        Document SHA-256 Hash *
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const rand = Array.from({ length: 64 }, () =>
-                            Math.floor(Math.random() * 16).toString(16)
-                          ).join('');
-                          setUploadHash(rand);
-                        }}
-                        className="text-[10px] text-[#0F766E] hover:text-[#0D655E] font-semibold"
-                      >
-                        Generate Hash
-                      </button>
-                    </div>
+                    <label className="text-[10px] text-[#5A6A7E] font-bold uppercase">
+                      Calculated SHA-256 Digest
+                    </label>
                     <input
                       type="text"
-                      placeholder="64-character hex hash"
+                      readOnly
+                      placeholder="Select a file above to compute exact SHA-256"
                       value={uploadHash}
-                      onChange={(e) => setUploadHash(e.target.value)}
-                      required
-                      className="w-full mt-1 px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8] text-xs text-[#17202A] font-mono focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
+                      className="w-full mt-1 px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8] text-xs text-[#0F766E] font-mono focus:outline-none"
                     />
                   </div>
 
@@ -644,14 +641,15 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
         </div>
       </div>
 
-      {/* Asset Passport Sticker Modal */}
-      {asset && (
-        <AssetPassportStickerModal
-          isOpen={showSticker}
-          onClose={() => setShowSticker(false)}
-          asset={asset}
-        />
-      )}
-    </div>
+        {/* Asset Passport Sticker Modal */}
+        {asset && (
+          <AssetPassportStickerModal
+            isOpen={showSticker}
+            onClose={() => setShowSticker(false)}
+            asset={asset}
+          />
+        )}
+      </div>
+    </ModalPortal>
   );
 }
