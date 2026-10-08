@@ -55,7 +55,7 @@ export function PublicVerifyPage({ onClose }) {
           <div className="flex gap-2">
             <input
               type="text"
-              placeholder="e.g. TKN-1728280000000 or AST-..."
+              placeholder="e.g. AST-LAND-001 or TKN-LAND-001"
               value={tokenId}
               onChange={(e) => setTokenId(e.target.value)}
               className="flex-1 bg-white border border-[#D8E0E8] rounded-lg px-4 py-2.5 text-xs text-[#17202A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E] font-mono"
@@ -68,6 +68,19 @@ export function PublicVerifyPage({ onClose }) {
               <Search className="w-3.5 h-3.5" />
               <span>Verify</span>
             </button>
+          </div>
+          <div className="flex items-center gap-2 pt-1 text-[11px] text-[#5A6A7E]">
+            <span>Try sample IDs:</span>
+            {['AST-LAND-001', 'TKN-LAND-001', 'AST-TRACTOR-001'].map((sample) => (
+              <button
+                type="button"
+                key={sample}
+                onClick={() => setTokenId(sample)}
+                className="font-mono px-2 py-0.5 rounded bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F2A43] font-medium border border-[#D8E0E8] transition"
+              >
+                {sample}
+              </button>
+            ))}
           </div>
         </form>
 
