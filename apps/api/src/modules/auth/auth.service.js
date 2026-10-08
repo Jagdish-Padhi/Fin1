@@ -15,8 +15,17 @@ export class AuthService {
       throw AppError.forbidden('User account is deactivated. Ledger actions and logins are blocked.');
     }
 
-    // In seed environment, verify against default password
-    const isMatch = password === 'Password@123' || (await bcrypt.compare(password, await bcrypt.hash('Password@123', 10)));
+    // Verify password against stored password hash, plaintext, or default seed credentials
+    let isMatch = false;
+    if (user.passwordHash) {
+      isMatch = await bcrypt.compare(password, user.passwordHash).catch(() => false);
+    }
+    if (!isMatch && user.password) {
+      isMatch = password === user.password;
+    }
+    if (!isMatch) {
+      isMatch = password === 'Password@123';
+    }
     if (!isMatch) {
       throw AppError.unauthorized('Invalid email or password');
     }

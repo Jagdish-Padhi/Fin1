@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../../shared/services/api.js';
 import { useAuth } from '../../shared/context/AuthContext.jsx';
+import { useToast } from '../../shared/components/Toast.jsx';
 import { StatusBadge } from '../../shared/components/StatusBadge.jsx';
 import { OnboardParticipantModal } from './OnboardParticipantModal.jsx';
 import { ReviewKycModal } from './ReviewKycModal.jsx';
@@ -42,6 +43,7 @@ export function ParticipantsView() {
 
   const isCompliance = user?.role === 'COMPLIANCE';
   const isAdmin = user?.role === 'ADMINISTRATOR';
+  const toast = useToast();
 
   const fetchParticipants = async () => {
     try {
@@ -97,7 +99,7 @@ export function ParticipantsView() {
       setLimitsDialogTarget(null);
       fetchParticipants();
     } catch (err) {
-      alert(err.message || 'Failed to update limits');
+      toast.error(err.message || 'Failed to update transfer limits.');
     }
   };
 
@@ -112,7 +114,7 @@ export function ParticipantsView() {
       setSuspendReason('');
       fetchParticipants();
     } catch (err) {
-      alert(err.message || 'Action failed');
+      toast.error(err.message || 'Suspend/Reinstate action failed.');
     }
   };
 
@@ -127,7 +129,7 @@ export function ParticipantsView() {
       setBlacklistReason('');
       fetchParticipants();
     } catch (err) {
-      alert(err.message || 'Action failed');
+      toast.error(err.message || 'Blacklist action failed.');
     }
   };
 

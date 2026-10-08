@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../shared/services/api.js';
 import { useAuth } from '../../shared/context/AuthContext.jsx';
+import { useToast } from '../../shared/components/Toast.jsx';
 import {
   FileCheck,
   CheckCircle2,
@@ -16,6 +17,7 @@ import {
 
 export function VerificationView() {
   const { user } = useAuth();
+  const toast = useToast();
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCase, setSelectedCase] = useState(null);
@@ -75,7 +77,7 @@ export function VerificationView() {
       setCheckSourceRef('');
       await loadCases();
     } catch (err) {
-      alert(err.message || 'Failed to record check');
+      toast.error(err.message || 'Failed to record verification check.');
     } finally {
       setSubmittingCheck(false);
     }
@@ -96,7 +98,7 @@ export function VerificationView() {
       setReasonText('');
       await loadCases();
     } catch (err) {
-      alert(err.message || 'Failed to record verification decision');
+      toast.error(err.message || 'Failed to record verification decision.');
     } finally {
       setSubmittingDecision(false);
     }
@@ -314,9 +316,17 @@ export function VerificationView() {
 
       {/* Record Check Modal */}
       {showCheckModal && (
-        <div className="fixed inset-0 z-50 bg-[#0F2A43]/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#D8E0E8] rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-[#0F2A43]">Record Verification Audit Check</h3>
+        <div className="fixed inset-0 z-50 bg-[#0F2A43]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#D8E0E8] rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#D8E0E8]">
+              <h3 className="text-sm font-bold text-[#0F2A43]">Record Verification Audit Check</h3>
+              <button
+                onClick={() => setShowCheckModal(false)}
+                className="p-1 hover:bg-[#F0F4F8] rounded text-[#5A6A7E] transition"
+              >
+                ✕
+              </button>
+            </div>
             <form onSubmit={handleRecordCheck} className="space-y-3 text-xs">
               <div>
                 <label className="block text-[#5A6A7E] font-medium mb-1">Check Type</label>
@@ -391,9 +401,17 @@ export function VerificationView() {
 
       {/* Decision Modal */}
       {showDecisionModal && (
-        <div className="fixed inset-0 z-50 bg-[#0F2A43]/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#D8E0E8] rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-[#0F2A43]">Issue Formal Verification Decision</h3>
+        <div className="fixed inset-0 z-50 bg-[#0F2A43]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#D8E0E8] rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#D8E0E8]">
+              <h3 className="text-sm font-bold text-[#0F2A43]">Issue Formal Verification Decision</h3>
+              <button
+                onClick={() => setShowDecisionModal(false)}
+                className="p-1 hover:bg-[#F0F4F8] rounded text-[#5A6A7E] transition"
+              >
+                ✕
+              </button>
+            </div>
             <form onSubmit={handleDecide} className="space-y-3 text-xs">
               <div>
                 <label className="block text-[#5A6A7E] font-medium mb-1">Formal Verdict</label>

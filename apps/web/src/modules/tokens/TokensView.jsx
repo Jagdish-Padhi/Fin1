@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../shared/services/api.js';
 import { useAuth } from '../../shared/context/AuthContext.jsx';
+import { useToast } from '../../shared/components/Toast.jsx';
 import { Coins, PlusCircle, Users, ExternalLink, ShieldCheck, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export function TokensView() {
   const { user } = useAuth();
+  const toast = useToast();
   const [tokens, setTokens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedToken, setSelectedToken] = useState(null);
@@ -74,9 +76,10 @@ export function TokensView() {
         representation,
       });
       setShowMintModal(false);
+      toast.success(`Security token minted successfully for asset ${assetId}. Cap table initialized on ledger.`);
       await loadTokens();
     } catch (err) {
-      alert(err.message || 'Token minting failed. Check asset verification & valuation approval.');
+      toast.error(err.message || 'Token minting failed. Check asset verification & valuation approval.');
     } finally {
       setSubmittingMint(false);
     }
@@ -265,11 +268,19 @@ export function TokensView() {
 
       {/* Mint Modal */}
       {showMintModal && (
-        <div className="fixed inset-0 z-50 bg-[#0F2A43]/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#D8E0E8] rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-[#0F2A43]">Mint Security Token</h3>
+        <div className="fixed inset-0 z-50 bg-[#0F2A43]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#D8E0E8] rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#D8E0E8]">
+              <h3 className="text-sm font-bold text-[#0F2A43]">Mint Security Token</h3>
+              <button
+                onClick={() => setShowMintModal(false)}
+                className="p-1 hover:bg-[#F0F4F8] rounded text-[#5A6A7E] transition"
+              >
+                ✕
+              </button>
+            </div>
             <p className="text-xs text-[#5A6A7E]">
-              Segregation of duties: Minting is authorized by Compliance once verification and valuation are approved.
+              Issue tokenized legal claims on the ledger against verified, valued underlying assets.
             </p>
             <form onSubmit={handleMint} className="space-y-3 text-xs">
               <div>

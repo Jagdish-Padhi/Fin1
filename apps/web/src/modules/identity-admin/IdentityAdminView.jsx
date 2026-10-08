@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../../shared/services/api.js';
 import { useAuth } from '../../shared/context/AuthContext.jsx';
+import { useToast } from '../../shared/components/Toast.jsx';
 import {
   UserCheck,
   Building,
@@ -17,6 +18,7 @@ import {
 
 export function IdentityAdminView() {
   const { user } = useAuth();
+  const toast = useToast();
   const [users, setUsers] = useState([]);
   const [orgs, setOrgs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +60,7 @@ export function IdentityAdminView() {
     try {
       await api.createAdminUser(formData);
       setShowCreateModal(false);
+      toast.success(`Consortium user "${formData.name}" onboarded and enrolled with Fabric CA.`);
       setFormData({
         name: '',
         email: '',
@@ -78,9 +81,10 @@ export function IdentityAdminView() {
     const reason = nextStatus === 'INACTIVE' ? 'Deactivated by Platform Administrator' : 'Reactivated';
     try {
       await api.updateUserStatus(targetUser.id, nextStatus, reason);
+      toast.success(`User ${targetUser.name} status updated to ${nextStatus}.`);
       fetchData();
     } catch (err) {
-      alert(err.message || 'Action failed');
+      toast.error(err.message || 'Action failed');
     }
   };
 

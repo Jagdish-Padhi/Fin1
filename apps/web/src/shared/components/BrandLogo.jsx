@@ -1,12 +1,14 @@
 import React from 'react';
 
-export function BrandLogo({ onClick, size = 'default', showSubtitle = true, className = '' }) {
+export function BrandLogo({ onClick, size = 'default', showSubtitle = true, className = '', dark = false }) {
   // Proportions:
   // default: 40px (w-10 h-10), ideal for standard h-16 navbar
   // compact: 32px (w-8 h-8), ideal for drawers/smaller cards
   const imgSize = size === 'compact' ? 'w-8 h-8' : 'w-10 h-10';
   const textClass = size === 'compact' ? 'text-lg' : 'text-xl';
-  const subClass = 'text-[10px] text-[#5A6A7E] font-medium tracking-tight -mt-0.5';
+  const subClass = dark
+    ? 'text-[10px] text-[#94A3B8] font-medium tracking-tight -mt-0.5'
+    : 'text-[10px] text-[#5A6A7E] font-medium tracking-tight -mt-0.5';
 
   return (
     <div
@@ -20,8 +22,8 @@ export function BrandLogo({ onClick, size = 'default', showSubtitle = true, clas
       />
       <div className="flex flex-col justify-center">
         <span className={`${textClass} font-extrabold tracking-tight font-['Outfit',sans-serif] leading-tight`}>
-          <span className="text-[#0F2A43]">Asse</span>
-          <span className="text-[#0F766E]">Trust</span>
+          <span className={dark ? 'text-white' : 'text-[#0F2A43]'}>Asse</span>
+          <span className="text-[#2DD4BF]">Trust</span>
         </span>
         {showSubtitle && (
           <span className={subClass}>

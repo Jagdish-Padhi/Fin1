@@ -50,23 +50,6 @@ export function DashboardView({ onNavigate }) {
 
   return (
     <div className="space-y-6">
-      {/* Executive Welcome Banner */}
-      <div className="trust-card p-6 bg-white border border-[#D8E0E8] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="space-y-1">
-          <h2 className="text-xl md:text-2xl font-bold text-[#0F2A43] tracking-tight font-['Outfit',sans-serif]">
-            {user?.name}
-          </h2>
-          <p className="text-xs text-[#5A6A7E]">
-            {user?.mspId} • Role: {user?.role} • rwa-channel
-          </p>
-        </div>
-        <div className="flex items-center gap-3 self-start md:self-auto">
-          <div className="px-3.5 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8]">
-            <span className="text-[10px] font-semibold text-[#5A6A7E] uppercase block">Ledger Height</span>
-            <span className="text-xs font-bold font-mono text-[#0F2A43]">Block #{stats.blockHeight || 1}</span>
-          </div>
-        </div>
-      </div>
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import {
   LayoutDashboard,
@@ -12,13 +12,15 @@ import {
   Building,
   Users,
   UserCheck,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import { canAccessTab, ROLE_PERMISSIONS } from '../utils/permissions.js';
+import { canAccessTab } from '../utils/permissions.js';
 
-export function Sidebar({ currentTab, onSelectTab, onNavigateLanding }) {
+export function Sidebar({ currentTab, onSelectTab }) {
   const { user } = useAuth();
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const userRole = user?.role || 'ADMINISTRATOR';
-  const roleConfig = ROLE_PERMISSIONS[userRole] || {};
 
   const allNavItems = [
     { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
@@ -42,21 +44,34 @@ export function Sidebar({ currentTab, onSelectTab, onNavigateLanding }) {
   });
 
   return (
-    <aside className="w-64 border-r border-[#D8E0E8] bg-white flex flex-col justify-between p-4 shadow-[1px_0_3px_rgba(15,42,67,0.02)]">
-      <div className="space-y-5">
-        {/* Active Identity Card */}
-        <div className="bg-[#F8FAFC] border border-[#D8E0E8] rounded-xl p-3.5 space-y-1.5 shadow-2xs">
-          <div className="text-[10px] text-[#5A6A7E] uppercase tracking-wider font-bold flex items-center gap-1.5">
-            <Building className="w-3.5 h-3.5 text-[#1F5A7A]" />
-            Consortium Entity
-          </div>
-          <div className="text-xs font-bold text-[#17202A] truncate">{user?.name}</div>
-          <div className="flex items-center gap-1.5 pt-0.5">
-            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F0FDFA] text-[#0F766E] border border-[#CCFBF1]">
-              {roleConfig.badge || user?.role}
+    <aside
+      className={`border-r border-[#D8E0E8] bg-white flex flex-col justify-between transition-all duration-300 ease-in-out select-none shadow-[1px_0_3px_rgba(15,42,67,0.02)] shrink-0 ${
+        isCollapsed ? 'w-[72px] p-2.5' : 'w-64 p-4'
+      }`}
+    >
+      <div className="space-y-4">
+        {/* Navigation Section Header */}
+        <div className="flex items-center justify-between px-2 pt-1">
+          {!isCollapsed ? (
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A99AD]">
+              Management Modules
             </span>
-            <span className="text-[10px] text-[#5A6A7E] font-mono truncate">{user?.mspId}</span>
-          </div>
+          ) : (
+            <span className="mx-auto w-1.5 h-1.5 rounded-full bg-[#1F5A7A]/40" />
+          )}
+
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="p-1 rounded-md text-[#8A99AD] hover:text-[#0F2A43] hover:bg-[#F1F5F9] transition"
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="w-4 h-4 mx-auto" />
+            ) : (
+              <ChevronLeft className="w-4 h-4" />
+            )}
+          </button>
         </div>
 
         {/* Navigation Items */}
@@ -68,18 +83,31 @@ export function Sidebar({ currentTab, onSelectTab, onNavigateLanding }) {
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition ${
+                title={isCollapsed ? item.label : undefined}
+                className={`w-full flex items-center rounded-xl text-xs font-semibold transition group relative ${
+                  isCollapsed ? 'justify-center p-3' : 'gap-3 px-3 py-2.5'
+                } ${
                   isActive
                     ? 'bg-[#0F2A43] text-white shadow-sm'
                     : 'text-[#5A6A7E] hover:text-[#0F2A43] hover:bg-[#F1F5F9]'
                 }`}
               >
                 <Icon
-                  className={`w-4 h-4 shrink-0 ${
-                    isActive ? 'text-white' : 'text-[#5A6A7E]'
-                  }`}
+                  className={`w-4 h-4 shrink-0 transition-transform ${
+                    isActive ? 'text-white' : 'text-[#5A6A7E] group-hover:text-[#0F2A43]'
+                  } ${isCollapsed && !isActive ? 'group-hover:scale-110' : ''}`}
                 />
-                <span className="truncate">{item.label}</span>
+
+                {!isCollapsed && (
+                  <span className="truncate tracking-tight">{item.label}</span>
+                )}
+
+                {/* Collapsed Tooltip Flyout */}
+                {isCollapsed && (
+                  <div className="absolute left-full ml-2.5 px-2.5 py-1.5 bg-[#0F2A43] text-white text-[11px] font-medium rounded-md shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition whitespace-nowrap z-50">
+                    {item.label}
+                  </div>
+                )}
               </button>
             );
           })}
@@ -87,25 +115,28 @@ export function Sidebar({ currentTab, onSelectTab, onNavigateLanding }) {
       </div>
 
       {/* Network Status Footer */}
-      <div className="pt-3 border-t border-[#D8E0E8] text-[10px] text-[#5A6A7E] space-y-2">
-        <div className="flex items-center justify-between font-medium">
-          <span>Channel</span>
-          <span className="font-mono text-[#17202A] font-semibold">rwa-channel</span>
-        </div>
-        <div className="flex items-center justify-between font-medium">
-          <span>Consortium</span>
-          <span className="text-[#18794E] font-semibold flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#18794E] animate-pulse" />
-            6 Orgs Synced
-          </span>
-        </div>
-        {onNavigateLanding && (
+      <div className="pt-3 border-t border-[#E8EEF3]">
+        {!isCollapsed ? (
+          <div className="flex items-center justify-between px-2 py-1 text-[11px] text-[#5A6A7E]">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+              <span className="font-medium text-[#0F2A43]">Ledger Synchronized</span>
+            </div>
+            <button
+              onClick={() => setIsCollapsed(true)}
+              className="text-[#8A99AD] hover:text-[#0F2A43] transition p-1"
+              title="Collapse sidebar"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
           <button
-            onClick={onNavigateLanding}
-            className="w-full pt-1 text-left text-xs font-semibold text-[#1F5A7A] hover:text-[#0F2A43] transition flex items-center justify-between"
+            onClick={() => setIsCollapsed(false)}
+            className="w-full flex justify-center py-2 text-[#8A99AD] hover:text-[#0F2A43] hover:bg-[#F1F5F9] rounded-lg transition"
+            title="Expand sidebar • Ledger Synchronized"
           >
-            <span>Platform Overview</span>
-            <span>&rarr;</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           </button>
         )}
       </div>

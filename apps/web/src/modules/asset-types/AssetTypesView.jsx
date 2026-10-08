@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../shared/services/api.js';
 import { useAuth } from '../../shared/context/AuthContext.jsx';
+import { useToast } from '../../shared/components/Toast.jsx';
+import { ConfirmDialog } from '../../shared/components/ConfirmDialog.jsx';
 import {
   Building,
   Plus,
@@ -18,10 +20,13 @@ import {
 
 export function AssetTypesView() {
   const { user } = useAuth();
+  const toast = useToast();
   const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedKey, setExpandedKey] = useState('VEHICLE');
+  const [deprecateTarget, setDeprecateTarget] = useState(null);
+  const [deprecating, setDeprecating] = useState(false);
 
   // Define Asset Type Modal
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -59,15 +64,22 @@ export function AssetTypesView() {
     }
   };
 
-  const handleDeprecate = async (key) => {
-    if (!window.confirm(`Are you sure you want to deprecate asset type ${key}? New assets cannot be registered with deprecated types.`)) {
-      return;
-    }
+  const handleDeprecate = (key) => {
+    setDeprecateTarget(key);
+  };
+
+  const confirmDeprecate = async () => {
+    if (!deprecateTarget) return;
     try {
-      await api.deprecateAssetType(key);
+      setDeprecating(true);
+      await api.deprecateAssetType(deprecateTarget);
+      toast.success(`Asset type ${deprecateTarget} has been deprecated successfully.`);
+      setDeprecateTarget(null);
       await loadTypes();
     } catch (err) {
-      alert(err?.response?.data?.error?.message || err.message || 'Deprecation failed');
+      toast.error(err?.response?.data?.error?.message || err.message || 'Deprecation failed');
+    } finally {
+      setDeprecating(false);
     }
   };
 
@@ -121,6 +133,7 @@ export function AssetTypesView() {
 
       await api.defineAssetType(payload);
       setShowCreateModal(false);
+      toast.success(`Asset type schema '${createKey.toUpperCase().trim()}' anchored to ledger successfully.`);
       // Reset form
       setCreateKey('');
       setCreateName('');
@@ -563,6 +576,18 @@ export function AssetTypesView() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog for Asset Type Deprecation */}
+      <ConfirmDialog
+        isOpen={Boolean(deprecateTarget)}
+        title="Deprecate Asset Type"
+        message={`Are you sure you want to deprecate asset type schema "${deprecateTarget}"? Existing assets will remain valid, but no new assets can be registered using this schema.`}
+        confirmLabel="Deprecate Type"
+        variant="danger"
+        isLoading={deprecating}
+        onConfirm={confirmDeprecate}
+        onCancel={() => setDeprecateTarget(null)}
+      />
     </div>
   );
 }

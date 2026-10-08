@@ -69,6 +69,14 @@ export class IdentityAdminService {
     }
 
     const id = `USR-${Date.now()}`;
+    const password = data.password || 'Password@123';
+    let passwordHash;
+    try {
+      passwordHash = await bcrypt.hash(password, 10);
+    } catch {
+      passwordHash = undefined;
+    }
+
     const newUser = {
       id,
       orgId: data.orgId,
@@ -76,6 +84,8 @@ export class IdentityAdminService {
       name: data.name,
       role: data.role,
       status: 'ACTIVE',
+      password,
+      passwordHash,
       // Auto-issued Fabric Certificate & Enrollment Identity
       fabricIdentity: {
         enrollmentId: data.email.split('@')[0],

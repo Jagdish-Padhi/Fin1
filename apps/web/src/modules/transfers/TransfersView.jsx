@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../shared/services/api.js';
 import { useAuth } from '../../shared/context/AuthContext.jsx';
+import { useToast } from '../../shared/components/Toast.jsx';
+import { ConfirmDialog } from '../../shared/components/ConfirmDialog.jsx';
 import {
   ArrowRightLeft,
   PlusCircle,
@@ -26,6 +28,7 @@ import {
 
 export function TransfersView() {
   const { user } = useAuth();
+  const toast = useToast();
   const [transfers, setTransfers] = useState([]);
   const [tokens, setTokens] = useState([]);
   const [participants, setParticipants] = useState([]);
@@ -37,6 +40,8 @@ export function TransfersView() {
   const [showProposeModal, setShowProposeModal] = useState(false);
   const [selectedTransferForDetails, setSelectedTransferForDetails] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [executeTarget, setExecuteTarget] = useState(null); // for confirmation dialog
+  const [executing, setExecuting] = useState(false);
 
   // Form State
   const [tokenId, setTokenId] = useState('');
@@ -99,7 +104,7 @@ export function TransfersView() {
 
   const handleEvaluateRules = async () => {
     if (!tokenId || !fromParticipantId || !toParticipantId || !units) {
-      alert('Please fill in Token, Sender, Receiver, and Units before simulating.');
+      toast.warning('Please fill in Token, Sender, Receiver, and Units before simulating.');
       return;
     }
     try {
@@ -113,7 +118,7 @@ export function TransfersView() {
       });
       setEvalResult(res.data);
     } catch (err) {
-      alert(err.message || 'Evaluation error');
+      toast.error(err.message || 'Rule evaluation failed. Check parameters.');
     } finally {
       setEvaluating(false);
     }
@@ -133,21 +138,27 @@ export function TransfersView() {
       });
       setShowProposeModal(false);
       setEvalResult(null);
+      toast.success('Transfer proposal submitted to compliance queue.');
       await loadData();
     } catch (err) {
-      alert(err.message || 'Transfer proposal failed');
+      toast.error(err.message || 'Transfer proposal failed. Check compliance rules.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleExecute = async (transferId) => {
-    if (!confirm('Execute atomic on-chain settlement for this transfer?')) return;
+  const handleExecuteConfirmed = async () => {
+    if (!executeTarget) return;
     try {
-      await api.executeTransfer(transferId);
+      setExecuting(true);
+      await api.executeTransfer(executeTarget.id);
+      setExecuteTarget(null);
+      toast.success(`Transfer ${executeTarget.id} executed. Balances updated atomically on ledger.`);
       await loadData();
     } catch (err) {
-      alert(err.message || 'Transfer execution failed');
+      toast.error(err.message || 'Transfer execution failed.');
+    } finally {
+      setExecuting(false);
     }
   };
 
@@ -357,7 +368,7 @@ export function TransfersView() {
 
                           {canExecute && isProposed && (
                             <button
-                              onClick={() => handleExecute(t.id)}
+                              onClick={() => setExecuteTarget(t)}
                               className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#0F2A43] hover:bg-[#1F5A7A] text-white rounded text-[11px] font-semibold transition"
                             >
                               <Play className="w-3 h-3" />
@@ -402,7 +413,7 @@ export function TransfersView() {
             </div>
 
             <p className="text-xs text-[#5A6A7E]">
-              Transfers are evaluated against smart compliance rules on Hyperledger Fabric. You can run a real-time dry-run simulation before submitting.
+              Pre-flight compliance rules evaluate participant KYC, jurisdiction, lockup schedules, and holding limits prior to proposal submission.
             </p>
 
             <form onSubmit={handlePropose} className="space-y-3 text-xs">
@@ -547,13 +558,13 @@ export function TransfersView() {
                   className="w-full py-2 px-3 bg-[#F0F4F8] hover:bg-[#E2E8F0] text-[#0F2A43] border border-[#D8E0E8] rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition"
                 >
                   <ShieldCheck className="w-4 h-4 text-[#1F5A7A]" />
-                  {evaluating ? 'Simulating On-Chain Rules...' : 'Simulate Rule Evaluation Engine'}
+                  {evaluating ? 'Evaluating Rules...' : 'Run Pre-flight Compliance Check'}
                 </button>
 
                 {evalResult && (
                   <div className="mt-3 p-3 bg-[#F8FAFC] border border-[#D8E0E8] rounded-xl text-xs space-y-2">
                     <div className="flex items-center justify-between font-bold pb-1 border-b border-[#D8E0E8]">
-                      <span>On-Chain Simulation Result:</span>
+                      <span>Pre-flight Evaluation Result:</span>
                       <span
                         className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                           evalResult.passed
@@ -561,7 +572,7 @@ export function TransfersView() {
                             : 'bg-[#FEF2F2] text-[#B42318] border border-[#FECDD3]'
                         }`}
                       >
-                        {evalResult.passed ? 'ALL CHECKS PASSED' : 'REJECTION WILL OCCUR'}
+                        {evalResult.passed ? 'COMPLIANT — ELIGIBLE' : 'NON-COMPLIANT — BLOCKED'}
                       </span>
                     </div>
 
@@ -745,6 +756,18 @@ export function TransfersView() {
           </div>
         </div>
       )}
+
+      {/* Execute Settlement Confirmation */}
+      <ConfirmDialog
+        isOpen={Boolean(executeTarget)}
+        title="Execute Atomic On-Chain Settlement"
+        message={`Settle transfer ${executeTarget?.id}? This will atomically debit ${executeTarget?.units?.toLocaleString()} units from ${executeTarget?.fromParticipantId} and credit ${executeTarget?.toParticipantId}. This action is irreversible on ledger.`}
+        confirmLabel={executing ? 'Executing...' : 'Execute Settlement'}
+        cancelLabel="Cancel"
+        variant="warning"
+        onConfirm={handleExecuteConfirmed}
+        onCancel={() => setExecuteTarget(null)}
+      />
     </div>
   );
 }

@@ -24,6 +24,13 @@ export const SEED_DATA = {
     {
       id: 'USR-ADMIN',
       orgId: 'ORG-ADMIN',
+      email: 'admin@assetrust.io',
+      name: 'Aditi Sharma (Platform Admin)',
+      role: 'ADMINISTRATOR',
+    },
+    {
+      id: 'USR-ADMIN-EKAM',
+      orgId: 'ORG-ADMIN',
       email: 'admin@ekamvistar.com',
       name: 'Aditi Sharma (Platform Admin)',
       role: 'ADMINISTRATOR',

@@ -16,8 +16,8 @@ import { LifecycleView } from './modules/lifecycle/LifecycleView.jsx';
 import { AuditView } from './modules/audit/AuditView.jsx';
 import { PublicVerifyPage } from './modules/public-verify/PublicVerifyPage.jsx';
 import { LandingPage } from './modules/landing/LandingPage.jsx';
-
 import { AuthModal } from './modules/auth/AuthModal.jsx';
+import { ShieldCheck } from 'lucide-react';
 
 function MainLayout() {
   const { user, loading } = useAuth();
@@ -26,27 +26,35 @@ function MainLayout() {
   const [showPublicVerify, setShowPublicVerify] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const currentRole = user?.role || 'ADMINISTRATOR';
+  const currentRole = user?.role || null;
 
+  // ─── Loading spinner ───────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-[#5A6A7E]">
+        <div className="flex flex-col items-center gap-4 text-[#5A6A7E]">
+          <ShieldCheck className="w-10 h-10 text-[#1F5A7A] animate-pulse" />
           <div className="w-8 h-8 border-2 border-[#0F2A43] border-t-transparent rounded-full animate-spin" />
           <span className="text-xs font-semibold font-mono tracking-wide text-[#1F5A7A]">
-            Initializing AsseTrust Security Node...
+            Validating Consortium Node Certificate...
           </span>
         </div>
       </div>
     );
   }
 
-  // 1. Landing Page View
-  if (view === 'landing') {
+  // ─── Unauthenticated or Landing View ───────────────────────────────────────
+  if (!user || view === 'landing') {
     return (
-      <>
+      <div className="app-view-transition">
         <LandingPage
-          onEnterConsole={() => setView('console')}
+          onEnterConsole={() => {
+            if (user) {
+              setView('console');
+            } else {
+              setShowAuthModal(true);
+            }
+          }}
           onOpenPublicVerify={() => setShowPublicVerify(true)}
           onOpenAuth={() => setShowAuthModal(true)}
         />
@@ -57,16 +65,19 @@ function MainLayout() {
           <AuthModal
             isOpen={showAuthModal}
             onClose={() => setShowAuthModal(false)}
-            onSuccess={() => setView('console')}
+            onSuccess={() => {
+              setShowAuthModal(false);
+              setView('console');
+            }}
           />
         )}
-      </>
+      </div>
     );
   }
 
-  // 2. Consortium Management Console View
+  // ─── Authenticated Console View ────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#17202A]">
+    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#17202A] app-view-transition">
       <Navbar
         onOpenPublicVerify={() => setShowPublicVerify(true)}
         onNavigateLanding={() => setView('landing')}
@@ -78,12 +89,11 @@ function MainLayout() {
         <Sidebar
           currentTab={currentTab}
           onSelectTab={setCurrentTab}
-          onNavigateLanding={() => setView('landing')}
         />
 
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 max-w-7xl mx-auto w-full">
+        <main key={currentTab} className="flex-1 overflow-y-auto p-6 md:p-8 max-w-7xl mx-auto w-full app-view-transition">
           {currentTab === 'dashboard' && <DashboardView onNavigate={setCurrentTab} />}
-          
+
           {currentTab === 'participants' && <ParticipantsView />}
 
           {currentTab === 'identity-admin' && (
@@ -151,7 +161,7 @@ function MainLayout() {
           {currentTab === 'lifecycle' && (
             <RoleGuard
               currentRole={currentRole}
-              allowedRoles={['COMPLIANCE', 'AUDITOR', 'ADMINISTRATOR', 'ISSUER']}
+              allowedRoles={['COMPLIANCE', 'ADMINISTRATOR']}
               onNavigateHome={() => setCurrentTab('dashboard')}
             >
               <LifecycleView />
