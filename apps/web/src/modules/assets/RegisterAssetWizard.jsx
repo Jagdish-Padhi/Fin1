@@ -67,21 +67,85 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
     initAttributesForType(type);
   };
 
-  const handleSimulateEvidence = (docType, fileName) => {
-    // Generate deterministic pseudo SHA-256 for demo
-    const randomHex = Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-    setEvidenceFiles({
-      ...evidenceFiles,
-      [docType]: {
-        docType,
-        fileName: fileName || `${docType.toLowerCase()}_evidence.pdf`,
-        sha256: randomHex,
-        fileSize: 1024 * (Math.floor(Math.random() * 500) + 100),
-      },
-    });
+  const handleFileUpload = async (docType, file) => {
+    if (!file) return;
+    try {
+      const buffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const sha256 = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+
+      setEvidenceFiles((prev) => ({
+        ...prev,
+        [docType]: {
+          docType,
+          file,
+          fileName: file.name,
+          sha256,
+          fileSize: file.size,
+          mimeType: file.type || 'application/pdf',
+        },
+      }));
+      setError(null);
+    } catch (err) {
+      setError(`Failed to read file for ${docType}: ${err.message}`);
+    }
+  };
+
+  const validateStep = (currentStep) => {
+    setError(null);
+    if (currentStep === 1) {
+      if (!selectedTypeKey || !selectedTypeDef) {
+        setError('Please select an asset type before proceeding.');
+        return false;
+      }
+      return true;
+    }
+
+    if (currentStep === 2) {
+      if (!displayName.trim()) {
+        setError('Asset Label / Title is required.');
+        return false;
+      }
+      const schema = selectedTypeDef?.attributeSchema || {};
+      for (const [key, rule] of Object.entries(schema)) {
+        if (rule.required) {
+          const val = attributes[key];
+          if (val === undefined || val === null || val === '') {
+            setError(`Required field missing: "${key.replace(/([A-Z])/g, ' $1')}" must be provided.`);
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    if (currentStep === 3) {
+      const reqs = selectedTypeDef?.evidenceRequirements || [];
+      const missingMandatory = reqs.filter((r) => r.required && !evidenceFiles[r.docType]);
+      if (missingMandatory.length > 0) {
+        setError(
+          `Mandatory evidence required: Please attach document(s) for: ${missingMandatory.map((m) => m.docType).join(', ')}.`
+        );
+        return false;
+      }
+      return true;
+    }
+
+    return true;
+  };
+
+  const handleNext = () => {
+    if (validateStep(step)) {
+      setStep((s) => Math.min(4, s + 1));
+    }
   };
 
   const handleSubmit = async () => {
+    if (!validateStep(2) || !validateStep(3)) {
+      return;
+    }
+
     setError(null);
     setSubmitting(true);
 
@@ -90,23 +154,32 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
       const payload = {
         typeKey: selectedTypeKey,
         typeVersion: selectedTypeDef.version || 1,
-        displayName: displayName || `${selectedTypeKey} Asset`,
+        displayName: displayName.trim(),
         attributes,
       };
 
       const assetRes = await api.registerAsset(payload);
-      const assetId = assetRes.id || assetRes.data?.id;
+      const createdAsset = assetRes.data || assetRes;
+      const assetId = createdAsset.id;
 
-      // 2. Attach uploaded evidence documents
+      if (!assetId) {
+        throw new Error('Asset registration did not return a valid Asset ID.');
+      }
+
+      // 2. Attach evidence documents (using real binary upload if file object exists, fallback to on-chain hash leaf)
       for (const ev of Object.values(evidenceFiles)) {
-        await api.attachEvidence(assetId, {
-          assetId,
-          docType: ev.docType,
-          fileName: ev.fileName,
-          sha256: ev.sha256,
-          fileSize: ev.fileSize,
-          mimeType: 'application/pdf',
-        });
+        if (ev.file) {
+          await api.uploadEvidence(assetId, ev.docType, ev.file);
+        } else {
+          await api.attachEvidence(assetId, {
+            assetId,
+            docType: ev.docType,
+            fileName: ev.fileName,
+            sha256: ev.sha256,
+            fileSize: ev.fileSize,
+            mimeType: ev.mimeType || 'application/pdf',
+          });
+        }
       }
 
       onCreated();
@@ -312,18 +385,25 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
                         )}
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleSimulateEvidence(req.docType, `${req.docType.toLowerCase()}_certified.pdf`)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+                      <div className="flex items-center gap-2">
+                        <label className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
                           isUploaded
                             ? 'bg-[#18794E]/10 text-[#18794E] border border-[#18794E]/20'
                             : 'bg-[#0F2A43] hover:bg-[#1F5A7A] text-white shadow-xs'
-                        }`}
-                      >
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>{isUploaded ? 'Re-upload' : 'Attach File'}</span>
-                      </button>
+                        }`}>
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{isUploaded ? 'Replace File' : 'Upload File'}</span>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept=".pdf,.png,.jpg,.jpeg,.json,.doc,.docx"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileUpload(req.docType, file);
+                            }}
+                          />
+                        </label>
+                      </div>
                     </div>
                   );
                 })}
@@ -357,6 +437,14 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
                 <div className="text-[11px] text-[#5A6A7E]">
                   {Object.keys(evidenceFiles).length} documents prepared to be cryptographically committed to the ledger root.
                 </div>
+                <div className="space-y-1.5 pt-2">
+                  {Object.values(evidenceFiles).map((ef) => (
+                    <div key={ef.docType} className="p-2 rounded bg-white border border-[#D8E0E8] font-mono text-[10px] flex items-center justify-between">
+                      <span className="font-semibold text-[#0F2A43]">{ef.docType}: {ef.fileName}</span>
+                      <span className="text-[#0F766E]">SHA-256: {ef.sha256.slice(0, 16)}...</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -378,7 +466,7 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
             {step < 4 ? (
               <button
                 type="button"
-                onClick={() => setStep((s) => Math.min(4, s + 1))}
+                onClick={handleNext}
                 className="px-5 py-2 rounded-lg text-xs font-semibold bg-[#0F2A43] hover:bg-[#1F5A7A] text-white flex items-center gap-1.5 transition shadow-sm"
               >
                 <span>Continue</span>

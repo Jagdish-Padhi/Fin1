@@ -99,6 +99,30 @@ export class ApiClient {
     });
   }
 
+  async uploadEvidence(assetId, docType, file) {
+    const formData = new FormData();
+    formData.append('assetId', assetId);
+    formData.append('docType', docType);
+    formData.append('file', file);
+
+    const headers = {};
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    const response = await fetch('/api/v1/evidence/upload', {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data?.message || data?.error?.message || 'File upload failed');
+    }
+    return data;
+  }
+
   submitForVerification(assetId) {
     return this.request(`/assets/${encodeURIComponent(assetId)}/submit-verification`, {
       method: 'POST',
