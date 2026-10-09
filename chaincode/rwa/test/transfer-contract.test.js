@@ -435,7 +435,7 @@ describe('Phase 6: TransferContract', () => {
     );
 
     const execCtx = createMockCtx(
-      { role: Role.ADMINISTRATOR },
+      { role: Role.COMPLIANCE },
       state,
       'tx-split-exec'
     );
@@ -562,4 +562,47 @@ describe('Phase 6: TransferContract', () => {
     assert.equal(cancelled.status, TransferStatus.CANCELLED);
     assert.ok(state.has(`AUD:${transfer.id}:tx-cancel-exec`));
   });
+
+  it('rejects ADMINISTRATOR and COMPLIANCE from proposeTransfer, and enforces sender ownership', async () => {
+    const adminCtx = createMockCtx({ role: Role.ADMINISTRATOR }, state);
+    const complianceCtx = createMockCtx({ role: Role.COMPLIANCE }, state);
+    const validProposal = JSON.stringify({
+      tokenId: 'TKN-LAND-01',
+      toParticipantId: 'PRT-BUYER',
+      units: 100,
+    });
+
+    await assert.rejects(contract.proposeTransfer(adminCtx, validProposal), /Unauthorized/);
+    await assert.rejects(contract.proposeTransfer(complianceCtx, validProposal), /Unauthorized/);
+
+    const impostorCtx = createMockCtx(
+      { participantId: 'PRT-BUYER', role: Role.INVESTOR },
+      state
+    );
+    await assert.rejects(
+      contract.proposeTransfer(
+        impostorCtx,
+        JSON.stringify({
+          tokenId: 'TKN-LAND-01',
+          fromParticipantId: 'PRT-SELLER',
+          toParticipantId: 'PRT-BUYER',
+          units: 100,
+        })
+      ),
+      /Cannot propose transfer from another participant account/
+    );
+  });
+
+  it('rejects ADMINISTRATOR from executeTransfer and cancelTransfer', async () => {
+    const adminCtx = createMockCtx({ role: Role.ADMINISTRATOR }, state);
+    await assert.rejects(
+      contract.executeTransfer(adminCtx, JSON.stringify({ transferId: 'TRF-ANY' })),
+      /Unauthorized/
+    );
+    await assert.rejects(
+      contract.cancelTransfer(adminCtx, JSON.stringify({ transferId: 'TRF-ANY' })),
+      /Unauthorized/
+    );
+  });
 });
+

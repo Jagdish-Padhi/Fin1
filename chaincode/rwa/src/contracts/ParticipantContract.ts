@@ -55,10 +55,16 @@ export class ParticipantContract extends Contract {
   @Transaction()
   @Returns('string')
   async registerParticipant(ctx: Context, dataJson: string): Promise<string> {
-    const caller = requireRole(ctx, Role.ADMINISTRATOR, Role.ISSUER);
+    const caller = requireRole(ctx, Role.ADMINISTRATOR, Role.ISSUER, Role.INVESTOR);
     const data = JSON.parse(dataJson);
 
     const id = data.id || `PRT-${Date.now()}`;
+
+    if (caller.role === Role.INVESTOR) {
+      if (caller.participantId && id !== caller.participantId) {
+        throw new Error('Self-onboarding violation: non-admin caller can only register their own participant ID');
+      }
+    }
     const key = this._getKey(id);
 
     const exists = await ctx.stub.getState(key);
@@ -161,7 +167,7 @@ export class ParticipantContract extends Contract {
   @Transaction()
   @Returns('string')
   async setInvestorClass(ctx: Context, participantId: string, investorClass: string, reason: string): Promise<string> {
-    const caller = requireRole(ctx, Role.COMPLIANCE, Role.ADMINISTRATOR);
+    const caller = requireRole(ctx, Role.COMPLIANCE);
 
     const validClasses = [InvestorClass.RETAIL, InvestorClass.QUALIFIED, InvestorClass.INSTITUTIONAL];
     if (!validClasses.includes(investorClass as any)) {
@@ -201,7 +207,7 @@ export class ParticipantContract extends Contract {
   @Transaction()
   @Returns('string')
   async setLimits(ctx: Context, participantId: string, limitsJson: string, reason: string): Promise<string> {
-    const caller = requireRole(ctx, Role.COMPLIANCE, Role.ADMINISTRATOR);
+    const caller = requireRole(ctx, Role.COMPLIANCE);
     const limits = JSON.parse(limitsJson);
 
     const key = this._getKey(participantId);
@@ -239,7 +245,7 @@ export class ParticipantContract extends Contract {
   @Transaction()
   @Returns('string')
   async suspendParticipant(ctx: Context, participantId: string, reason: string): Promise<string> {
-    const caller = requireRole(ctx, Role.COMPLIANCE, Role.ADMINISTRATOR);
+    const caller = requireRole(ctx, Role.COMPLIANCE);
 
     const key = this._getKey(participantId);
     const bytes = await ctx.stub.getState(key);
@@ -275,7 +281,7 @@ export class ParticipantContract extends Contract {
   @Transaction()
   @Returns('string')
   async reinstateParticipant(ctx: Context, participantId: string, reason: string): Promise<string> {
-    const caller = requireRole(ctx, Role.COMPLIANCE, Role.ADMINISTRATOR);
+    const caller = requireRole(ctx, Role.COMPLIANCE);
 
     const key = this._getKey(participantId);
     const bytes = await ctx.stub.getState(key);

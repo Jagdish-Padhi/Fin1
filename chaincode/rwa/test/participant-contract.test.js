@@ -235,4 +235,47 @@ describe('Phase 1: ParticipantContract (Chaincode Engine)', () => {
     const none = JSON.parse(await contract.participantExistsAndActive(issuerCtx, 'PRT-DOES-NOT-EXIST'));
     assert.equal(none.exists, false);
   });
+
+  it('allows INVESTOR self-onboarding only for their own participant ID', async () => {
+    const state = new Map();
+    const investorCtx = createMockCtx({
+      role: Role.INVESTOR,
+      participantId: 'PRT-INV-01',
+      userId: 'USR-INV-01',
+    }, state);
+
+    // Self registration succeeds
+    const res = JSON.parse(await contract.registerParticipant(investorCtx, JSON.stringify({ id: 'PRT-INV-01' })));
+    assert.equal(res.id, 'PRT-INV-01');
+
+    // Registering another ID fails
+    await assert.rejects(
+      contract.registerParticipant(investorCtx, JSON.stringify({ id: 'PRT-OTHER' })),
+      /Self-onboarding violation/
+    );
+  });
+
+  it('rejects ADMINISTRATOR from setting investor class, limits, or suspending', async () => {
+    const state = new Map();
+    const adminCtx = createMockCtx({ role: Role.ADMINISTRATOR }, state);
+    const issuerCtx = createMockCtx({ role: Role.ISSUER }, state);
+    await contract.registerParticipant(issuerCtx, JSON.stringify({ id: 'PRT-ADM-TEST' }));
+
+    await assert.rejects(
+      contract.setInvestorClass(adminCtx, 'PRT-ADM-TEST', InvestorClass.QUALIFIED, 'test'),
+      /Unauthorized/
+    );
+    await assert.rejects(
+      contract.setLimits(adminCtx, 'PRT-ADM-TEST', JSON.stringify({ maxHoldingBps: 1000 }), 'test'),
+      /Unauthorized/
+    );
+    await assert.rejects(
+      contract.suspendParticipant(adminCtx, 'PRT-ADM-TEST', 'test'),
+      /Unauthorized/
+    );
+    await assert.rejects(
+      contract.reinstateParticipant(adminCtx, 'PRT-ADM-TEST', 'test'),
+      /Unauthorized/
+    );
+  });
 });
