@@ -92,11 +92,7 @@ function MainLayout() {
         />
 
         <main key={currentTab} className="flex-1 overflow-y-auto p-6 md:p-8 max-w-7xl mx-auto w-full app-view-transition">
-          {currentTab === 'dashboard' && (
-            <RoleGuard currentRole={currentRole} tab="dashboard" onNavigateHome={() => setCurrentTab('dashboard')}>
-              <DashboardView onNavigate={setCurrentTab} />
-            </RoleGuard>
-          )}
+          {currentTab === 'dashboard' && <DashboardView onNavigate={setCurrentTab} />}
 
           {currentTab === 'participants' && (
             <RoleGuard currentRole={currentRole} tab="participants" onNavigateHome={() => setCurrentTab('dashboard')}>

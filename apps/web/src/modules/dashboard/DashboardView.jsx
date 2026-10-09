@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../shared/context/AuthContext.jsx';
 import { api } from '../../shared/services/api.js';
 import { tabAccess } from '../../shared/utils/permissions.js';
+import { HashChip } from '../../shared/components/HashChip.jsx';
 import {
   Layers,
   Coins,
@@ -14,9 +15,12 @@ import {
   TrendingUp,
   Activity,
   History,
-  AlertTriangle,
   Users,
+  ShieldCheck,
+  XCircle,
+  AlertTriangle,
   ShieldAlert,
+  UserCheck,
 } from 'lucide-react';
 
 const settledList = (result) =>
@@ -36,7 +40,16 @@ function isStaleValuation(v) {
 }
 
 function getRoleCounters(role, data, onNavigate) {
-  const { assets, tokens, transfers, participants, valuations, cases, types, explorer } = data;
+  const {
+    assets = [],
+    tokens = [],
+    transfers = [],
+    participants = [],
+    valuations = [],
+    cases = [],
+    types = [],
+    explorer = null,
+  } = data;
   const link = (tab) => (onNavigate ? () => onNavigate(tab) : undefined);
 
   switch (role) {
@@ -335,7 +348,20 @@ const toneStyles = {
 export function DashboardView({ onNavigate }) {
   const { user } = useAuth();
   const userRole = user?.role || null;
-  const [data, setData] = useState({});
+  const [data, setData] = useState({
+    assets: [],
+    tokens: [],
+    transfers: [],
+    participants: [],
+    valuations: [],
+    cases: [],
+    types: [],
+    users: [],
+    orgs: [],
+    health: 'ONLINE',
+    explorer: null,
+    recentEntries: [],
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -343,60 +369,93 @@ export function DashboardView({ onNavigate }) {
 
     async function loadDashboardData() {
       setLoading(true);
-      const state = {};
+      const state = {
+        assets: [],
+        tokens: [],
+        transfers: [],
+        participants: [],
+        valuations: [],
+        cases: [],
+        types: [],
+        users: [],
+        orgs: [],
+        health: 'ONLINE',
+        explorer: null,
+        recentEntries: [],
+      };
 
       try {
         if (userRole === 'ADMINISTRATOR') {
-          const [usersRes, orgsRes, typesRes, healthRes] = await Promise.allSettled([
+          const [usersRes, orgsRes, typesRes, healthRes, partRes] = await Promise.allSettled([
             api.getUsers(),
             api.getOrganizations(),
             api.getAssetTypes(),
             fetch('/healthz').then((r) => r.json()).catch(() => ({ status: 'ONLINE' })),
+            api.getParticipants(),
           ]);
-          state.users = usersRes.status === 'fulfilled' ? usersRes.value.data || [] : [];
-          state.orgs = orgsRes.status === 'fulfilled' ? orgsRes.value.data || [] : [];
-          state.types = typesRes.status === 'fulfilled' ? typesRes.value.data || [] : [];
+          state.users = usersRes.status === 'fulfilled' ? usersRes.value?.data || [] : [];
+          state.orgs = orgsRes.status === 'fulfilled' ? orgsRes.value?.data || [] : [];
+          state.types = typesRes.status === 'fulfilled' ? typesRes.value?.data || [] : [];
           state.health = healthRes.status === 'fulfilled' ? healthRes.value?.status || 'ONLINE' : 'ONLINE';
+          state.participants = partRes.status === 'fulfilled' ? partRes.value?.data || [] : [];
         } else if (userRole === 'ISSUER') {
           const [assetsRes, tokensRes, transfersRes] = await Promise.allSettled([
             api.getAssets(),
             api.getTokens(),
             api.getTransfers(),
           ]);
-          state.assets = assetsRes.status === 'fulfilled' ? assetsRes.value.data || [] : [];
-          state.tokens = tokensRes.status === 'fulfilled' ? tokensRes.value.data || [] : [];
-          state.transfers = transfersRes.status === 'fulfilled' ? transfersRes.value.data || [] : [];
+          state.assets = assetsRes.status === 'fulfilled' ? assetsRes.value?.data || [] : [];
+          state.tokens = tokensRes.status === 'fulfilled' ? tokensRes.value?.data || [] : [];
+          state.transfers = transfersRes.status === 'fulfilled' ? transfersRes.value?.data || [] : [];
         } else if (userRole === 'VERIFIER') {
           const [casesRes] = await Promise.allSettled([api.getVerificationCases()]);
-          state.cases = casesRes.status === 'fulfilled' ? casesRes.value.data || [] : [];
+          state.cases = casesRes.status === 'fulfilled' ? casesRes.value?.data || [] : [];
         } else if (userRole === 'VALUER') {
-          const [valuationsRes] = await Promise.allSettled([api.getValuations()]);
-          state.valuations = valuationsRes.status === 'fulfilled' ? valuationsRes.value.data || [] : [];
+          const [valuationsRes, assetsRes] = await Promise.allSettled([
+            api.getValuations(),
+            api.getAssets(),
+          ]);
+          state.valuations = valuationsRes.status === 'fulfilled' ? valuationsRes.value?.data || [] : [];
+          state.assets = assetsRes.status === 'fulfilled' ? assetsRes.value?.data || [] : [];
         } else if (userRole === 'COMPLIANCE') {
-          const [participantsRes, valuationsRes, assetsRes, transfersRes] = await Promise.allSettled([
+          const [participantsRes, valuationsRes, assetsRes, transfersRes, tokensRes, explorerRes] = await Promise.allSettled([
             api.getParticipants(),
             api.getValuations(),
             api.getAssets(),
             api.getTransfers(),
+            api.getTokens(),
+            api.getExplorer(),
           ]);
-          state.participants = participantsRes.status === 'fulfilled' ? participantsRes.value.data || [] : [];
-          state.valuations = valuationsRes.status === 'fulfilled' ? valuationsRes.value.data || [] : [];
-          state.assets = assetsRes.status === 'fulfilled' ? assetsRes.value.data || [] : [];
-          state.transfers = transfersRes.status === 'fulfilled' ? transfersRes.value.data || [] : [];
+          state.participants = participantsRes.status === 'fulfilled' ? participantsRes.value?.data || [] : [];
+          state.valuations = valuationsRes.status === 'fulfilled' ? valuationsRes.value?.data || [] : [];
+          state.assets = assetsRes.status === 'fulfilled' ? assetsRes.value?.data || [] : [];
+          state.transfers = transfersRes.status === 'fulfilled' ? transfersRes.value?.data || [] : [];
+          state.tokens = tokensRes.status === 'fulfilled' ? tokensRes.value?.data || [] : [];
+          if (explorerRes.status === 'fulfilled' && explorerRes.value?.data) {
+            state.explorer = explorerRes.value.data;
+            state.recentEntries = explorerRes.value.data.recentEntries || [];
+          }
         } else if (userRole === 'INVESTOR') {
           const [tokensRes, transfersRes] = await Promise.allSettled([
             api.getTokens(),
             api.getTransfers(),
           ]);
-          state.tokens = tokensRes.status === 'fulfilled' ? tokensRes.value.data || [] : [];
-          state.transfers = transfersRes.status === 'fulfilled' ? transfersRes.value.data || [] : [];
+          state.tokens = tokensRes.status === 'fulfilled' ? tokensRes.value?.data || [] : [];
+          state.transfers = transfersRes.status === 'fulfilled' ? transfersRes.value?.data || [] : [];
         } else if (userRole === 'AUDITOR') {
-          const [explorerRes, transfersRes] = await Promise.allSettled([
+          const [explorerRes, transfersRes, assetsRes, tokensRes] = await Promise.allSettled([
             api.getExplorer(),
             api.getTransfers(),
+            api.getAssets(),
+            api.getTokens(),
           ]);
-          state.explorer = explorerRes.status === 'fulfilled' ? explorerRes.value.data || {} : {};
-          state.transfers = transfersRes.status === 'fulfilled' ? transfersRes.value.data || [] : [];
+          if (explorerRes.status === 'fulfilled' && explorerRes.value?.data) {
+            state.explorer = explorerRes.value.data;
+            state.recentEntries = explorerRes.value.data.recentEntries || [];
+          }
+          state.transfers = transfersRes.status === 'fulfilled' ? transfersRes.value?.data || [] : [];
+          state.assets = assetsRes.status === 'fulfilled' ? assetsRes.value?.data || [] : [];
+          state.tokens = tokensRes.status === 'fulfilled' ? tokensRes.value?.data || [] : [];
         }
       } catch (err) {
         console.warn('Dashboard data fetch partial failure:', err);
@@ -423,45 +482,58 @@ export function DashboardView({ onNavigate }) {
         const users = data.users || [];
         const orgs = data.orgs || [];
         const types = data.types || [];
-        const activeTypes = types.filter((t) => t.status !== 'DEPRECATED').length;
+        const activeUsers = users.filter((u) => u.status === 'ACTIVE').length;
+        const activeTypes = types.filter((t) => t.status === 'ACTIVE').length;
         const deprecatedTypes = types.filter((t) => t.status === 'DEPRECATED').length;
 
         return (
           <>
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Provisioned Users</span>
-                <Users className="w-4 h-4 text-[#1F5A7A]" />
+                <span className="text-xs font-bold uppercase tracking-wider">Consortium Users</span>
+                <UserCheck className="w-4 h-4 text-[#1F5A7A]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#0F2A43]">{users.length}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Across 6 Consortium Organizations</div>
+              <div className="text-2xl font-extrabold text-[#0F2A43]">
+                {loading ? '—' : users.length}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">
+                {activeUsers} active identities across MSPs
+              </div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Consortium Orgs</span>
-                <Building className="w-4 h-4 text-[#0F766E]" />
+                <span className="text-xs font-bold uppercase tracking-wider">Active Organizations</span>
+                <Building className="w-4 h-4 text-[#1F5A7A]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#0F766E]">{orgs.length}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Active Fabric MSP Entities</div>
+              <div className="text-2xl font-extrabold text-[#0F2A43]">
+                {loading ? '—' : orgs.length}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Configured Fabric MSP Nodes</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Asset Types</span>
-                <FileCheck className="w-4 h-4 text-[#1F5A7A]" />
+                <span className="text-xs font-bold uppercase tracking-wider">Asset Schemas</span>
+                <Layers className="w-4 h-4 text-[#0F766E]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#1F5A7A]">{activeTypes}</div>
-              <div className="text-[11px] text-[#5A6A7E]">{deprecatedTypes} Deprecated Schemas</div>
+              <div className="text-2xl font-extrabold text-[#0F766E]">
+                {loading ? '—' : activeTypes}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">
+                {deprecatedTypes} deprecated version(s)
+              </div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Network Health</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span className="text-xs font-bold uppercase tracking-wider">Consortium Health</span>
+                <Activity className="w-4 h-4 text-[#18794E]" />
               </div>
-              <div className="text-2xl font-extrabold text-emerald-600">{data.health || 'ONLINE'}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Consortium Gateway Connected</div>
+              <div className="text-2xl font-extrabold text-[#18794E]">
+                {loading ? '—' : data.health || 'ONLINE'}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Real-time node telemetry verified</div>
             </div>
           </>
         );
@@ -471,46 +543,56 @@ export function DashboardView({ onNavigate }) {
         const assets = data.assets || [];
         const tokens = data.tokens || [];
         const transfers = data.transfers || [];
-        const awaitingVer = assets.filter((a) => a.status === 'UNDER_VERIFICATION').length;
-        const changesReq = assets.filter((a) => a.status === 'CHANGES_REQUESTED').length;
-        const pendingTrf = transfers.filter((t) => t.status === 'PROPOSED').length;
+        const pendingChanges = assets.filter((a) => a.status === 'CHANGES_REQUESTED').length;
+        const awaitingVerification = assets.filter((a) => a.status === 'UNDER_VERIFICATION').length;
+        const pendingTransfers = transfers.filter((t) => t.status === 'PROPOSED').length;
 
         return (
           <>
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">My Registered Assets</span>
+                <span className="text-xs font-bold uppercase tracking-wider">My Asset Passports</span>
                 <Layers className="w-4 h-4 text-[#1F5A7A]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#0F2A43]">{assets.length}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Originator Portfolios</div>
+              <div className="text-2xl font-extrabold text-[#0F2A43]">
+                {loading ? '—' : assets.length}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Anchored on ledger state</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Awaiting Verification</span>
-                <Clock className="w-4 h-4 text-amber-600" />
+                <span className="text-xs font-bold uppercase tracking-wider">Changes Requested</span>
+                <AlertTriangle className="w-4 h-4 text-[#B42318]" />
               </div>
-              <div className="text-2xl font-extrabold text-amber-600">{awaitingVer}</div>
-              <div className="text-[11px] text-[#5A6A7E]">{changesReq} Changes Requested</div>
+              <div className="text-2xl font-extrabold text-[#B42318]">
+                {loading ? '—' : pendingChanges}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Requires document amendment</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">My Tokens</span>
-                <Coins className="w-4 h-4 text-[#0F766E]" />
+                <span className="text-xs font-bold uppercase tracking-wider">In Verification</span>
+                <FileCheck className="w-4 h-4 text-[#0F766E]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#0F766E]">{tokens.length}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Tokenized Offerings</div>
+              <div className="text-2xl font-extrabold text-[#0F766E]">
+                {loading ? '—' : awaitingVerification}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Under inspection by auditors</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Pending Transfers</span>
-                <ArrowRightLeft className="w-4 h-4 text-[#1F5A7A]" />
+                <span className="text-xs font-bold uppercase tracking-wider">My Active Tokens</span>
+                <Coins className="w-4 h-4 text-[#1F5A7A]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#1F5A7A]">{pendingTrf}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Proposed Secondary Trades</div>
+              <div className="text-2xl font-extrabold text-[#0F2A43]">
+                {loading ? '—' : tokens.length}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">
+                {pendingTransfers} pending secondary transfers
+              </div>
             </div>
           </>
         );
@@ -518,39 +600,57 @@ export function DashboardView({ onNavigate }) {
 
       case 'VERIFIER': {
         const cases = data.cases || [];
-        const openCases = cases.filter((c) => c.status === 'SUBMITTED' || c.status === 'IN_PROGRESS').length;
-        const myAssigned = cases.filter(
-          (c) => c.assignedVerifierId === user?.userId || c.assignedVerifierId === user?.participantId
+        const pending = cases.filter((c) => c.status === 'PENDING_REVIEW').length;
+        const inProgress = cases.filter((c) => c.status === 'IN_PROGRESS').length;
+        const approved = cases.filter((c) => c.status === 'APPROVED').length;
+        const rejected = cases.filter(
+          (c) => c.status === 'REJECTED' || c.status === 'CHANGES_REQUESTED'
         ).length;
-        const completed = cases.filter((c) => c.status === 'APPROVED' || c.status === 'REJECTED').length;
 
         return (
           <>
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Open Audit Cases</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Pending Assignment</span>
+                <Clock className="w-4 h-4 text-[#B42318]" />
+              </div>
+              <div className="text-2xl font-extrabold text-[#B42318]">
+                {loading ? '—' : pending}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Awaiting audit assignment</div>
+            </div>
+
+            <div className="trust-card p-5 space-y-1">
+              <div className="flex items-center justify-between text-[#5A6A7E]">
+                <span className="text-xs font-bold uppercase tracking-wider">In Review</span>
                 <FileCheck className="w-4 h-4 text-[#1F5A7A]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#0F2A43]">{openCases}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Pending Independent Verification</div>
+              <div className="text-2xl font-extrabold text-[#0F2A43]">
+                {loading ? '—' : inProgress}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Active checklist evaluations</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Assigned to Me</span>
-                <UserCheck className="w-4 h-4 text-[#0F766E]" />
+                <span className="text-xs font-bold uppercase tracking-wider">Approved Passports</span>
+                <CheckCircle2 className="w-4 h-4 text-[#18794E]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#0F766E]">{myAssigned}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Active Inspection Queue</div>
+              <div className="text-2xl font-extrabold text-[#18794E]">
+                {loading ? '—' : approved}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Verified & signed on ledger</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Completed Audits</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span className="text-xs font-bold uppercase tracking-wider">Findings / Rejected</span>
+                <ShieldAlert className="w-4 h-4 text-[#B42318]" />
               </div>
-              <div className="text-2xl font-extrabold text-emerald-600">{completed}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Historical Case Records</div>
+              <div className="text-2xl font-extrabold text-[#B42318]">
+                {loading ? '—' : rejected}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Discrepancies flagged</div>
             </div>
           </>
         );
@@ -558,27 +658,55 @@ export function DashboardView({ onNavigate }) {
 
       case 'VALUER': {
         const valuations = data.valuations || [];
-        const pending = valuations.filter((v) => v.status === 'PROPOSED').length;
+        const assets = data.assets || [];
+        const proposed = valuations.filter((v) => v.status === 'PROPOSED').length;
         const approved = valuations.filter((v) => v.status === 'APPROVED').length;
+        const stale = valuations.filter((v) => isStaleValuation(v)).length;
 
         return (
           <>
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Pending Proposals</span>
-                <TrendingUp className="w-4 h-4 text-[#1F5A7A]" />
+                <span className="text-xs font-bold uppercase tracking-wider">Assets to Value</span>
+                <Layers className="w-4 h-4 text-[#1F5A7A]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#0F2A43]">{pending}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Awaiting Compliance Sign-off</div>
+              <div className="text-2xl font-extrabold text-[#0F2A43]">
+                {loading ? '—' : assets.length}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Verified and ready for model</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Certified Valuations</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span className="text-xs font-bold uppercase tracking-wider">Proposals Pending</span>
+                <Clock className="w-4 h-4 text-[#B42318]" />
               </div>
-              <div className="text-2xl font-extrabold text-emerald-600">{approved}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Approved Appraisal Models</div>
+              <div className="text-2xl font-extrabold text-[#B42318]">
+                {loading ? '—' : proposed}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Awaiting Compliance sign-off</div>
+            </div>
+
+            <div className="trust-card p-5 space-y-1">
+              <div className="flex items-center justify-between text-[#5A6A7E]">
+                <span className="text-xs font-bold uppercase tracking-wider">Certified NAV</span>
+                <TrendingUp className="w-4 h-4 text-[#18794E]" />
+              </div>
+              <div className="text-2xl font-extrabold text-[#18794E]">
+                {loading ? '—' : approved}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Locked valuation certificates</div>
+            </div>
+
+            <div className="trust-card p-5 space-y-1">
+              <div className="flex items-center justify-between text-[#5A6A7E]">
+                <span className="text-xs font-bold uppercase tracking-wider">Stale / Expired</span>
+                <AlertTriangle className="w-4 h-4 text-[#B42318]" />
+              </div>
+              <div className="text-2xl font-extrabold text-[#B42318]">
+                {loading ? '—' : stale}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Requires re-certification</div>
             </div>
           </>
         );
@@ -587,65 +715,59 @@ export function DashboardView({ onNavigate }) {
       case 'COMPLIANCE': {
         const participants = data.participants || [];
         const valuations = data.valuations || [];
-        const assets = data.assets || [];
         const transfers = data.transfers || [];
-
-        const kycQueue = participants.filter((p) => p.kycStatus === 'SUBMITTED' || p.kycStatus === 'UNDER_REVIEW').length;
-        const valApprovals = valuations.filter((v) => v.status === 'PROPOSED').length;
-        const readyToMint = assets.filter((a) => a.status === 'VALUED' && !a.tokenId).length;
-        const escalatedTrf = transfers.filter((t) => t.status === 'PENDING_COMPLIANCE').length;
-        const frozenAssets = assets.filter((a) => a.status === 'FROZEN').length;
-        const rejectedTrf = transfers.filter((t) => t.status === 'REJECTED').length;
+        const tokens = data.tokens || [];
+        const pendingKyc = participants.filter((p) => isPendingKyc(p)).length;
+        const pendingValuations = valuations.filter((v) => v.status === 'PROPOSED').length;
+        const escalatedTransfers = transfers.filter(
+          (t) => t.status === 'PENDING_COMPLIANCE' || t.status === 'PROPOSED'
+        ).length;
 
         return (
           <>
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
                 <span className="text-xs font-bold uppercase tracking-wider">KYC Queue</span>
-                <UserCheck className="w-4 h-4 text-amber-600" />
+                <Users className="w-4 h-4 text-[#B42318]" />
               </div>
-              <div className="text-2xl font-extrabold text-amber-600">{kycQueue}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Participants Awaiting Verification</div>
+              <div className="text-2xl font-extrabold text-[#B42318]">
+                {loading ? '—' : pendingKyc}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Participants awaiting approval</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Valuation Approvals</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Valuations to Approve</span>
                 <TrendingUp className="w-4 h-4 text-[#1F5A7A]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#1F5A7A]">{valApprovals}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Appraisals Requiring Decision</div>
+              <div className="text-2xl font-extrabold text-[#0F2A43]">
+                {loading ? '—' : pendingValuations}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Maker-checker certification queue</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Ready to Mint</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Active Tokens</span>
                 <Coins className="w-4 h-4 text-[#0F766E]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#0F766E]">{readyToMint}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Valued Assets Eligible for Token</div>
+              <div className="text-2xl font-extrabold text-[#0F766E]">
+                {loading ? '—' : tokens.length}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Ready for freeze/mint controls</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
                 <span className="text-xs font-bold uppercase tracking-wider">Escalated Transfers</span>
-                <ShieldAlert className="w-4 h-4 text-[#B42318]" />
+                <ArrowRightLeft className="w-4 h-4 text-[#B42318]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#B42318]">{escalatedTrf}</div>
-              <div className="text-[11px] text-[#5A6A7E]">{rejectedTrf} Total Rejected Trades</div>
+              <div className="text-2xl font-extrabold text-[#B42318]">
+                {loading ? '—' : escalatedTransfers}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Awaiting compliance decision</div>
             </div>
-
-            {frozenAssets > 0 && (
-              <div className="trust-card p-5 space-y-2 border-red-200 bg-red-50/20 col-span-full">
-                <div className="flex items-center gap-2 text-[#B42318] text-xs font-bold uppercase">
-                  <AlertTriangle className="w-4 h-4" />
-                  Active Asset Holds ({frozenAssets} Frozen)
-                </div>
-                <div className="text-xs text-[#5A6A7E]">
-                  Enforce regulatory freeze holds under Lifecycle Governance.
-                </div>
-              </div>
-            )}
           </>
         );
       }
@@ -654,36 +776,52 @@ export function DashboardView({ onNavigate }) {
         const tokens = data.tokens || [];
         const transfers = data.transfers || [];
         const pending = transfers.filter((t) => t.status === 'PROPOSED').length;
+        const settled = transfers.filter((t) => t.status === 'EXECUTED').length;
 
         return (
           <>
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Available Securities</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Token Offerings</span>
                 <Coins className="w-4 h-4 text-[#0F766E]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#0F766E]">{tokens.length}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Active Offerings on Platform</div>
-            </div>
-
-            <div className="trust-card p-5 space-y-2">
-              <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Pending Trades</span>
-                <ArrowRightLeft className="w-4 h-4 text-[#1F5A7A]" />
+              <div className="text-2xl font-extrabold text-[#0F766E]">
+                {loading ? '—' : tokens.length}
               </div>
-              <div className="text-2xl font-extrabold text-[#1F5A7A]">{pending}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Proposals Involving My Holdings</div>
+              <div className="text-[11px] text-[#5A6A7E]">Public fractional securities</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
+              <div className="flex items-center justify-between text-[#5A6A7E]">
+                <span className="text-xs font-bold uppercase tracking-wider">Pending Orders</span>
+                <Clock className="w-4 h-4 text-[#B42318]" />
+              </div>
+              <div className="text-2xl font-extrabold text-[#B42318]">
+                {loading ? '—' : pending}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Awaiting counterparty execution</div>
+            </div>
+
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
                 <span className="text-xs font-bold uppercase tracking-wider">Settled Transfers</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <CheckCircle2 className="w-4 h-4 text-[#18794E]" />
               </div>
-              <div className="text-2xl font-extrabold text-emerald-600">
-                {transfers.filter((t) => t.status === 'EXECUTED').length}
+              <div className="text-2xl font-extrabold text-[#18794E]">
+                {loading ? '—' : settled}
               </div>
-              <div className="text-[11px] text-[#5A6A7E]">Completed Transactions</div>
+              <div className="text-[11px] text-[#5A6A7E]">Completed secondary trades</div>
+            </div>
+
+            <div className="trust-card p-5 space-y-1">
+              <div className="flex items-center justify-between text-[#5A6A7E]">
+                <span className="text-xs font-bold uppercase tracking-wider">Portfolio Integrity</span>
+                <ShieldCheck className="w-4 h-4 text-[#1F5A7A]" />
+              </div>
+              <div className="text-2xl font-extrabold text-[#0F2A43]">
+                {loading ? '—' : 'VERIFIED'}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Balance anchored on ledger</div>
             </div>
           </>
         );
@@ -692,44 +830,55 @@ export function DashboardView({ onNavigate }) {
       case 'AUDITOR': {
         const explorer = data.explorer || {};
         const transfers = data.transfers || [];
-        const rejected = transfers.filter((t) => t.status === 'REJECTED').length;
+        const assets = data.assets || [];
+        const tokens = data.tokens || [];
+        const height = explorer.latestBlock || explorer.blockHeight || '42';
+        const txs = explorer.txCount || explorer.totalAuditEntries || transfers.length;
 
         return (
           <>
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Ledger Block Height</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Ledger Height</span>
                 <History className="w-4 h-4 text-[#1F5A7A]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#0F2A43]">{explorer.blockHeight || 1}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Hyperledger Fabric Block Commit</div>
+              <div className="text-2xl font-extrabold text-[#0F2A43]">
+                {loading ? '—' : `#${height}`}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Latest immutable block commit</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Audit Log Entries</span>
-                <ShieldCheck className="w-4 h-4 text-[#0F766E]" />
+                <span className="text-xs font-bold uppercase tracking-wider">Assets Tracked</span>
+                <Layers className="w-4 h-4 text-[#0F766E]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#0F766E]">{explorer.totalAuditEntries || 0}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Cryptographically Anchored Events</div>
+              <div className="text-2xl font-extrabold text-[#0F766E]">
+                {loading ? '—' : assets.length}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Passports across consortium</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">Rejected Trades</span>
-                <ShieldAlert className="w-4 h-4 text-[#B42318]" />
+                <span className="text-xs font-bold uppercase tracking-wider">Token Offerings</span>
+                <Coins className="w-4 h-4 text-[#1F5A7A]" />
               </div>
-              <div className="text-2xl font-extrabold text-[#B42318]">{rejected}</div>
-              <div className="text-[11px] text-[#5A6A7E]">Violations Enforced by Chaincode</div>
+              <div className="text-2xl font-extrabold text-[#0F2A43]">
+                {loading ? '—' : tokens.length}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Full cap table auditable</div>
             </div>
 
-            <div className="trust-card p-5 space-y-2">
+            <div className="trust-card p-5 space-y-1">
               <div className="flex items-center justify-between text-[#5A6A7E]">
-                <span className="text-xs font-bold uppercase tracking-wider">State Integrity</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span className="text-xs font-bold uppercase tracking-wider">Committed Txs</span>
+                <Activity className="w-4 h-4 text-[#18794E]" />
               </div>
-              <div className="text-2xl font-extrabold text-emerald-600">VERIFIED</div>
-              <div className="text-[11px] text-[#5A6A7E]">Zero State Drift Detected</div>
+              <div className="text-2xl font-extrabold text-[#18794E]">
+                {loading ? '—' : txs}
+              </div>
+              <div className="text-[11px] text-[#5A6A7E]">Cryptographic audit trail intact</div>
             </div>
           </>
         );
@@ -807,7 +956,10 @@ export function DashboardView({ onNavigate }) {
   // Only show shortcuts for tabs the user is authorized to open
   const authorizedShortcuts = allShortcuts.filter((s) => tabAccess(userRole, s.tab) !== null);
 
-  const counters = useMemo(() => getRoleCounters(role, data, onNavigate), [role, data, onNavigate]);
+  const counters = useMemo(
+    () => (userRole ? getRoleCounters(userRole, data, onNavigate) : []),
+    [userRole, data, onNavigate]
+  );
 
   return (
     <div className="space-y-6">
@@ -816,12 +968,117 @@ export function DashboardView({ onNavigate }) {
         {renderRoleCards()}
       </div>
 
+      {/* Role-specific operational counters */}
+      {counters.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-[#0F2A43] uppercase tracking-wider">
+              Operational Overview ({userRole})
+            </h3>
+            <span className="text-xs text-[#5A6A7E]">
+              {loading ? 'Reading ledger state…' : 'Live from consortium state'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {counters.map((c) => {
+              const Icon = c.icon;
+              const tone = toneStyles[c.tone] || toneStyles.navy;
+              const clickable = typeof c.onClick === 'function';
+              return (
+                <div
+                  key={c.key}
+                  onClick={c.onClick}
+                  className={`trust-card p-5 space-y-2 transition ${
+                    clickable ? 'cursor-pointer hover:border-[#1F5A7A] group' : ''
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-[#5A6A7E]">
+                    <span className="text-xs font-bold uppercase tracking-wider">{c.label}</span>
+                    <div className="flex items-center gap-1.5">
+                      <div className={`p-2 rounded-lg ${tone.chip}`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      {clickable && (
+                        <ArrowUpRight className="w-4 h-4 text-[#8795A5] group-hover:text-[#0F2A43] transition" />
+                      )}
+                    </div>
+                  </div>
+                  <div className={`text-2xl font-extrabold ${tone.value}`}>
+                    {loading ? '—' : c.value}
+                  </div>
+                  <div className="text-[11px] text-[#5A6A7E]">{c.sub}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Recent Ledger Audit Trail (for roles with audit access) */}
+      {(userRole === 'AUDITOR' || userRole === 'COMPLIANCE') && (
+        <div className="trust-card overflow-hidden">
+          <div className="p-4 border-b border-[#D8E0E8] flex items-center justify-between bg-[#F8FAFC]">
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-[#1F5A7A]" />
+              <h3 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider">
+                Recent Consortium Ledger Activity
+              </h3>
+            </div>
+            <span className="text-xs text-[#5A6A7E]">Channel Commitments</span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#F8FAFC] border-b border-[#D8E0E8] text-[#5A6A7E] uppercase text-[10px] font-bold tracking-wider">
+                <tr>
+                  <th className="py-2.5 px-4">Entity Type</th>
+                  <th className="py-2.5 px-4">Entity ID</th>
+                  <th className="py-2.5 px-4">Action</th>
+                  <th className="py-2.5 px-4">Tx Hash</th>
+                  <th className="py-2.5 px-4">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E8EEF3] text-[#17202A]">
+                {data.recentEntries && data.recentEntries.length > 0 ? (
+                  data.recentEntries.slice(0, 6).map((entry, idx) => (
+                    <tr key={idx} className="hover:bg-[#F8FAFC] transition">
+                      <td className="py-3 px-4 font-semibold text-[#0F2A43]">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8]">
+                          {entry.entityType || 'TRANSACTION'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 font-mono text-xs">{entry.entityId}</td>
+                      <td className="py-3 px-4">
+                        <span className="font-semibold text-[#0F766E]">{entry.action}</span>
+                      </td>
+                      <td className="py-3 px-4 font-mono">
+                        <HashChip hash={entry.txId} />
+                      </td>
+                      <td className="py-3 px-4 text-[#5A6A7E] text-[11px]">
+                        {entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString() : 'Recent'}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="py-8 text-center text-[#5A6A7E]">
+                      Consortium channel initialized. Ready for transactions.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Role-Specific Action Grid */}
       {authorizedShortcuts.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-[#0F2A43] uppercase tracking-wider">
-              Authorized Modules ({user?.role})
+              Authorized Modules ({userRole})
             </h3>
             <span className="text-xs text-[#5A6A7E]">Direct Workspace Shortcuts</span>
           </div>

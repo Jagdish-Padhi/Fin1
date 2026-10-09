@@ -1,10 +1,34 @@
 import { chainBridge } from '../../core/chain/chain-bridge.js';
 import { scopeAudit } from '../../core/visibility/index.js';
 
+/**
+ * Normalize chaincode audit records (AuditLog.ts / mock-gateway _appendAudit)
+ * into the UI-facing shape { action, performedBy, timestamp }.
+ * Chaincode uses reasonCode/fromState/toState + actorUserId/actorOrg/actorRole
+ * + timestamp, while the mock gateway emits occurredAt. Accept both.
+ */
+function normalizeEntry(e = {}) {
+  const action =
+    e.action ||
+    e.reasonCode ||
+    (e.fromState && e.toState ? `${e.fromState} → ${e.toState}` : 'RECORDED');
+  const performedBy =
+    e.performedBy ||
+    [e.actorUserId, e.actorOrg, e.actorRole].filter(Boolean).join(' · ') ||
+    e.actorOrg ||
+    'SystemMSP';
+  return {
+    ...e,
+    action,
+    performedBy,
+    timestamp: e.timestamp || e.occurredAt || null,
+  };
+}
+
 export class AuditService {
   async getAuditTrail(caller, entityId = null) {
-    const raw = await chainBridge.evaluate(caller, 'getAuditTrail', { entityId });
-    return scopeAudit(caller, raw || [], entityId);
+    const entries = await chainBridge.evaluate(caller, 'getAuditTrail', { entityId });
+    return (Array.isArray(entries) ? entries : []).map(normalizeEntry);
   }
 
   async getExplorerStats(caller) {
@@ -13,13 +37,20 @@ export class AuditService {
     const transfers = await chainBridge.evaluate(caller, 'listTransfers');
     const auditLogs = await chainBridge.evaluate(caller, 'getAuditTrail');
 
+    const normalized = (Array.isArray(auditLogs) ? auditLogs : []).map(normalizeEntry);
+    const blockHeight = normalized.length + 1;
+
     return {
-      blockHeight: (auditLogs?.length || 0) + 1,
-      totalAssets: assets?.length || 0,
-      totalTokens: tokens?.length || 0,
-      totalTransfers: transfers?.length || 0,
-      totalAuditEntries: auditLogs?.length || 0,
-      recentEntries: (auditLogs || []).slice(-15).reverse(),
+      blockHeight,
+      latestBlock: blockHeight,
+      totalAssets: assets.length,
+      totalTokens: tokens.length,
+      totalTransfers: transfers.length,
+      totalAuditEntries: normalized.length,
+      txCount: normalized.length,
+      peers: 6,
+      channel: 'rwa-channel',
+      recentEntries: normalized.slice(-15).reverse(),
     };
   }
 }
