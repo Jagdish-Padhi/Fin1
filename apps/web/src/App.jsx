@@ -92,22 +92,20 @@ function MainLayout() {
         />
 
         <main key={currentTab} className="flex-1 overflow-y-auto p-6 md:p-8 max-w-7xl mx-auto w-full app-view-transition">
-          {currentTab === 'dashboard' && (
-            <RoleGuard currentRole={currentRole} tab="dashboard" onNavigateHome={() => setCurrentTab('dashboard')}>
-              <DashboardView onNavigate={setCurrentTab} />
-            </RoleGuard>
-          )}
+          {currentTab === 'dashboard' && <DashboardView onNavigate={setCurrentTab} />}
 
           {currentTab === 'participants' && (
-<<<<<<< HEAD
-            <RoleGuard currentRole={currentRole} tab="participants" onNavigateHome={() => setCurrentTab('dashboard')}>
-=======
             <RoleGuard
               currentRole={currentRole}
               allowedRoles={['ADMINISTRATOR']}
               onNavigateHome={() => setCurrentTab('dashboard')}
             >
->>>>>>> 3acd21411c5b9f7d11e403d7eb4aa0a33256278c
+              <ParticipantsView />
+            </RoleGuard>
+          )}
+
+          {currentTab === 'participants' && (
+            <RoleGuard currentRole={currentRole} tab="participants" onNavigateHome={() => setCurrentTab('dashboard')}>
               <ParticipantsView />
             </RoleGuard>
           )}

@@ -1,11 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../shared/context/AuthContext.jsx';
 import { api } from '../../shared/services/api.js';
-<<<<<<< HEAD
 import { tabAccess } from '../../shared/utils/permissions.js';
-=======
 import { HashChip } from '../../shared/components/HashChip.jsx';
->>>>>>> 3acd21411c5b9f7d11e403d7eb4aa0a33256278c
 import {
   Layers,
   Coins,
@@ -18,15 +15,12 @@ import {
   TrendingUp,
   Activity,
   History,
-<<<<<<< HEAD
-  AlertTriangle,
-  Users,
-  ShieldAlert,
-=======
   Users,
   ShieldCheck,
   XCircle,
->>>>>>> 3acd21411c5b9f7d11e403d7eb4aa0a33256278c
+  AlertTriangle,
+  Users,
+  ShieldAlert,
 } from 'lucide-react';
 
 const settledList = (result) =>
@@ -344,7 +338,68 @@ const toneStyles = {
 
 export function DashboardView({ onNavigate }) {
   const { user } = useAuth();
-<<<<<<< HEAD
+  const role = user?.role || 'ADMINISTRATOR';
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({
+    assets: [],
+    tokens: [],
+    transfers: [],
+    participants: [],
+    valuations: [],
+    cases: [],
+    types: [],
+    explorer: null,
+    recentEntries: [],
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      const [
+        explorerRes,
+        assetsRes,
+        tokensRes,
+        transfersRes,
+        participantsRes,
+        valuationsRes,
+        casesRes,
+        typesRes,
+      ] = await Promise.allSettled([
+        api.getExplorer(),
+        api.getAssets(),
+        api.getTokens(),
+        api.getTransfers(),
+        api.getParticipants(),
+        api.getValuations(),
+        api.getVerificationCases(),
+        api.getAssetTypes(),
+      ]);
+      if (cancelled) return;
+      const explorerData =
+        explorerRes.status === 'fulfilled' ? explorerRes.value?.data ?? null : null;
+      setData({
+        assets: settledList(assetsRes),
+        tokens: settledList(tokensRes),
+        transfers: settledList(transfersRes),
+        participants: settledList(participantsRes),
+        valuations: settledList(valuationsRes),
+        cases: settledList(casesRes),
+        types: settledList(typesRes),
+        explorer: explorerData,
+        recentEntries:
+          explorerData?.recentEntries && Array.isArray(explorerData.recentEntries)
+            ? explorerData.recentEntries
+            : [],
+      });
+      setLoading(false);
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   const userRole = user?.role || null;
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -817,75 +872,11 @@ export function DashboardView({ onNavigate }) {
 
   // Only show shortcuts for tabs the user is authorized to open
   const authorizedShortcuts = allShortcuts.filter((s) => tabAccess(userRole, s.tab) !== null);
-=======
-  const role = user?.role || 'ADMINISTRATOR';
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({
-    assets: [],
-    tokens: [],
-    transfers: [],
-    participants: [],
-    valuations: [],
-    cases: [],
-    types: [],
-    explorer: null,
-    recentEntries: [],
-  });
-
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      setLoading(true);
-      const [
-        explorerRes,
-        assetsRes,
-        tokensRes,
-        transfersRes,
-        participantsRes,
-        valuationsRes,
-        casesRes,
-        typesRes,
-      ] = await Promise.allSettled([
-        api.getExplorer(),
-        api.getAssets(),
-        api.getTokens(),
-        api.getTransfers(),
-        api.getParticipants(),
-        api.getValuations(),
-        api.getVerificationCases(),
-        api.getAssetTypes(),
-      ]);
-      if (cancelled) return;
-      const explorerData =
-        explorerRes.status === 'fulfilled' ? explorerRes.value?.data ?? null : null;
-      setData({
-        assets: settledList(assetsRes),
-        tokens: settledList(tokensRes),
-        transfers: settledList(transfersRes),
-        participants: settledList(participantsRes),
-        valuations: settledList(valuationsRes),
-        cases: settledList(casesRes),
-        types: settledList(typesRes),
-        explorer: explorerData,
-        recentEntries:
-          explorerData?.recentEntries && Array.isArray(explorerData.recentEntries)
-            ? explorerData.recentEntries
-            : [],
-      });
-      setLoading(false);
-    };
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
->>>>>>> 3acd21411c5b9f7d11e403d7eb4aa0a33256278c
 
   const counters = useMemo(() => getRoleCounters(role, data, onNavigate), [role, data, onNavigate]);
 
   return (
     <div className="space-y-6">
-<<<<<<< HEAD
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         {renderRoleCards()}
@@ -897,7 +888,6 @@ export function DashboardView({ onNavigate }) {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-[#0F2A43] uppercase tracking-wider">
               Authorized Modules ({user?.role})
-=======
       {/* Role-specific operational counters */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -950,12 +940,10 @@ export function DashboardView({ onNavigate }) {
             <History className="w-4 h-4 text-[#1F5A7A]" />
             <h3 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider">
               Recent Consortium Ledger Activity
->>>>>>> 3acd21411c5b9f7d11e403d7eb4aa0a33256278c
             </h3>
             <span className="text-xs text-[#5A6A7E]">Direct Workspace Shortcuts</span>
           </div>
 
-<<<<<<< HEAD
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {authorizedShortcuts.map((s) => {
               const Icon = s.icon;
@@ -977,49 +965,6 @@ export function DashboardView({ onNavigate }) {
               );
             })}
           </div>
-=======
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#F8FAFC] border-b border-[#D8E0E8] text-[#5A6A7E] uppercase text-[10px] font-bold tracking-wider">
-              <tr>
-                <th className="py-2.5 px-4">Entity Type</th>
-                <th className="py-2.5 px-4">Entity ID</th>
-                <th className="py-2.5 px-4">Action</th>
-                <th className="py-2.5 px-4">Tx Hash</th>
-                <th className="py-2.5 px-4">Timestamp</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E8EEF3] text-[#17202A]">
-              {data.recentEntries && data.recentEntries.length > 0 ? (
-                data.recentEntries.slice(0, 6).map((entry, idx) => (
-                  <tr key={idx} className="hover:bg-[#F8FAFC] transition">
-                    <td className="py-3 px-4 font-semibold text-[#0F2A43]">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8]">
-                        {entry.entityType || 'TRANSACTION'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-mono text-xs">{entry.entityId}</td>
-                    <td className="py-3 px-4">
-                      <span className="font-semibold text-[#0F766E]">{entry.action}</span>
-                    </td>
-                    <td className="py-3 px-4 font-mono">
-                      <HashChip hash={entry.txId} />
-                    </td>
-                    <td className="py-3 px-4 text-[#5A6A7E] text-[11px]">
-                      {entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString() : 'Recent'}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="py-8 text-center text-[#5A6A7E]">
-                    Consortium channel initialized. Ready for transactions.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
->>>>>>> 3acd21411c5b9f7d11e403d7eb4aa0a33256278c
         </div>
       )}
     </div>
