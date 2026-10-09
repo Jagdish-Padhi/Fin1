@@ -42,9 +42,16 @@ Chaincode is fully real:
 
 ```bash
 make enroll     # tools/identity/enroll.mjs -> .fabric/wallets/* + identity-map.json (role, userId, participantId attrs)
-make bootstrap  # tools/bootstrap/ledger-init.mjs -> defineAssetType x5 + registerParticipant + KYC (uses piiHash)
+make bootstrap  # tools/bootstrap/ledger-init.mjs -> 5 asset types + 3 participants (KYC) + 5-asset demo portfolio (see below)
 make ping       # tools/smoke/ping.mjs -> listAssetTypes via FabricGateway (proves TLS + MSP + endorsement)
 ```
+
+`make bootstrap` writes 5 real on-chain assets (no DB/mock seeding): `AST-DEMO-RE-01`
+REAL_ESTATE → TOKENIZED + 800-unit transfer to `PRT-INVESTOR-01`, `AST-DEMO-VH-01`
+VEHICLE → TOKENIZED (whole), `AST-DEMO-LD-01` LAND → VALUED, `AST-DEMO-IN-01`
+INVOICE → UNDER_VERIFICATION (verifier queue), `AST-DEMO-CM-01` COMMODITY →
+REGISTERED (issuer action queue). Re-runnable: resumes each asset from its current
+on-chain status.
 
 ## 4. Terminal live demo (record this)
 

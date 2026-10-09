@@ -116,33 +116,6 @@ export function Sidebar({ currentTab, onSelectTab }) {
           })}
         </nav>
       </div>
-
-      {/* Network Status Footer */}
-      <div className="pt-3 border-t border-[#E8EEF3]">
-        {!isCollapsed ? (
-          <div className="flex items-center justify-between px-2 py-1 text-[11px] text-[#5A6A7E]">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              <span className="font-medium text-[#0F2A43]">Ledger Synchronized</span>
-            </div>
-            <button
-              onClick={() => setIsCollapsed(true)}
-              className="text-[#8A99AD] hover:text-[#0F2A43] transition p-1"
-              title="Collapse sidebar"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setIsCollapsed(false)}
-            className="w-full flex justify-center py-2 text-[#8A99AD] hover:text-[#0F2A43] hover:bg-[#F1F5F9] rounded-lg transition"
-            title="Expand sidebar • Ledger Synchronized"
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-          </button>
-        )}
-      </div>
     </aside>
   );
 }

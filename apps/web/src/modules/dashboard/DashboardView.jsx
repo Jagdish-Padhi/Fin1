@@ -451,14 +451,13 @@ export function DashboardView({ onNavigate }) {
 
       {/* Recent Ledger Audit Trail (unchanged) */}
       <div className="trust-card overflow-hidden">
-        <div className="p-4 border-b border-[#D8E0E8] flex items-center justify-between bg-[#F8FAFC]">
+        <div className="p-4 border-b border-[#D8E0E8] flex items-center bg-[#F8FAFC]">
           <div className="flex items-center gap-2">
             <History className="w-4 h-4 text-[#1F5A7A]" />
             <h3 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider">
               Recent Consortium Ledger Activity
             </h3>
           </div>
-          <span className="text-[11px] font-mono text-[#5A6A7E]">Immutable Audit Feed</span>
         </div>
 
         <div className="overflow-x-auto">
