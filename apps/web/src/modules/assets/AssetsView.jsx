@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../shared/services/api.js';
 import { useAuth } from '../../shared/context/AuthContext.jsx';
+import { can } from '../../shared/utils/permissions.js';
 import { RegisterAssetWizard } from './RegisterAssetWizard.jsx';
 import { AssetDetailDrawer } from './AssetDetailDrawer.jsx';
 import { AssetPassportStickerModal } from './AssetPassportStickerModal.jsx';
@@ -70,7 +71,7 @@ export function AssetsView() {
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  const canRegister = user?.role === 'ISSUER' || user?.role === 'ADMINISTRATOR';
+  const canRegister = can(user?.role, 'registerAsset');
 
   const stats = {
     total: assets.length,
@@ -84,9 +85,16 @@ export function AssetsView() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#D8E0E8]">
         <div>
-          <h1 className="text-2xl font-bold text-[#0F2A43] tracking-tight font-['Outfit',sans-serif]">
-            Real-World Assets
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-[#0F2A43] tracking-tight font-['Outfit',sans-serif]">
+              Real-World Assets
+            </h1>
+            {user?.role === 'AUDITOR' && (
+              <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]">
+                Consortium Oversight (Read-Only)
+              </span>
+            )}
+          </div>
           <p className="text-xs text-[#5A6A7E] mt-0.5">
             Cryptographically anchored asset passports with dual-rail Merkle evidence trees
           </p>

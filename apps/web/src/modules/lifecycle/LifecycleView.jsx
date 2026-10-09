@@ -3,6 +3,7 @@ import { api } from '../../shared/services/api.js';
 import { useAuth } from '../../shared/context/AuthContext.jsx';
 import { useToast } from '../../shared/components/Toast.jsx';
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog.jsx';
+import { can } from '../../shared/utils/permissions.js';
 import {
   Activity,
   Snowflake,
@@ -33,7 +34,7 @@ export function LifecycleView() {
   const [loadingAssets, setLoadingAssets] = useState(true);
   const [assetSearch, setAssetSearch] = useState('');
 
-  const canManageLifecycle = user?.role === 'COMPLIANCE' || user?.role === 'ADMINISTRATOR';
+  const canManageLifecycle = can(user?.role, 'freezeAsset');
 
   useEffect(() => {
     const loadAssets = async () => {

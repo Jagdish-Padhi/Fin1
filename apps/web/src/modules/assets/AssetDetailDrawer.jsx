@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 
 import { ModalPortal } from '../../shared/components/ModalPortal.jsx';
+import { can } from '../../shared/utils/permissions.js';
 
 export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdated }) {
   const [asset, setAsset] = useState(null);
@@ -175,7 +176,7 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
   if (!isOpen) return null;
 
   const canEdit =
-    asset?.status === 'REGISTERED' && (user?.role === 'ISSUER' || user?.role === 'ADMINISTRATOR');
+    asset?.status === 'REGISTERED' && can(user?.role, 'editAsset');
 
   // Ledger returns attached documents under `evidence`; tolerate `evidenceFiles`.
   const evidenceFiles = asset?.evidence || asset?.evidenceFiles || [];
