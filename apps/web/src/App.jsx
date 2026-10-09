@@ -94,7 +94,15 @@ function MainLayout() {
         <main key={currentTab} className="flex-1 overflow-y-auto p-6 md:p-8 max-w-7xl mx-auto w-full app-view-transition">
           {currentTab === 'dashboard' && <DashboardView onNavigate={setCurrentTab} />}
 
-          {currentTab === 'participants' && <ParticipantsView />}
+          {currentTab === 'participants' && (
+            <RoleGuard
+              currentRole={currentRole}
+              allowedRoles={['ADMINISTRATOR']}
+              onNavigateHome={() => setCurrentTab('dashboard')}
+            >
+              <ParticipantsView />
+            </RoleGuard>
+          )}
 
           {currentTab === 'identity-admin' && (
             <RoleGuard

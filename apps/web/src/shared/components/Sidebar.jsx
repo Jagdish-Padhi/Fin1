@@ -24,7 +24,7 @@ export function Sidebar({ currentTab, onSelectTab }) {
 
   const allNavItems = [
     { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
-    { id: 'participants', label: 'Participant Directory', icon: Users },
+    { id: 'participants', label: 'Participant Directory', icon: Users, requiredRole: 'ADMINISTRATOR' },
     { id: 'identity-admin', label: 'Consortium Governance', icon: UserCheck, requiredRole: 'ADMINISTRATOR' },
     { id: 'assets', label: 'Real-World Assets', icon: Layers },
     { id: 'asset-types', label: 'Asset Type Engine', icon: Building, requiredRole: 'ADMINISTRATOR' },
@@ -38,7 +38,7 @@ export function Sidebar({ currentTab, onSelectTab }) {
 
   // Filter based on user's authorized tabs under segregation of duties
   const filteredNavItems = allNavItems.filter((item) => {
-    if (item.id === 'dashboard' || item.id === 'participants') return true;
+    if (item.id === 'dashboard') return true;
     if (item.requiredRole && item.requiredRole !== userRole) return false;
     return canAccessTab(userRole, item.id);
   });

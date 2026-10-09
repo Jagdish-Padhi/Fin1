@@ -98,66 +98,7 @@ export function DashboardView({ onNavigate }) {
         </div>
       </div>
 
-      {/* Role-Specific Action Grid */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-[#0F2A43] uppercase tracking-wider">
-            Governance Workflows ({user?.role})
-          </h3>
-          <span className="text-xs text-[#5A6A7E]">Direct Action Shortcuts</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div
-            onClick={() => onNavigate('assets')}
-            className="trust-card p-5 cursor-pointer hover:border-[#1F5A7A] transition group space-y-2"
-          >
-            <div className="flex items-center justify-between">
-              <div className="p-2.5 rounded-xl bg-[#F0F4F8] text-[#0F2A43] group-hover:bg-[#0F2A43] group-hover:text-white transition">
-                <Layers className="w-5 h-5" />
-              </div>
-              <ArrowUpRight className="w-4 h-4 text-[#8795A5] group-hover:text-[#0F2A43] transition" />
-            </div>
-            <div className="text-sm font-bold text-[#0F2A43]">Real-World Asset Directory</div>
-            <p className="text-xs text-[#5A6A7E]">
-              Explore registered asset passports, dynamic schemas, and Merkle evidence vaults.
-            </p>
-          </div>
-
-          <div
-            onClick={() => onNavigate('participants')}
-            className="trust-card p-5 cursor-pointer hover:border-[#1F5A7A] transition group space-y-2"
-          >
-            <div className="flex items-center justify-between">
-              <div className="p-2.5 rounded-xl bg-[#F0F4F8] text-[#1F5A7A] group-hover:bg-[#1F5A7A] group-hover:text-white transition">
-                <Building className="w-5 h-5" />
-              </div>
-              <ArrowUpRight className="w-4 h-4 text-[#8795A5] group-hover:text-[#1F5A7A] transition" />
-            </div>
-            <div className="text-sm font-bold text-[#0F2A43]">Participant Directory & KYC</div>
-            <p className="text-xs text-[#5A6A7E]">
-              Manage participant eligibility, KYC verification workflows, and transfer limit caps.
-            </p>
-          </div>
-
-          <div
-            onClick={() => onNavigate('asset-types')}
-            className="trust-card p-5 cursor-pointer hover:border-[#0F766E] transition group space-y-2"
-          >
-            <div className="flex items-center justify-between">
-              <div className="p-2.5 rounded-xl bg-[#F0FDFA] text-[#0F766E] group-hover:bg-[#0F766E] group-hover:text-white transition">
-                <FileCheck className="w-5 h-5" />
-              </div>
-              <ArrowUpRight className="w-4 h-4 text-[#8795A5] group-hover:text-[#0F766E] transition" />
-            </div>
-            <div className="text-sm font-bold text-[#0F2A43]">Asset Type Engine</div>
-            <p className="text-xs text-[#5A6A7E]">
-              Inspect parametric attribute schemas, required evidence rules, and field privacy levels.
-            </p>
-          </div>
-        </div>
-      </div>
-
+    
       {/* Recent Ledger Audit Trail */}
       <div className="trust-card overflow-hidden">
         <div className="p-4 border-b border-[#D8E0E8] flex items-center justify-between bg-[#F8FAFC]">
