@@ -1,6 +1,7 @@
 import { getChainGateway } from '../../packages/chain-client/src/index.js';
 import { DEFAULT_ASSET_TYPES, Role } from '@rwa/contracts';
 import { SEED_DATA } from '../../db/seeds/seed.js';
+import crypto from 'node:crypto';
 
 async function main() {
   console.log('====================================================');
@@ -39,11 +40,15 @@ async function main() {
   for (const p of SEED_DATA.participants) {
     try {
       console.log(`  Registering participant: ${p.id} (${p.kind})`);
+      const piiHash = p.pii ? crypto.createHash('sha256').update(JSON.stringify(p.pii)).digest('hex') : undefined;
       await gateway.submit(adminCaller, 'registerParticipant', {
         id: p.id,
+        userId: p.userId,
+        orgId: p.orgId,
         kind: p.kind,
         jurisdiction: p.jurisdiction,
-        pii: p.pii,
+        investorClass: p.investorClass,
+        piiHash,
       });
     } catch (err) {
       if (err.message && (err.message.includes('already exists') || err.message.includes('Already exists'))) {

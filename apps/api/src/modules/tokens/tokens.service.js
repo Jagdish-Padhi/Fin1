@@ -30,14 +30,28 @@ export class TokensService {
   async publicVerify(queryId) {
     // Public unauthenticated lookup (no PII, disclosure only)
     // 1. Try finding token directly by queryId
-    let token = await chainBridge.evaluate({ role: 'PUBLIC' }, 'getToken', { id: queryId });
+    let token = null;
+    try {
+      token = await chainBridge.evaluate({ role: 'PUBLIC' }, 'getToken', { id: queryId });
+    } catch {
+      token = null;
+    }
 
     // 2. If not found by tokenId, check if queryId is an assetId
     if (!token) {
-      const assetDirect = await chainBridge.evaluate({ role: 'PUBLIC' }, 'getAsset', { id: queryId });
+      let assetDirect = null;
+      try {
+        assetDirect = await chainBridge.evaluate({ role: 'PUBLIC' }, 'getAsset', { id: queryId });
+      } catch {
+        assetDirect = null;
+      }
       if (assetDirect) {
         if (assetDirect.tokenId) {
-          token = await chainBridge.evaluate({ role: 'PUBLIC' }, 'getToken', { id: assetDirect.tokenId });
+          try {
+            token = await chainBridge.evaluate({ role: 'PUBLIC' }, 'getToken', { id: assetDirect.tokenId });
+          } catch {
+            token = null;
+          }
         } else {
           // Asset exists but has not been tokenized yet
           const leaves = (assetDirect.evidence || []).map((e) => e.sha256).filter(Boolean).sort();

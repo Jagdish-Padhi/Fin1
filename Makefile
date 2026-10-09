@@ -36,6 +36,9 @@ all: up deploy enroll bootstrap
 ping:
 	node tools/smoke/ping.mjs
 
+live:
+	node tools/smoke/live-fabric-demo.mjs
+
 smoke:
 	node tools/smoke/golden-path.mjs
 

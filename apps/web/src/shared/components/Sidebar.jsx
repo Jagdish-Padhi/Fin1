@@ -24,7 +24,7 @@ export function Sidebar({ currentTab, onSelectTab }) {
   const userRole = user?.role || 'ADMINISTRATOR';
 
   const allNavItems = [
-    { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard, hideFor: ['VALUER'] },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, hideFor: ['VALUER'] },
     { id: 'participants', label: 'Participant Directory', icon: Users, requiredRole: 'ADMINISTRATOR' },
     { id: 'identity-admin', label: 'Consortium Governance', icon: UserCheck, requiredRole: 'ADMINISTRATOR' },
     { id: 'assets', label: 'Real-World Assets', icon: Layers },

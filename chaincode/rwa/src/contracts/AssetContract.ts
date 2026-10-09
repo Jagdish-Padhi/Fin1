@@ -6,6 +6,7 @@ import { getCaller, requireRole } from '../lib/ctx.js';
 import { Keys } from '../lib/Keys.js';
 import { AuditLog } from '../lib/AuditLog.js';
 import { EventAggregator } from '../lib/EventAggregator.js';
+import { validateTransition } from '../lib/StateMachine.js';
 import { Role, AssetStatus, AssetTypeStatus, EventName } from '@rwa/contracts';
 
 export interface AssetRecord {
@@ -55,6 +56,37 @@ export class AssetContract extends Contract {
     return new Date().toISOString();
   }
 
+  private _txId(ctx: Context): string {
+    try {
+      const txId = ctx.stub.getTxID();
+      if (txId && txId.trim() !== '') return txId;
+    } catch {
+      // fallback
+    }
+    return `TX-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+  }
+
+  private async _scanAssets(ctx: Context): Promise<any[]> {
+    const out: any[] = [];
+    const it = await ctx.stub.getStateByRange(`${Keys.ASSET}:`, `${Keys.ASSET}:\uffff`);
+    try {
+      let r = await it.next();
+      while (!r.done) {
+        if (r.value && (r.value as any).value) {
+          try {
+            out.push(JSON.parse(Buffer.from((r.value as any).value).toString('utf8')));
+          } catch {
+            // ignore
+          }
+        }
+        r = await it.next();
+      }
+    } finally {
+      await it.close();
+    }
+    return out;
+  }
+
   private _hash(content: string): string {
     return crypto.createHash('sha256').update(content).digest('hex');
   }
@@ -86,11 +118,28 @@ export class AssetContract extends Contract {
       }
     }
 
-    const id = data.id || `AST-${Date.now()}`;
+    const id = data.id || `AST-${this._txId(ctx).slice(-12).toUpperCase().replace(/[^A-Z0-9]/g, '') || Date.now()}`;
     const key = this._getKey(id);
     const exists = await ctx.stub.getState(key);
     if (exists && exists.length > 0) {
       throw new Error(`Asset with ID ${id} already exists`);
+    }
+
+    // Real deduplication on unique identity fields (anti double-financing).
+    // Uses typeDef.uniqueFields when defined, else canonical fallback.
+    const uniqueFields: string[] = Array.isArray(typeDef.uniqueFields) && typeDef.uniqueFields.length > 0
+      ? typeDef.uniqueFields
+      : ['registrationNumber', 'chassisNumber', 'surveyNumber', 'propertyId', 'invoiceNumber', 'batchId', 'warehouseReceiptNo', 'serialNumber'];
+    const existingAssets = await this._scanAssets(ctx);
+    for (const field of uniqueFields) {
+      const val = (attrs as any)[field];
+      if (val !== undefined && val !== null && val !== '') {
+        for (const ex of existingAssets) {
+          if (ex.typeKey === data.typeKey && ex.attributes && ex.attributes[field] === val) {
+            throw new Error(`Duplicate asset detected: Real-world asset with ${field} '${val}' already registered (${ex.id})`);
+          }
+        }
+      }
     }
 
     const now = this._getTxTimestamp(ctx);
@@ -184,6 +233,20 @@ export class AssetContract extends Contract {
     const caller = requireRole(ctx, Role.ISSUER);
     const data = JSON.parse(evidenceJson);
 
+    if (!data.assetId || typeof data.assetId !== 'string' || data.assetId.trim() === '') {
+      throw new Error('assetId is required');
+    }
+    if (!data.docType || typeof data.docType !== 'string' || data.docType.trim() === '') {
+      throw new Error('docType is required');
+    }
+    if (!data.sha256 || typeof data.sha256 !== 'string' || data.sha256.trim() === '') {
+      throw new Error('sha256 is required');
+    }
+    const sha = data.sha256.trim().toLowerCase();
+    if (!/^[a-f0-9]{64}$/.test(sha)) {
+      throw new Error('sha256 must be a 64-character SHA-256 hex digest');
+    }
+
     const key = this._getKey(data.assetId);
     const bytes = await ctx.stub.getState(key);
     if (!bytes || bytes.length === 0) {
@@ -194,23 +257,41 @@ export class AssetContract extends Contract {
     if (asset.status !== AssetStatus.REGISTERED && asset.status !== AssetStatus.CHANGES_REQUESTED) {
       throw new Error(`Cannot attach evidence when asset is in status '${asset.status}'`);
     }
+    if (caller.participantId && asset.originatorParticipantId !== caller.participantId && asset.originatorParticipantId !== caller.userId) {
+      throw new Error('Unauthorized: Originator mismatch');
+    }
+
+    // Real duplicate evidence hash detection across assets (anti double-pledge).
+    const allAssets = await this._scanAssets(ctx);
+    for (const ex of allAssets) {
+      if (ex.id === data.assetId) continue;
+      for (const ev of ex.evidence || []) {
+        if (ev.sha256 && ev.sha256.toLowerCase() === sha) {
+          throw new Error(`Duplicate evidence detected: Evidence with SHA-256 already attached to asset ${ex.id}`);
+        }
+      }
+    }
 
     const now = this._getTxTimestamp(ctx);
-    const evId = data.id || `EVD-${Date.now()}`;
+    const evId = data.id || `EVD-${this._txId(ctx).slice(-12).toUpperCase().replace(/[^A-Z0-9]/g, '') || Date.now()}`;
+    const evKey = `${Keys.EVIDENCE}:${evId}`;
+    const evExists = await ctx.stub.getState(evKey);
+    if (evExists && evExists.length > 0) {
+      throw new Error(`Evidence with ID ${evId} already exists`);
+    }
     const evidenceItem = {
       id: evId,
       docType: data.docType,
       fileName: data.fileName,
       mimeType: data.mimeType || 'application/pdf',
       fileSize: Number(data.fileSize) || 0,
-      sha256: data.sha256,
+      sha256: sha,
       storageKey: data.storageKey,
       uploadedAt: now,
     };
 
     // Store evidence leaf state
-    const evKey = `${Keys.EVIDENCE}:${evId}`;
-    await ctx.stub.putState(evKey, Buffer.from(JSON.stringify(evidenceItem)));
+    await ctx.stub.putState(evKey, Buffer.from(JSON.stringify({ ...evidenceItem, assetId: data.assetId })));
 
     // Replace if docType already uploaded, or append
     asset.evidence = asset.evidence || [];
@@ -255,6 +336,9 @@ export class AssetContract extends Contract {
     if (asset.status !== AssetStatus.REGISTERED && asset.status !== AssetStatus.CHANGES_REQUESTED) {
       throw new Error(`Cannot submit asset for verification from status '${asset.status}'`);
     }
+    if (caller.participantId && asset.originatorParticipantId !== caller.participantId && asset.originatorParticipantId !== caller.userId) {
+      throw new Error('Unauthorized: Originator mismatch');
+    }
 
     // Verify mandatory evidence documents
     const typeKey = `${Keys.ASSET_TYPE}:${asset.typeKey}:${asset.typeVersion}`;
@@ -271,9 +355,49 @@ export class AssetContract extends Contract {
       }
     }
 
+    // Prevent duplicate pending verification cases for same asset (real linkage).
+    const verIt = await ctx.stub.getStateByRange(`${Keys.VERIFICATION}:`, `${Keys.VERIFICATION}:\uffff`);
+    try {
+      let r = await verIt.next();
+      while (!r.done) {
+        if (r.value && (r.value as any).value) {
+          try {
+            const c = JSON.parse(Buffer.from((r.value as any).value).toString('utf8'));
+            if (c.assetId === assetId && !c.decision && (c.status === 'PENDING_REVIEW' || c.status === 'IN_PROGRESS')) {
+              throw new Error(`Verification case already pending for asset ${assetId} (${c.id})`);
+            }
+          } catch (e: any) {
+            if (e.message && e.message.includes('already pending')) throw e;
+          }
+        }
+        r = await verIt.next();
+      }
+    } finally {
+      await verIt.close();
+    }
+
     const prev = asset.status;
+    validateTransition(prev, AssetStatus.UNDER_VERIFICATION);
     asset.status = AssetStatus.UNDER_VERIFICATION;
-    asset.updatedAt = this._getTxTimestamp(ctx);
+    const now = this._getTxTimestamp(ctx);
+    asset.updatedAt = now;
+
+    // Create real verification case atomically so verifier flow works on Fabric.
+    const txId = this._txId(ctx);
+    const caseId = `VER-${txId.slice(-12).toUpperCase().replace(/[^A-Z0-9]/g, '') || Date.now()}`;
+    const slaDueAt = new Date(Date.parse(now) + 72 * 3600 * 1000).toISOString();
+    const vCase = {
+      id: caseId,
+      assetId: asset.id,
+      status: 'PENDING_REVIEW',
+      assignedTo: null,
+      checks: {},
+      slaDueAt,
+      createdAt: now,
+      updatedAt: now,
+    };
+    await ctx.stub.putState(`${Keys.VERIFICATION}:${caseId}`, Buffer.from(JSON.stringify(vCase)));
+    (asset as any).verificationCaseId = caseId;
 
     await ctx.stub.putState(key, Buffer.from(JSON.stringify(asset)));
 
@@ -288,10 +412,10 @@ export class AssetContract extends Contract {
     );
 
     const events = new EventAggregator();
-    events.add(EventName.VERIFICATION_STARTED, { assetId });
+    events.add(EventName.VERIFICATION_STARTED, { assetId, caseId });
     events.commit(ctx);
 
-    return JSON.stringify(asset);
+    return JSON.stringify({ ...asset, verificationCase: vCase });
   }
 
   @Transaction(false)

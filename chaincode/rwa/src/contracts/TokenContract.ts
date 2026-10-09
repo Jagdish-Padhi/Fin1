@@ -183,6 +183,24 @@ export class TokenContract extends Contract {
         `Asset must be in VALUED state before tokenization, currently ${asset.status}`
       );
     }
+    // Enforce asset-type token standard and unit bounds when defined.
+    try {
+      const typeBytes = await ctx.stub.getState(`${Keys.ASSET_TYPE}:${asset.typeKey}:${asset.typeVersion || 1}` as any);
+      if (typeBytes && typeBytes.length > 0) {
+        const typeDef = JSON.parse(typeBytes.toString());
+        if (typeDef?.token?.standard && typeDef.token.standard !== input.standard) {
+          throw new Error(`Token standard '${input.standard}' not allowed for asset type ${asset.typeKey} (expected ${typeDef.token.standard})`);
+        }
+        if (typeDef?.token?.minUnits && input.totalUnits < typeDef.token.minUnits) {
+          throw new Error(`totalUnits ${input.totalUnits} below minimum ${typeDef.token.minUnits} for asset type ${asset.typeKey}`);
+        }
+        if (typeDef?.token?.maxUnits && input.totalUnits > typeDef.token.maxUnits) {
+          throw new Error(`totalUnits ${input.totalUnits} exceeds maximum ${typeDef.token.maxUnits} for asset type ${asset.typeKey}`);
+        }
+      }
+    } catch (e: any) {
+      if (e.message && (e.message.includes('not allowed') || e.message.includes('below minimum') || e.message.includes('exceeds maximum'))) throw e;
+    }
     const initialHolderId = this._requiredString(
       asset.originatorParticipantId,
       'asset.originatorParticipantId'
@@ -264,7 +282,11 @@ export class TokenContract extends Contract {
   @Returns('string')
   async getToken(ctx: Context, tokenInput: string): Promise<string> {
     const tokenId = this._parseId(tokenInput, 'id');
-    return JSON.stringify(await this._getToken(ctx, tokenId));
+    const token = await this._getToken(ctx, tokenId);
+    if (!token) {
+      throw new Error(`Token not found: ${tokenId}`);
+    }
+    return JSON.stringify(token);
   }
 
   @Transaction(false)
@@ -336,7 +358,9 @@ export class TokenContract extends Contract {
     const input = this._parseObject(traceInput, 'token trace query');
     const tokenId = this._requiredString(input.tokenId, 'tokenId');
     const token = await this._getToken(ctx, tokenId);
-    if (!token) return JSON.stringify(null);
+    if (!token) {
+      return JSON.stringify(null);
+    }
 
     const assetBytes = await ctx.stub.getState(this._assetKey(token.assetId));
     if (!assetBytes || assetBytes.length === 0) {

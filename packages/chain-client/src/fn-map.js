@@ -122,6 +122,10 @@ export const FUNCTION_MAP = {
   },
 
   // VerificationContract
+  openVerificationCase: {
+    contract: 'VerificationContract',
+    args: (obj) => [obj.assetId || obj.id],
+  },
   assignVerifier: {
     contract: 'VerificationContract',
     args: (obj) => [obj.caseId || obj.id, obj.verifierUserId || ''],

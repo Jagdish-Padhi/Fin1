@@ -162,8 +162,23 @@ export class FabricGateway {
       return e;
     }
 
-    // Handle already exists -> 409
-    if (msg.includes('already exists') || msg.includes('Already exists')) {
+    // Handle already exists / duplicates -> 409 (must match error-handler.js)
+    if (
+      msg.includes('already exists') ||
+      msg.includes('Already exists') ||
+      msg.includes('Duplicate') ||
+      msg.includes('already registered') ||
+      msg.includes('already attached') ||
+      msg.includes('already pending') ||
+      msg.includes('already tokenized') ||
+      msg.includes('already decided') ||
+      msg.includes('already frozen') ||
+      msg.includes('already redeemed') ||
+      msg.includes('already retired') ||
+      msg.includes('already suspended') ||
+      msg.includes('already BLACKLISTED') ||
+      msg.includes('Only PROPOSED valuations')
+    ) {
       const e = new Error(msg);
       e.statusCode = 409;
       return e;

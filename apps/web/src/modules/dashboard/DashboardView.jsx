@@ -415,16 +415,7 @@ export function DashboardView({ onNavigate }) {
     <div className="space-y-6">
       {/* Role-specific operational counters */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-[#0F2A43] uppercase tracking-wider">
-            Operational Overview ({role})
-          </h3>
-          <span className="text-xs text-[#5A6A7E]">
-            {loading ? 'Reading ledger state…' : 'Live from consortium state'}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {counters.map((c) => {
             const Icon = c.icon;
             const tone = toneStyles[c.tone] || toneStyles.navy;

@@ -494,12 +494,14 @@ export class TransferContract extends Contract {
     }
 
     // RULE: KYC_EXPIRED (participant KYC expiry timestamp exceeded)
+    const senderExp = (sender as any)?.kycExpiresAt || (sender as any)?.kycExpiryDate;
+    const receiverExp = (receiver as any)?.kycExpiresAt || (receiver as any)?.kycExpiryDate;
     const senderKycExpired =
-      sender?.kycExpiresAt &&
-      new Date(sender.kycExpiresAt).getTime() <= txTimeMs;
+      senderExp &&
+      new Date(senderExp).getTime() <= txTimeMs;
     const receiverKycExpired =
-      receiver?.kycExpiresAt &&
-      new Date(receiver.kycExpiresAt).getTime() <= txTimeMs;
+      receiverExp &&
+      new Date(receiverExp).getTime() <= txTimeMs;
     if (senderKycExpired || receiverKycExpired) {
       rejectionReasons.push({
         code: (TransferRuleReason as any).KYC_EXPIRED?.code || 'RULE_KYC_EXPIRED',
@@ -589,10 +591,21 @@ export class TransferContract extends Contract {
     if (!fromParticipantId) {
       throw new Error('fromParticipantId is required');
     }
+    // Real anti-spoof: ISSUER/INVESTOR can only propose from their own identity.
+    if ((caller.role === Role.ISSUER || caller.role === Role.INVESTOR) && data.fromParticipantId) {
+      const selfId = caller.participantId || caller.userId;
+      if (selfId && data.fromParticipantId !== selfId) {
+        throw new Error('Unauthorized: fromParticipantId must match caller identity');
+      }
+    }
 
     const txId = ctx.stub.getTxID();
     const timestamp = this._getTxTimestamp(ctx);
     const id = data.id || `TRF-${txId}`;
+    const existingTransfer = await ctx.stub.getState(this._transferKey(id));
+    if (existingTransfer && existingTransfer.length > 0) {
+      throw new Error(`Transfer with ID ${id} already exists`);
+    }
 
     const transfer: TransferRecord = {
       id,
@@ -849,7 +862,7 @@ export class TransferContract extends Contract {
     const transferId = this._parseId(transferInput, 'id');
     const bytes = await ctx.stub.getState(this._transferKey(transferId));
     if (!bytes || bytes.length === 0) {
-      return JSON.stringify(null);
+      throw new Error(`Transfer not found: ${transferId}`);
     }
     return bytes.toString();
   }
@@ -966,6 +979,10 @@ export class TransferContract extends Contract {
       'TRANSFER_CANCELLED',
       (data.reason as string) || 'Cancelled by user'
     );
+
+    const events = new EventAggregator();
+    events.add('TransferCancelled', transfer);
+    events.commit(ctx);
 
     return JSON.stringify(transfer);
   }

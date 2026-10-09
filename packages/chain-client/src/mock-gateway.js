@@ -777,13 +777,19 @@ export class MockGateway {
           }
         }
 
-        // Duplicate asset detection on unique identity fields
-        const idFields = [
-          'registrationNumber',
-          'chassisNumber',
-          'surveyNumber',
-          'invoiceNumber',
-        ];
+        // Duplicate asset detection on unique identity fields (real parity)
+        const idFields = Array.isArray(typeDef.uniqueFields) && typeDef.uniqueFields.length > 0
+          ? typeDef.uniqueFields
+          : [
+              'registrationNumber',
+              'chassisNumber',
+              'surveyNumber',
+              'propertyId',
+              'invoiceNumber',
+              'batchId',
+              'warehouseReceiptNo',
+              'serialNumber',
+            ];
         for (const field of idFields) {
           const val = args.attributes[field];
           if (val) {

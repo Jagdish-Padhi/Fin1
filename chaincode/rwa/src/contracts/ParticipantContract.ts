@@ -71,12 +71,47 @@ export class ParticipantContract extends Contract {
     const caller = requireRole(ctx, Role.ADMINISTRATOR, Role.ISSUER);
     const data = JSON.parse(dataJson);
 
-    const id = data.id || `PRT-${Date.now()}`;
+    let txSuffix = '';
+    try {
+      txSuffix = ctx.stub.getTxID().slice(-12).toUpperCase().replace(/[^A-Z0-9]/g, '') || `${Date.now()}`;
+    } catch {
+      txSuffix = `${Date.now()}`;
+    }
+    const id = data.id || `PRT-${txSuffix}`;
     const key = this._getKey(id);
 
     const exists = await ctx.stub.getState(key);
     if (exists && exists.length > 0) {
       throw new Error(`Participant with ID ${id} already exists`);
+    }
+
+    // Real deduplication: PII hash and ZK nullifier must be globally unique.
+    const piiHash = data.piiHash || undefined;
+    const zkNullifier = data.zkPassport?.nullifier || data.zkNullifier || undefined;
+    if (piiHash || zkNullifier) {
+      const it = await ctx.stub.getStateByRange(`${Keys.PARTICIPANT}:`, `${Keys.PARTICIPANT}:\uffff`);
+      try {
+        let r = await it.next();
+        while (!r.done) {
+          if ((r as any).value && (r as any).value.value) {
+            try {
+              const p = JSON.parse(Buffer.from((r as any).value.value).toString('utf8'));
+              if (piiHash && p.piiHash && p.piiHash === piiHash) {
+                throw new Error(`Duplicate registration: Participant with identical PII hash already exists (${p.id})`);
+              }
+              const existingNull = p.zkNullifier || p.zkPassport?.nullifier;
+              if (zkNullifier && existingNull && existingNull === zkNullifier) {
+                throw new Error(`Duplicate registration: ZKPassport nullifier has already been registered on ledger (${p.id})`);
+              }
+            } catch (e: any) {
+              if (e.message && e.message.includes('Duplicate registration')) throw e;
+            }
+          }
+          r = await it.next();
+        }
+      } finally {
+        await it.close();
+      }
     }
 
     const hasZk = Boolean(data.zkPassport && (data.zkPassport.proofHash || data.zkProofHash));
@@ -98,13 +133,17 @@ export class ParticipantContract extends Contract {
         maxHoldingBps: 2500,
         maxTransferPaise: 100000000,
       },
-      piiHash: data.piiHash || undefined,
+      piiHash: piiHash || undefined,
       zkPassport: data.zkPassport || undefined,
       zkProofHash: data.zkPassport?.proofHash || data.zkProofHash || undefined,
-      zkNullifier: data.zkPassport?.nullifier || data.zkNullifier || undefined,
+      zkNullifier: zkNullifier || undefined,
       createdAt: now,
       updatedAt: now,
-    };
+    } as ParticipantRecord;
+    // Dual-write KYC expiry alias for Transfer rule compatibility.
+    if ((data as any).kycExpiresAt) {
+      (record as any).kycExpiresAt = (data as any).kycExpiresAt;
+    }
 
     await ctx.stub.putState(key, Buffer.from(JSON.stringify(record)));
 
@@ -168,6 +207,7 @@ export class ParticipantContract extends Contract {
     participant.kycReason = reason || '';
     if (expiryDate) {
       participant.kycExpiryDate = expiryDate;
+      (participant as any).kycExpiresAt = expiryDate;
     }
     participant.updatedAt = this._getTxTimestamp(ctx);
 
@@ -242,10 +282,19 @@ export class ParticipantContract extends Contract {
       throw new Error(`Participant not found: ${participantId}`);
     }
 
+    const maxHoldingBps = limits.maxHoldingBps ?? JSON.parse(bytes.toString()).limits?.maxHoldingBps ?? 2500;
+    const maxTransferPaise = limits.maxTransferPaise ?? JSON.parse(bytes.toString()).limits?.maxTransferPaise ?? 100000000;
+    if (!Number.isSafeInteger(maxHoldingBps) || maxHoldingBps <= 0 || maxHoldingBps > 10000) {
+      throw new Error('maxHoldingBps must be a safe integer between 1 and 10000');
+    }
+    if (!Number.isSafeInteger(maxTransferPaise) || maxTransferPaise <= 0) {
+      throw new Error('maxTransferPaise must be a positive safe integer');
+    }
+
     const participant: ParticipantRecord = JSON.parse(bytes.toString());
     participant.limits = {
-      maxHoldingBps: limits.maxHoldingBps ?? participant.limits.maxHoldingBps,
-      maxTransferPaise: limits.maxTransferPaise ?? participant.limits.maxTransferPaise,
+      maxHoldingBps,
+      maxTransferPaise,
     };
     participant.updatedAt = this._getTxTimestamp(ctx);
 
@@ -280,6 +329,12 @@ export class ParticipantContract extends Contract {
     }
 
     const participant: ParticipantRecord = JSON.parse(bytes.toString());
+    if (participant.status === ParticipantStatus.BLACKLISTED) {
+      throw new Error(`Cannot suspend BLACKLISTED participant ${participantId}; use blacklist workflow`);
+    }
+    if (participant.status === ParticipantStatus.SUSPENDED) {
+      throw new Error(`Participant ${participantId} is already suspended`);
+    }
     const prevStatus = participant.status;
     participant.status = ParticipantStatus.SUSPENDED;
     participant.suspendReason = reason || '';
@@ -316,6 +371,12 @@ export class ParticipantContract extends Contract {
     }
 
     const participant: ParticipantRecord = JSON.parse(bytes.toString());
+    if (participant.status === ParticipantStatus.BLACKLISTED) {
+      throw new Error(`Cannot reinstate BLACKLISTED participant ${participantId}; use removeFromBlacklist`);
+    }
+    if (participant.status === ParticipantStatus.ACTIVE) {
+      throw new Error(`Participant ${participantId} is already ACTIVE`);
+    }
     const prevStatus = participant.status;
     participant.status = ParticipantStatus.ACTIVE;
     delete participant.suspendReason;
@@ -352,6 +413,9 @@ export class ParticipantContract extends Contract {
     }
 
     const participant: ParticipantRecord = JSON.parse(bytes.toString());
+    if (participant.status === ParticipantStatus.BLACKLISTED) {
+      throw new Error(`Participant ${participantId} is already BLACKLISTED`);
+    }
     const prevStatus = participant.status;
     participant.status = ParticipantStatus.BLACKLISTED;
     participant.blacklistReason = reason || '';
@@ -388,6 +452,9 @@ export class ParticipantContract extends Contract {
     }
 
     const participant: ParticipantRecord = JSON.parse(bytes.toString());
+    if (participant.status !== ParticipantStatus.BLACKLISTED) {
+      throw new Error(`Participant ${participantId} is not BLACKLISTED`);
+    }
     const prevStatus = participant.status;
     participant.status = ParticipantStatus.ACTIVE;
     delete participant.blacklistReason;

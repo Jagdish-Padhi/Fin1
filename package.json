@@ -24,7 +24,8 @@
     "fabric:bootstrap": "node tools/bootstrap/ledger-init.mjs",
     "fabric:all": "bash scripts/fabric/network-up.sh && bash scripts/fabric/cc-deploy.sh && node tools/identity/enroll.mjs && node tools/bootstrap/ledger-init.mjs",
     "smoke:golden": "node tools/smoke/golden-path.mjs",
-    "smoke:ping": "node tools/smoke/ping.mjs"
+    "smoke:ping": "node tools/smoke/ping.mjs",
+    "smoke:live": "node tools/smoke/live-fabric-demo.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

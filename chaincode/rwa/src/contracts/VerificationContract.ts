@@ -5,6 +5,7 @@ import { requireRole } from '../lib/ctx.js';
 import { Keys } from '../lib/Keys.js';
 import { AuditLog } from '../lib/AuditLog.js';
 import { EventAggregator } from '../lib/EventAggregator.js';
+import { SoD } from '../lib/SoD.js';
 import {
   Role,
   AssetStatus,
@@ -67,12 +68,63 @@ export class VerificationContract extends Contract {
 
   @Transaction()
   @Returns('string')
+  async openVerificationCase(ctx: Context, assetId: string): Promise<string> {
+    const caller = requireRole(ctx, Role.ISSUER, Role.ADMINISTRATOR, Role.COMPLIANCE);
+    if (!assetId || assetId.trim() === '') {
+      throw new Error('assetId is required');
+    }
+    const aKey = this._getAssetKey(assetId.trim());
+    const aBytes = await ctx.stub.getState(aKey);
+    if (!aBytes || aBytes.length === 0) {
+      throw new Error(`Asset not found: ${assetId}`);
+    }
+    const it = await ctx.stub.getStateByRange(`${Keys.VERIFICATION}:`, `${Keys.VERIFICATION}:\uffff`);
+    try {
+      let r = await it.next();
+      while (!r.done) {
+        if ((r as any).value && (r as any).value.value) {
+          try {
+            const c = JSON.parse(Buffer.from((r as any).value.value).toString('utf8'));
+            if (c.assetId === assetId && !c.decision && (c.status === 'PENDING_REVIEW' || c.status === 'IN_PROGRESS')) {
+              throw new Error(`Verification case already pending for asset ${assetId} (${c.id})`);
+            }
+          } catch (e: any) {
+            if (e.message && e.message.includes('already pending')) throw e;
+          }
+        }
+        r = await it.next();
+      }
+    } finally {
+      await it.close();
+    }
+    const now = this._getTxTimestamp(ctx);
+    const caseId = `VER-${ctx.stub.getTxID().slice(-12).toUpperCase().replace(/[^A-Z0-9]/g, '') || Date.now()}`;
+    const record: VerificationCaseRecord = {
+      id: caseId,
+      assetId,
+      status: 'PENDING_REVIEW',
+      assignedTo: null,
+      checks: {},
+      slaDueAt: new Date(Date.parse(now) + 72 * 3600 * 1000).toISOString(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    await ctx.stub.putState(this._getKey(caseId), Buffer.from(JSON.stringify(record)));
+    await AuditLog.append(ctx, 'VERIFICATION', caseId, 'NONE', 'PENDING_REVIEW', 'CASE_OPENED', `Opened for asset ${assetId}`);
+    const events = new EventAggregator();
+    events.add(EventName.VERIFICATION_STARTED, { caseId, assetId });
+    events.commit(ctx);
+    return JSON.stringify(record);
+  }
+
+  @Transaction()
+  @Returns('string')
   async assignVerifier(
     ctx: Context,
     caseId: string,
     verifierUserId?: string
   ): Promise<string> {
-    requireRole(ctx, Role.ADMINISTRATOR, Role.COMPLIANCE, Role.VERIFIER);
+    const caller = requireRole(ctx, Role.ADMINISTRATOR, Role.COMPLIANCE);
 
     const key = this._getKey(caseId);
     const bytes = await ctx.stub.getState(key);
@@ -81,17 +133,28 @@ export class VerificationContract extends Contract {
     }
 
     const record: VerificationCaseRecord = JSON.parse(bytes.toString());
-    const caller = requireRole(
-      ctx,
-      Role.ADMINISTRATOR,
-      Role.COMPLIANCE,
-      Role.VERIFIER
-    );
-    record.assignedTo =
-      verifierUserId || caller.userId || caller.participantId || null;
+    if (record.decision) {
+      throw new Error(`Verification case already decided: ${caseId}`);
+    }
+    const assignee = (verifierUserId || '').trim() || caller.userId || caller.participantId || null;
+    if (!assignee) {
+      throw new Error('verifierUserId is required');
+    }
+    // SoD: verifier cannot be asset originator.
+    const aBytes = await ctx.stub.getState(this._getAssetKey(record.assetId));
+    if (aBytes && aBytes.length > 0) {
+      const asset = JSON.parse(aBytes.toString());
+      SoD.assertNotSameActor(asset.originatorParticipantId, assignee, 'Originator cannot verify their own asset');
+    }
+    const prev = record.status;
+    record.assignedTo = assignee;
     record.updatedAt = this._getTxTimestamp(ctx);
 
     await ctx.stub.putState(key, Buffer.from(JSON.stringify(record)));
+    await AuditLog.append(ctx, 'VERIFICATION', caseId, prev, record.status, 'VERIFIER_ASSIGNED', `Assigned to ${assignee}`);
+    const events = new EventAggregator();
+    events.add('VerifierAssigned', { caseId, assignedTo: assignee });
+    events.commit(ctx);
     return JSON.stringify(record);
   }
 
@@ -112,7 +175,6 @@ export class VerificationContract extends Contract {
     if (!bytes || bytes.length === 0) {
       throw new Error(`Verification case not found: ${caseId}`);
     }
-
     const validResultValues = [
       CheckResult.PASS,
       CheckResult.FAIL,
@@ -130,6 +192,10 @@ export class VerificationContract extends Contract {
     const record: VerificationCaseRecord = JSON.parse(bytes.toString());
     if (record.decision) {
       throw new Error(`Verification case already decided: ${caseId}`);
+    }
+    const actorId = caller.userId || caller.participantId || caller.mspId;
+    if (record.assignedTo && record.assignedTo !== actorId) {
+      throw new Error(`Only assigned verifier ${record.assignedTo} can record checks`);
     }
     const previousStatus = record.status;
     const normalizedCheckKey = checkKey.trim();
@@ -345,6 +411,9 @@ export class VerificationContract extends Contract {
 
     const record: VerificationCaseRecord = JSON.parse(bytes.toString());
     const previous = record.status;
+    if (!record.decision) {
+      throw new Error(`Verification case ${caseId} is not decided and cannot be reopened`);
+    }
     record.status = 'PENDING_REVIEW';
     record.reasonText = reasonText;
     record.updatedAt = this._getTxTimestamp(ctx);
@@ -353,6 +422,23 @@ export class VerificationContract extends Contract {
     delete record.decidedBy;
 
     await ctx.stub.putState(key, Buffer.from(JSON.stringify(record)));
+    // Keep asset in sync: REJECTED/CHANGES_REQUESTED -> UNDER_VERIFICATION.
+    try {
+      const aKey = this._getAssetKey(record.assetId);
+      const aBytes = await ctx.stub.getState(aKey);
+      if (aBytes && aBytes.length > 0) {
+        const asset = JSON.parse(aBytes.toString());
+        if (asset.status === AssetStatus.REJECTED || asset.status === AssetStatus.CHANGES_REQUESTED) {
+          const prevA = asset.status;
+          asset.status = AssetStatus.UNDER_VERIFICATION;
+          asset.updatedAt = record.updatedAt;
+          await ctx.stub.putState(aKey, Buffer.from(JSON.stringify(asset)));
+          await AuditLog.append(ctx, 'ASSET', asset.id, prevA, AssetStatus.UNDER_VERIFICATION, 'VERIFICATION_REOPENED', reasonText);
+        }
+      }
+    } catch {
+      // do not fail reopen on asset sync
+    }
     await AuditLog.append(
       ctx,
       'VERIFICATION',
@@ -362,6 +448,9 @@ export class VerificationContract extends Contract {
       'VERIFICATION_REOPENED',
       reasonText
     );
+    const events = new EventAggregator();
+    events.add('VerificationReopened', { caseId, assetId: record.assetId });
+    events.commit(ctx);
 
     return JSON.stringify(record);
   }
