@@ -49,3 +49,5 @@ coverage/
 .tmp/
 .temp/
 vault_storage/
+.fabric/
+.fabric-samples/

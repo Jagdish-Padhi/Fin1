@@ -1,0 +1,11 @@
+{
+  "Org1MSP": {
+    "roles": ["ADMINISTRATOR", "ISSUER"]
+  },
+  "Org2MSP": {
+    "roles": ["VERIFIER", "VALUER", "COMPLIANCE", "AUDITOR"]
+  },
+  "Org3MSP": {
+    "roles": ["INVESTOR"]
+  }
+}
