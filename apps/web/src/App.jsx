@@ -99,7 +99,15 @@ function MainLayout() {
           )}
 
           {currentTab === 'participants' && (
+<<<<<<< HEAD
             <RoleGuard currentRole={currentRole} tab="participants" onNavigateHome={() => setCurrentTab('dashboard')}>
+=======
+            <RoleGuard
+              currentRole={currentRole}
+              allowedRoles={['ADMINISTRATOR']}
+              onNavigateHome={() => setCurrentTab('dashboard')}
+            >
+>>>>>>> 3acd21411c5b9f7d11e403d7eb4aa0a33256278c
               <ParticipantsView />
             </RoleGuard>
           )}

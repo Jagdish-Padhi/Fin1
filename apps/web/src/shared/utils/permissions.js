@@ -9,6 +9,16 @@ export const ROLE_PERMISSIONS = {
   [ROLES.ADMINISTRATOR]: {
     label: 'Consortium Administrator',
     badge: 'System Admin',
+<<<<<<< HEAD
+=======
+    tabs: ['dashboard', 'participants', 'assets', 'identity', 'identity-admin', 'asset-types', 'audit'],
+    canRegisterAsset: false,
+    canVerify: false,
+    canValue: false,
+    canMint: false,
+    canFreeze: false,
+    canManageUsers: true,
+>>>>>>> 3acd21411c5b9f7d11e403d7eb4aa0a33256278c
   },
   [ROLES.ISSUER]: {
     label: 'Asset Originator / Issuer',
