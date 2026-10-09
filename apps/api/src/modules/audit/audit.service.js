@@ -1,8 +1,33 @@
 import { chainBridge } from '../../core/chain/chain-bridge.js';
 
+/**
+ * Normalize chaincode audit records (AuditLog.ts / mock-gateway _appendAudit)
+ * into the UI-facing shape { action, performedBy, timestamp }.
+ * Chaincode uses reasonCode/fromState/toState + actorUserId/actorOrg/actorRole
+ * + timestamp, while the mock gateway emits occurredAt. Accept both.
+ */
+function normalizeEntry(e = {}) {
+  const action =
+    e.action ||
+    e.reasonCode ||
+    (e.fromState && e.toState ? `${e.fromState} → ${e.toState}` : 'RECORDED');
+  const performedBy =
+    e.performedBy ||
+    [e.actorUserId, e.actorOrg, e.actorRole].filter(Boolean).join(' · ') ||
+    e.actorOrg ||
+    'SystemMSP';
+  return {
+    ...e,
+    action,
+    performedBy,
+    timestamp: e.timestamp || e.occurredAt || null,
+  };
+}
+
 export class AuditService {
   async getAuditTrail(caller, entityId = null) {
-    return chainBridge.evaluate(caller, 'getAuditTrail', { entityId });
+    const entries = await chainBridge.evaluate(caller, 'getAuditTrail', { entityId });
+    return (Array.isArray(entries) ? entries : []).map(normalizeEntry);
   }
 
   async getExplorerStats(caller) {
@@ -11,13 +36,20 @@ export class AuditService {
     const transfers = await chainBridge.evaluate(caller, 'listTransfers');
     const auditLogs = await chainBridge.evaluate(caller, 'getAuditTrail');
 
+    const normalized = (Array.isArray(auditLogs) ? auditLogs : []).map(normalizeEntry);
+    const blockHeight = normalized.length + 1;
+
     return {
-      blockHeight: auditLogs.length + 1,
+      blockHeight,
+      latestBlock: blockHeight,
       totalAssets: assets.length,
       totalTokens: tokens.length,
       totalTransfers: transfers.length,
-      totalAuditEntries: auditLogs.length,
-      recentEntries: auditLogs.slice(-15).reverse(),
+      totalAuditEntries: normalized.length,
+      txCount: normalized.length,
+      peers: 6,
+      channel: 'rwa-channel',
+      recentEntries: normalized.slice(-15).reverse(),
     };
   }
 }
