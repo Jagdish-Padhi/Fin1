@@ -15,19 +15,19 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import { canAccessTab } from '../utils/permissions.js';
+import { tabAccess } from '../utils/permissions.js';
 
 export function Sidebar({ currentTab, onSelectTab }) {
   const { user } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const userRole = user?.role || 'ADMINISTRATOR';
+  const userRole = user?.role || null;
 
   const allNavItems = [
     { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
     { id: 'participants', label: 'Participant Directory', icon: Users },
-    { id: 'identity-admin', label: 'Consortium Governance', icon: UserCheck, requiredRole: 'ADMINISTRATOR' },
+    { id: 'identity-admin', label: 'Consortium Governance', icon: UserCheck },
+    { id: 'asset-types', label: 'Asset Type Engine', icon: Building },
     { id: 'assets', label: 'Real-World Assets', icon: Layers },
-    { id: 'asset-types', label: 'Asset Type Engine', icon: Building, requiredRole: 'ADMINISTRATOR' },
     { id: 'verification', label: 'Verification Audits', icon: FileCheck },
     { id: 'valuation', label: 'Valuation & Pricing', icon: TrendingUp },
     { id: 'tokens', label: 'Tokenized Securities', icon: Coins },
@@ -36,12 +36,10 @@ export function Sidebar({ currentTab, onSelectTab }) {
     { id: 'audit', label: 'Consortium Audit Trail', icon: History },
   ];
 
-  // Filter based on user's authorized tabs under segregation of duties
-  const filteredNavItems = allNavItems.filter((item) => {
-    if (item.id === 'dashboard' || item.id === 'participants') return true;
-    if (item.requiredRole && item.requiredRole !== userRole) return false;
-    return canAccessTab(userRole, item.id);
-  });
+  // Filter strictly based on user's authorized tabs under segregation of duties
+  const filteredNavItems = userRole
+    ? allNavItems.filter((item) => tabAccess(userRole, item.id) !== null)
+    : [];
 
   return (
     <aside
@@ -114,13 +112,13 @@ export function Sidebar({ currentTab, onSelectTab }) {
         </nav>
       </div>
 
-      {/* Network Status Footer */}
+      {/* Node / Organization Footer */}
       <div className="pt-3 border-t border-[#E8EEF3]">
         {!isCollapsed ? (
           <div className="flex items-center justify-between px-2 py-1 text-[11px] text-[#5A6A7E]">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 truncate">
               <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              <span className="font-medium text-[#0F2A43]">Ledger Synchronized</span>
+              <span className="font-medium text-[#0F2A43] truncate">{user?.organization || 'Connected'}</span>
             </div>
             <button
               onClick={() => setIsCollapsed(true)}
@@ -134,7 +132,7 @@ export function Sidebar({ currentTab, onSelectTab }) {
           <button
             onClick={() => setIsCollapsed(false)}
             className="w-full flex justify-center py-2 text-[#8A99AD] hover:text-[#0F2A43] hover:bg-[#F1F5F9] rounded-lg transition"
-            title="Expand sidebar • Ledger Synchronized"
+            title={`Connected • ${user?.organization || 'Node'}`}
           >
             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           </button>

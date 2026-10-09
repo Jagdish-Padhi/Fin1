@@ -92,88 +92,68 @@ function MainLayout() {
         />
 
         <main key={currentTab} className="flex-1 overflow-y-auto p-6 md:p-8 max-w-7xl mx-auto w-full app-view-transition">
-          {currentTab === 'dashboard' && <DashboardView onNavigate={setCurrentTab} />}
+          {currentTab === 'dashboard' && (
+            <RoleGuard currentRole={currentRole} tab="dashboard" onNavigateHome={() => setCurrentTab('dashboard')}>
+              <DashboardView onNavigate={setCurrentTab} />
+            </RoleGuard>
+          )}
 
-          {currentTab === 'participants' && <ParticipantsView />}
+          {currentTab === 'participants' && (
+            <RoleGuard currentRole={currentRole} tab="participants" onNavigateHome={() => setCurrentTab('dashboard')}>
+              <ParticipantsView />
+            </RoleGuard>
+          )}
 
           {currentTab === 'identity-admin' && (
-            <RoleGuard
-              currentRole={currentRole}
-              allowedRoles={['ADMINISTRATOR']}
-              onNavigateHome={() => setCurrentTab('dashboard')}
-            >
+            <RoleGuard currentRole={currentRole} tab="identity-admin" onNavigateHome={() => setCurrentTab('dashboard')}>
               <IdentityAdminView />
             </RoleGuard>
           )}
 
-          {currentTab === 'assets' && <AssetsView />}
+          {currentTab === 'assets' && (
+            <RoleGuard currentRole={currentRole} tab="assets" onNavigateHome={() => setCurrentTab('dashboard')}>
+              <AssetsView />
+            </RoleGuard>
+          )}
 
           {currentTab === 'asset-types' && (
-            <RoleGuard
-              currentRole={currentRole}
-              allowedRoles={['ADMINISTRATOR', 'COMPLIANCE']}
-              onNavigateHome={() => setCurrentTab('dashboard')}
-            >
+            <RoleGuard currentRole={currentRole} tab="asset-types" onNavigateHome={() => setCurrentTab('dashboard')}>
               <AssetTypesView />
             </RoleGuard>
           )}
 
           {currentTab === 'verification' && (
-            <RoleGuard
-              currentRole={currentRole}
-              allowedRoles={['VERIFIER', 'COMPLIANCE', 'AUDITOR', 'ADMINISTRATOR']}
-              onNavigateHome={() => setCurrentTab('dashboard')}
-            >
+            <RoleGuard currentRole={currentRole} tab="verification" onNavigateHome={() => setCurrentTab('dashboard')}>
               <VerificationView />
             </RoleGuard>
           )}
 
           {currentTab === 'valuation' && (
-            <RoleGuard
-              currentRole={currentRole}
-              allowedRoles={['VALUER', 'COMPLIANCE', 'AUDITOR', 'ADMINISTRATOR']}
-              onNavigateHome={() => setCurrentTab('dashboard')}
-            >
+            <RoleGuard currentRole={currentRole} tab="valuation" onNavigateHome={() => setCurrentTab('dashboard')}>
               <ValuationView />
             </RoleGuard>
           )}
 
           {currentTab === 'tokens' && (
-            <RoleGuard
-              currentRole={currentRole}
-              allowedRoles={['ISSUER', 'COMPLIANCE', 'INVESTOR', 'AUDITOR', 'ADMINISTRATOR']}
-              onNavigateHome={() => setCurrentTab('dashboard')}
-            >
+            <RoleGuard currentRole={currentRole} tab="tokens" onNavigateHome={() => setCurrentTab('dashboard')}>
               <TokensView />
             </RoleGuard>
           )}
 
           {currentTab === 'transfers' && (
-            <RoleGuard
-              currentRole={currentRole}
-              allowedRoles={['ISSUER', 'INVESTOR', 'COMPLIANCE', 'AUDITOR', 'ADMINISTRATOR']}
-              onNavigateHome={() => setCurrentTab('dashboard')}
-            >
+            <RoleGuard currentRole={currentRole} tab="transfers" onNavigateHome={() => setCurrentTab('dashboard')}>
               <TransfersView />
             </RoleGuard>
           )}
 
           {currentTab === 'lifecycle' && (
-            <RoleGuard
-              currentRole={currentRole}
-              allowedRoles={['COMPLIANCE', 'ADMINISTRATOR']}
-              onNavigateHome={() => setCurrentTab('dashboard')}
-            >
+            <RoleGuard currentRole={currentRole} tab="lifecycle" onNavigateHome={() => setCurrentTab('dashboard')}>
               <LifecycleView />
             </RoleGuard>
           )}
 
           {currentTab === 'audit' && (
-            <RoleGuard
-              currentRole={currentRole}
-              allowedRoles={['AUDITOR', 'COMPLIANCE', 'ADMINISTRATOR', 'VERIFIER', 'VALUER']}
-              onNavigateHome={() => setCurrentTab('dashboard')}
-            >
+            <RoleGuard currentRole={currentRole} tab="audit" onNavigateHome={() => setCurrentTab('dashboard')}>
               <AuditView />
             </RoleGuard>
           )}

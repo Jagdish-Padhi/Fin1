@@ -1,5 +1,7 @@
 import { Role } from './enums.js';
 
+export const ROLES = Role;
+
 export const TABS = [
   'dashboard',
   'participants',
