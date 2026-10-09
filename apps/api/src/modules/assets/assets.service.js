@@ -1,14 +1,22 @@
 import { chainBridge } from '../../core/chain/chain-bridge.js';
 import { AppError } from '../../core/errors/app-error.js';
 import { Role } from '@rwa/contracts';
+import { scopeAssets, scopeAssetDetail } from '../../core/visibility/index.js';
 
 export class AssetsService {
   async listAssets(caller) {
-    return chainBridge.evaluate(caller, 'listAssets');
+    const raw = await chainBridge.evaluate(caller, 'listAssets');
+    return scopeAssets(caller, raw || []);
   }
 
   async getAsset(caller, id) {
-    return chainBridge.evaluate(caller, 'getAsset', { id });
+    const raw = await chainBridge.evaluate(caller, 'getAsset', { id });
+    if (!raw) return null;
+    const scoped = scopeAssetDetail(caller, raw);
+    if (!scoped) {
+      throw AppError.notFound(`Asset ${id} not found or access restricted`);
+    }
+    return scoped;
   }
 
   async registerAsset(caller, data) {

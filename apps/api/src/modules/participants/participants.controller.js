@@ -18,6 +18,16 @@ export class ParticipantsController {
     }
   }
 
+  async lookup(req, res, next) {
+    try {
+      const q = req.query.q || '';
+      const data = await participantsService.lookupCounterparties(req.user, q);
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async getById(req, res, next) {
     try {
       const data = await participantsService.getParticipant(req.user, req.params.id);

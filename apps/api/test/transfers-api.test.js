@@ -296,8 +296,14 @@ describe('Phase 6: Transfers API', () => {
   });
 
   it('queries transfer by ID, list transfers, and retrieves token transfer history', async () => {
-    const listRes = await requestApp('GET', '/api/v1/transfers', {
+    // Admin is prohibited from viewing transfers under Segregation of Duties
+    const adminRes = await requestApp('GET', '/api/v1/transfers', {
       token: adminToken,
+    });
+    assert.equal(adminRes.status, 403);
+
+    const listRes = await requestApp('GET', '/api/v1/transfers', {
+      token: complianceToken,
     });
     assert.equal(listRes.status, 200);
     assert.ok(Array.isArray(listRes.body.data));

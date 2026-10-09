@@ -1,8 +1,10 @@
 import { chainBridge } from '../../core/chain/chain-bridge.js';
+import { scopeAudit } from '../../core/visibility/index.js';
 
 export class AuditService {
   async getAuditTrail(caller, entityId = null) {
-    return chainBridge.evaluate(caller, 'getAuditTrail', { entityId });
+    const raw = await chainBridge.evaluate(caller, 'getAuditTrail', { entityId });
+    return scopeAudit(caller, raw || [], entityId);
   }
 
   async getExplorerStats(caller) {
@@ -12,12 +14,12 @@ export class AuditService {
     const auditLogs = await chainBridge.evaluate(caller, 'getAuditTrail');
 
     return {
-      blockHeight: auditLogs.length + 1,
-      totalAssets: assets.length,
-      totalTokens: tokens.length,
-      totalTransfers: transfers.length,
-      totalAuditEntries: auditLogs.length,
-      recentEntries: auditLogs.slice(-15).reverse(),
+      blockHeight: (auditLogs?.length || 0) + 1,
+      totalAssets: assets?.length || 0,
+      totalTokens: tokens?.length || 0,
+      totalTransfers: transfers?.length || 0,
+      totalAuditEntries: auditLogs?.length || 0,
+      recentEntries: (auditLogs || []).slice(-15).reverse(),
     };
   }
 }

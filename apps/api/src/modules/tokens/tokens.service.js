@@ -1,45 +1,77 @@
 import crypto from 'crypto';
 import { chainBridge } from '../../core/chain/chain-bridge.js';
+import { AppError } from '../../core/errors/app-error.js';
+import { Role } from '@rwa/contracts';
+import { scopeTokens } from '../../core/visibility/index.js';
 
 export class TokensService {
   async listTokens(caller) {
-    return chainBridge.evaluate(caller, 'listTokens');
+    const raw = await chainBridge.evaluate(caller, 'listTokens');
+    return scopeTokens(caller, raw || []);
   }
 
   async getToken(caller, id) {
-    return chainBridge.evaluate(caller, 'getToken', { id });
+    const token = await chainBridge.evaluate(caller, 'getToken', { id });
+    if (!token) return null;
+    const scoped = scopeTokens(caller, [token]);
+    if (scoped.length === 0) {
+      throw AppError.notFound(`Token ${id} not found or access restricted`);
+    }
+    return token;
   }
 
   async getHolders(caller, tokenId) {
+    if (caller.role === Role.INVESTOR || caller.role === Role.ADMINISTRATOR) {
+      throw AppError.forbidden('Cap table lookup is restricted to Compliance, Auditor, and the token Issuer');
+    }
+
+    if (caller.role === Role.ISSUER) {
+      const token = await chainBridge.evaluate(caller, 'getToken', { id: tokenId });
+      if (token && token.issuerParticipantId && token.issuerParticipantId !== caller.participantId) {
+        throw AppError.forbidden('Issuers may only view the cap table of their own tokenized securities');
+      }
+    }
+
     return chainBridge.evaluate(caller, 'listHolders', { tokenId });
   }
 
   async getBalance(caller, tokenId, participantId) {
+    if (caller.role === Role.ADMINISTRATOR) {
+      throw AppError.forbidden('Administrator is not authorized to query participant balances');
+    }
+
+    if (caller.role === Role.INVESTOR && caller.participantId && participantId !== caller.participantId) {
+      throw AppError.forbidden('Investors may only query their own token balance');
+    }
+
     return chainBridge.evaluate(caller, 'getBalance', { tokenId, participantId });
   }
 
   async mintToken(caller, data) {
+    if (caller.role !== Role.COMPLIANCE) {
+      throw AppError.forbidden('Segregation of Duties: Only Compliance role can mint tokens');
+    }
     const submission = await chainBridge.submit(caller, 'mintToken', data);
     return submission.result || submission;
   }
 
   async getTokenTrace(caller, tokenId) {
+    if (caller.role === Role.ADMINISTRATOR) {
+      throw AppError.forbidden('Administrator is not authorized to query token traces');
+    }
     return chainBridge.evaluate(caller, 'getTokenTrace', { tokenId });
   }
 
   async publicVerify(queryId) {
     // Public unauthenticated lookup (no PII, disclosure only)
-    // 1. Try finding token directly by queryId
     let token = await chainBridge.evaluate({ role: 'PUBLIC' }, 'getToken', { id: queryId });
 
-    // 2. If not found by tokenId, check if queryId is an assetId
     if (!token) {
       const assetDirect = await chainBridge.evaluate({ role: 'PUBLIC' }, 'getAsset', { id: queryId });
       if (assetDirect) {
         if (assetDirect.tokenId) {
           token = await chainBridge.evaluate({ role: 'PUBLIC' }, 'getToken', { id: assetDirect.tokenId });
         } else {
-          // Asset exists but has not been tokenized yet
           const leaves = (assetDirect.evidence || []).map((e) => e.sha256).filter(Boolean).sort();
           const computedEvidenceRoot = leaves.length > 0
             ? crypto.createHash('sha256').update(leaves.join(':')).digest('hex')
@@ -81,7 +113,6 @@ export class TokensService {
     const asset = await chainBridge.evaluate({ role: 'PUBLIC' }, 'getAsset', { id: token.assetId });
     const holders = await chainBridge.evaluate({ role: 'PUBLIC' }, 'listHolders', { tokenId: token.id });
 
-    // Recompute evidence root from asset's evidence leaves
     const leaves = (asset?.evidence || []).map((e) => e.sha256).filter(Boolean).sort();
     const computedEvidenceRoot = leaves.length > 0
       ? crypto.createHash('sha256').update(leaves.join(':')).digest('hex')
