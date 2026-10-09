@@ -89,10 +89,11 @@ export class ParticipantsService {
       userId: caller.userId,
       orgId: data.orgId || caller.orgId,
       kind: data.kind || 'INDIVIDUAL',
-      jurisdiction: data.jurisdiction || 'IN',
+      jurisdiction: data.jurisdiction || (data.zkPassport?.nationality || 'IN'),
       investorClass: data.investorClass || InvestorClass.RETAIL,
       limits: data.limits || { maxHoldingBps: 2500, maxTransferPaise: 100000000 },
       piiHash,
+      zkPassport: data.zkPassport || undefined,
     });
 
     return redactParticipant(result.result || result, caller);

@@ -57,6 +57,20 @@ export class ApiClient {
     });
   }
 
+  register(data) {
+    return this.request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  verifyZkPassport(data) {
+    return this.request('/auth/zkpassport/verify', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   getMe() {
     return this.request('/auth/me');
   }

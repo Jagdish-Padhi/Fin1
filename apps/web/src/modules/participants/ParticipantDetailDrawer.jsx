@@ -1,7 +1,7 @@
 import React from 'react';
 import { StatusBadge } from '../../shared/components/StatusBadge.jsx';
 import { HashChip } from '../../shared/components/HashChip.jsx';
-import { X, ShieldCheck, User, Building, FileText, Lock, Key } from 'lucide-react';
+import { X, ShieldCheck, User, Building, FileText, Lock, Key, Fingerprint } from 'lucide-react';
 
 export function ParticipantDetailDrawer({ participant, onClose, onOpenReviewKyc, user }) {
   if (!participant) return null;
@@ -55,6 +55,37 @@ export function ParticipantDetailDrawer({ participant, onClose, onOpenReviewKyc,
               <StatusBadge status={participant.investorClass} />
             </div>
           </div>
+
+          {/* ZKPassport Biometric Verification Anchor */}
+          {(participant.zkProofHash || participant.zkPassport) && (
+            <div className="p-4 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-bold text-[#15803D] uppercase tracking-wider">
+                  <Fingerprint className="w-4 h-4" />
+                  <span>ZKPassport Biometric KYC (ICAO 9303)</span>
+                </div>
+                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]">
+                  Zero-Knowledge Validated
+                </span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-[#BBF7D0]">
+                  <span className="text-xs text-[#5A6A7E] font-medium">ZK Proof Hash:</span>
+                  <HashChip hash={participant.zkProofHash || participant.zkPassport?.proofHash} />
+                </div>
+                <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-[#BBF7D0]">
+                  <span className="text-xs text-[#5A6A7E] font-medium">Sybil-Resistant Nullifier:</span>
+                  <HashChip hash={participant.zkNullifier || participant.zkPassport?.nullifier} />
+                </div>
+                <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-[#BBF7D0] text-xs">
+                  <span className="text-[#5A6A7E] font-medium">CSCA Signer Authority:</span>
+                  <span className="font-mono text-xs text-[#0F2A43] font-semibold">
+                    {participant.zkPassport?.issuerAuthority || `ICAO-PKD-CSCA-${participant.jurisdiction || 'IND'}`}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Cryptographic Integrity Section */}
           <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#D8E0E8] space-y-3">

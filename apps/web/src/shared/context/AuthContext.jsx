@@ -1,20 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../services/api.js';
 
-/**
- * Demo consortium identities — used ONLY in the Auth Modal's "quick-fill" section
- * for hackathon demonstration. In production this would be removed.
- */
-export const DEMO_ROLES = [
-  { role: 'ADMINISTRATOR', email: 'admin@assetrust.io', label: 'Administrator (AsseTrust)', org: 'EkamVistar Platform Operator' },
-  { role: 'ISSUER', email: 'issuer@originator.com', label: 'Issuer (Origination Desk)', org: 'Bharat Agro & Infrastructure' },
-  { role: 'VERIFIER', email: 'verifier@auditfirm.com', label: 'Verifier (TÜV / SGS Audits)', org: 'TUV / SGS Certification' },
-  { role: 'VALUER', email: 'valuer@valuationpartners.com', label: 'Valuer (Institutional Appraiser)', org: 'Certified Appraisal Partners' },
-  { role: 'COMPLIANCE', email: 'compliance@regulatory.gov.in', label: 'Compliance (Regulator)', org: 'National Asset Governance' },
-  { role: 'INVESTOR', email: 'investor@capitalfund.com', label: 'Investor (Capital Fund)', org: 'Samriddhi Capital Fund' },
-  { role: 'AUDITOR', email: 'auditor@kpmg-audit.com', label: 'Auditor (Consortium Oversight)', org: 'Statutory Audit Consortium' },
-];
-
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -59,6 +45,20 @@ export function AuthProvider({ children }) {
   };
 
   /**
+   * Register a new participant account with ZKPassport KYC.
+   * Returns the user and participant objects on success.
+   */
+  const register = async (data) => {
+    const res = await api.register(data);
+    if (!res?.data?.token || !res?.data?.user) {
+      throw new Error('Invalid registration response from server.');
+    }
+    api.setToken(res.data.token);
+    setUser(res.data.user);
+    return res.data;
+  };
+
+  /**
    * Clear session completely.
    */
   const logout = () => {
@@ -67,7 +67,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, roles: DEMO_ROLES }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

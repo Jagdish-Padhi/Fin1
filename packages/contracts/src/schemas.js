@@ -29,6 +29,19 @@ export const RegisterParticipantSchema = z.object({
       maxTransferPaise: z.number().int().positive().default(100000000),
     })
     .optional(),
+  zkPassport: z
+    .object({
+      proofHash: z.string(),
+      nullifier: z.string(),
+      nationality: z.string(),
+      documentType: z.string().optional(),
+      issuerAuthority: z.string().optional(),
+      verifiedAt: z.string().optional(),
+      ageOver18: z.boolean().optional(),
+      sanctionsChecked: z.boolean().optional(),
+      zkProof: z.any().optional(),
+    })
+    .optional(),
 });
 
 export const UpdateKycSchema = z.object({

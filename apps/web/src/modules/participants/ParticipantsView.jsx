@@ -307,7 +307,17 @@ export function ParticipantsView() {
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <StatusBadge status={p.kycStatus} />
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <StatusBadge status={p.kycStatus} />
+                        {(p.zkProofHash || p.zkPassport) && (
+                          <span
+                            className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] shrink-0"
+                            title={`ZKPassport Attested: ${p.zkProofHash?.slice(0, 16)}...`}
+                          >
+                            ZK-KYC
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     <td className="py-3.5 px-4">

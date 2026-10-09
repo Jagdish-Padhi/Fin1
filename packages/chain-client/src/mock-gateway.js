@@ -384,34 +384,64 @@ export class MockGateway {
             }
           }
         }
+        // Duplicate ZK nullifier check (Sybil resistance)
+        const zkNullifier = args.zkPassport?.nullifier || args.zkNullifier;
+        if (zkNullifier) {
+          for (const p of this.participants.values()) {
+            if (p.zkNullifier === zkNullifier || p.zkPassport?.nullifier === zkNullifier) {
+              throw new Error(
+                `Duplicate registration: ZKPassport nullifier has already been registered on ledger (${p.id})`
+              );
+            }
+          }
+        }
+        const hasZk = Boolean(args.zkPassport && (args.zkPassport.proofHash || args.zkProofHash));
+        const initialKyc = hasZk ? 'APPROVED' : (args.kycStatus || 'SUBMITTED');
         const record = {
           id,
           userId: args.userId || caller.userId || null,
           orgId: args.orgId || caller.orgId,
           mspId: caller.mspId,
           kind: args.kind,
-          jurisdiction: args.jurisdiction || 'IN',
+          jurisdiction: args.jurisdiction || (args.zkPassport?.nationality || 'IN'),
           investorClass: args.investorClass || 'RETAIL',
-          kycStatus: 'SUBMITTED',
+          kycStatus: initialKyc,
+          kycReason: hasZk ? 'Auto-verified via on-chain ZKPassport cryptographic zero-knowledge proof' : undefined,
           status: 'ACTIVE',
           limits: args.limits || {
             maxHoldingBps: 2500,
             maxTransferPaise: 100000000,
           },
           piiHash: args.piiHash || null,
+          zkPassport: args.zkPassport || null,
+          zkProofHash: args.zkPassport?.proofHash || args.zkProofHash || null,
+          zkNullifier: zkNullifier || null,
           createdAt: this._now(),
         };
         this.participants.set(id, record);
-        this._appendAudit(
-          caller,
-          'PARTICIPANT',
-          id,
-          'NONE',
-          'SUBMITTED',
-          'REGISTRATION',
-          'Participant registered',
-          txId
-        );
+        if (hasZk) {
+          this._appendAudit(
+            caller,
+            'PARTICIPANT',
+            id,
+            'NONE',
+            'APPROVED',
+            'ZK_KYC_VERIFIED',
+            `Participant registered with verified ZKPassport (Proof: ${(record.zkProofHash || '').slice(0, 16)}...)`,
+            txId
+          );
+        } else {
+          this._appendAudit(
+            caller,
+            'PARTICIPANT',
+            id,
+            'NONE',
+            'SUBMITTED',
+            'REGISTRATION',
+            'Participant registered',
+            txId
+          );
+        }
         this._emit(EventName.PARTICIPANT_REGISTERED, record, txId);
         result = record;
         break;

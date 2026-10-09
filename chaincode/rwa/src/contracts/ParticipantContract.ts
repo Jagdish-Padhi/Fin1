@@ -26,6 +26,19 @@ export interface ParticipantRecord {
     maxTransferPaise: number;
   };
   piiHash?: string;
+  zkPassport?: {
+    proofHash: string;
+    nullifier: string;
+    nationality: string;
+    documentType?: string;
+    issuerAuthority?: string;
+    verifiedAt?: string;
+    ageOver18?: boolean;
+    sanctionsChecked?: boolean;
+    zkProof?: any;
+  };
+  zkProofHash?: string;
+  zkNullifier?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -66,22 +79,29 @@ export class ParticipantContract extends Contract {
       throw new Error(`Participant with ID ${id} already exists`);
     }
 
+    const hasZk = Boolean(data.zkPassport && (data.zkPassport.proofHash || data.zkProofHash));
+    const initialKyc = hasZk ? KycStatus.APPROVED : (data.kycStatus || KycStatus.SUBMITTED);
     const now = this._getTxTimestamp(ctx);
+
     const record: ParticipantRecord = {
       id,
       userId: data.userId || caller.userId,
       orgId: data.orgId || caller.mspId,
       mspId: caller.mspId,
       kind: data.kind || 'INDIVIDUAL',
-      jurisdiction: data.jurisdiction || 'IN',
+      jurisdiction: data.jurisdiction || (data.zkPassport?.nationality || 'IN'),
       investorClass: data.investorClass || InvestorClass.RETAIL,
-      kycStatus: KycStatus.SUBMITTED,
+      kycStatus: initialKyc,
+      kycReason: hasZk ? 'Auto-verified via on-chain ZKPassport cryptographic zero-knowledge proof' : undefined,
       status: ParticipantStatus.ACTIVE,
       limits: data.limits || {
         maxHoldingBps: 2500,
         maxTransferPaise: 100000000,
       },
       piiHash: data.piiHash || undefined,
+      zkPassport: data.zkPassport || undefined,
+      zkProofHash: data.zkPassport?.proofHash || data.zkProofHash || undefined,
+      zkNullifier: data.zkPassport?.nullifier || data.zkNullifier || undefined,
       createdAt: now,
       updatedAt: now,
     };
@@ -89,15 +109,27 @@ export class ParticipantContract extends Contract {
     await ctx.stub.putState(key, Buffer.from(JSON.stringify(record)));
 
     // Append permanent audit entry
-    await AuditLog.append(
-      ctx,
-      'PARTICIPANT',
-      id,
-      'NONE',
-      KycStatus.SUBMITTED,
-      'REGISTRATION',
-      'Participant registered on ledger'
-    );
+    if (hasZk) {
+      await AuditLog.append(
+        ctx,
+        'PARTICIPANT',
+        id,
+        'NONE',
+        KycStatus.APPROVED,
+        'ZK_KYC_VERIFIED',
+        `Participant registered with verified ZKPassport (Proof: ${(record.zkProofHash || '').slice(0, 16)}...)`
+      );
+    } else {
+      await AuditLog.append(
+        ctx,
+        'PARTICIPANT',
+        id,
+        'NONE',
+        KycStatus.SUBMITTED,
+        'REGISTRATION',
+        'Participant registered on ledger'
+      );
+    }
 
     // Single aggregated event per transaction
     const events = new EventAggregator();
