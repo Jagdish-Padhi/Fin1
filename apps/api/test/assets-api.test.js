@@ -55,8 +55,13 @@ describe('Phase 2: Asset Type Engine, Registration & Evidence (API Integration)'
   });
 
   describe('1. Asset Type Engine Endpoints', () => {
-    it('GET /api/v1/asset-types lists default seeded asset types', async () => {
-      const res = await requestApp('GET', '/api/v1/asset-types');
+    it('GET /api/v1/asset-types requires auth and lists default seeded asset types', async () => {
+      const unauth = await requestApp('GET', '/api/v1/asset-types');
+      assert.equal(unauth.status, 401);
+
+      const res = await requestApp('GET', '/api/v1/asset-types', {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
       assert.equal(res.status, 200);
       assert.ok(Array.isArray(res.body.data));
       assert.ok(res.body.data.length >= 4);
@@ -69,7 +74,9 @@ describe('Phase 2: Asset Type Engine, Registration & Evidence (API Integration)'
     });
 
     it('GET /api/v1/asset-types/:key returns schema details for a specific type', async () => {
-      const res = await requestApp('GET', '/api/v1/asset-types/REAL_ESTATE');
+      const res = await requestApp('GET', '/api/v1/asset-types/REAL_ESTATE', {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
       assert.equal(res.status, 200);
       assert.equal(res.body.data.key, 'REAL_ESTATE');
       assert.ok(res.body.data.attributeSchema);

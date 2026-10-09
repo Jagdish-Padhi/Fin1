@@ -317,7 +317,7 @@ export class ValuationContract extends Contract {
   @Transaction()
   @Returns('string')
   async approveValuation(ctx: Context, valuationInput: string): Promise<string> {
-    const caller = requireRole(ctx, Role.COMPLIANCE, Role.VALUER);
+    const caller = requireRole(ctx, Role.COMPLIANCE);
     const valuationId = this._getValuationId(valuationInput, 'valuationId');
 
     const valuationKey = this._getKey(valuationId);

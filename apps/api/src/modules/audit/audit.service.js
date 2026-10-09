@@ -1,4 +1,5 @@
 import { chainBridge } from '../../core/chain/chain-bridge.js';
+import { scopeAudit } from '../../core/visibility/index.js';
 
 /**
  * Normalize chaincode audit records (AuditLog.ts / mock-gateway _appendAudit)

@@ -209,12 +209,21 @@ describe('Phase 4: ValuationContract', () => {
 
     const verifierCtx = createMockCtx({
       mspId: 'VerifierMSP',
-      role: Role.VALUER,
+      role: Role.COMPLIANCE,
       userId: 'USR-VERIFIER',
     }, state);
     await assert.rejects(
       contract.approveValuation(verifierCtx, 'VAL-01'),
       /Asset verifier cannot approve/
+    );
+
+    const otherValuerCtx = createMockCtx({
+      role: Role.VALUER,
+      userId: 'USR-VALUER-2',
+    }, state);
+    await assert.rejects(
+      contract.approveValuation(otherValuerCtx, 'VAL-01'),
+      /Unauthorized/
     );
 
     const issuerCtx = createMockCtx({ mspId: 'IssuerMSP', role: Role.ISSUER }, state);

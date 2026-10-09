@@ -3,6 +3,7 @@ import { api } from '../../shared/services/api.js';
 import { useAuth } from '../../shared/context/AuthContext.jsx';
 import { useToast } from '../../shared/components/Toast.jsx';
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog.jsx';
+import { can } from '../../shared/utils/permissions.js';
 import {
   ArrowRightLeft,
   PlusCircle,
@@ -55,16 +56,8 @@ export function TransfersView() {
   const [evalResult, setEvalResult] = useState(null);
   const [evaluating, setEvaluating] = useState(false);
 
-  const canPropose =
-    user?.role === 'ISSUER' ||
-    user?.role === 'INVESTOR' ||
-    user?.role === 'COMPLIANCE' ||
-    user?.role === 'ADMINISTRATOR';
-  const canExecute =
-    user?.role === 'COMPLIANCE' ||
-    user?.role === 'ADMINISTRATOR' ||
-    user?.role === 'INVESTOR' ||
-    user?.role === 'ISSUER';
+  const canPropose = can(user?.role, 'proposeTransfer');
+  const canExecute = can(user?.role, 'executeTransfer');
 
   const loadData = async () => {
     try {
@@ -72,7 +65,7 @@ export function TransfersView() {
       const [transfersRes, tokensRes, participantsRes] = await Promise.allSettled([
         api.getTransfers(),
         api.getTokens(),
-        api.getParticipants(),
+        api.lookupCounterparties(),
       ]);
 
       if (transfersRes.status === 'fulfilled') {

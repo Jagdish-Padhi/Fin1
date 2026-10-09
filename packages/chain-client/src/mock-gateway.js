@@ -130,10 +130,7 @@ export class MockGateway {
         .digest('hex'),
       status: AssetStatus.TOKENIZED,
       tokenId: 'TKN-LAND-001',
-      evidenceRoot: crypto
-        .createHash('sha256')
-        .update('EVD-ROOT-LAND')
-        .digest('hex'),
+      evidenceRoot: this._computeEvidenceRoot([]),
       version: 1,
       evidence: [],
       createdAt: this._now(),
@@ -159,10 +156,7 @@ export class MockGateway {
         .digest('hex'),
       status: AssetStatus.TOKENIZED,
       tokenId: 'TKN-TRACTOR-001',
-      evidenceRoot: crypto
-        .createHash('sha256')
-        .update('EVD-ROOT-TRACTOR')
-        .digest('hex'),
+      evidenceRoot: this._computeEvidenceRoot([]),
       version: 1,
       evidence: [],
       createdAt: this._now(),
@@ -189,6 +183,7 @@ export class MockGateway {
       tokenId: 'TKN-FROZEN-001',
       freezeReason: 'High Court Compliance Hold Order #HC-9921',
       version: 1,
+      evidenceRoot: this._computeEvidenceRoot([]),
       evidence: [],
       createdAt: this._now(),
       updatedAt: this._now(),
@@ -378,7 +373,23 @@ export class MockGateway {
 
     switch (fnName) {
       case 'registerParticipant': {
+        if (
+          caller.role !== Role.ADMINISTRATOR &&
+          caller.role !== Role.ISSUER &&
+          caller.role !== Role.INVESTOR
+        ) {
+          throw new Error('Unauthorized role for participant registration');
+        }
         const id = args.id || `PRT-${Date.now()}`;
+        if (
+          caller.role === Role.INVESTOR &&
+          caller.participantId &&
+          id !== caller.participantId
+        ) {
+          throw new Error(
+            'Self-onboarding violation: non-admin caller can only register their own participant ID'
+          );
+        }
         // Duplicate PII check (salted hash)
         if (args.piiHash) {
           for (const p of this.participants.values()) {
@@ -462,13 +473,8 @@ export class MockGateway {
       }
 
       case 'setInvestorClass': {
-        if (
-          caller.role !== Role.COMPLIANCE &&
-          caller.role !== Role.ADMINISTRATOR
-        ) {
-          throw new Error(
-            'Only Compliance or Administrator can set investor class'
-          );
+        if (caller.role !== Role.COMPLIANCE) {
+          throw new Error('Only Compliance can set investor class');
         }
         const participant = this.participants.get(args.participantId);
         if (!participant)
@@ -495,11 +501,8 @@ export class MockGateway {
       }
 
       case 'setLimits': {
-        if (
-          caller.role !== Role.COMPLIANCE &&
-          caller.role !== Role.ADMINISTRATOR
-        ) {
-          throw new Error('Only Compliance or Administrator can set limits');
+        if (caller.role !== Role.COMPLIANCE) {
+          throw new Error('Only Compliance can set limits');
         }
         const participant = this.participants.get(args.participantId);
         if (!participant)
@@ -532,13 +535,8 @@ export class MockGateway {
       }
 
       case 'suspendParticipant': {
-        if (
-          caller.role !== Role.COMPLIANCE &&
-          caller.role !== Role.ADMINISTRATOR
-        ) {
-          throw new Error(
-            'Only Compliance or Administrator can suspend participants'
-          );
+        if (caller.role !== Role.COMPLIANCE) {
+          throw new Error('Only Compliance can suspend participants');
         }
         const participant = this.participants.get(args.participantId);
         if (!participant)
@@ -566,13 +564,8 @@ export class MockGateway {
       }
 
       case 'reinstateParticipant': {
-        if (
-          caller.role !== Role.COMPLIANCE &&
-          caller.role !== Role.ADMINISTRATOR
-        ) {
-          throw new Error(
-            'Only Compliance or Administrator can reinstate participants'
-          );
+        if (caller.role !== Role.COMPLIANCE) {
+          throw new Error('Only Compliance can reinstate participants');
         }
         const participant = this.participants.get(args.participantId);
         if (!participant)
@@ -922,11 +915,7 @@ export class MockGateway {
         asset.evidence.push(evidence);
 
         // Compute Merkle / evidence root from active evidence leaves
-        const leaves = asset.evidence.map((e) => e.sha256).sort();
-        asset.evidenceRoot = crypto
-          .createHash('sha256')
-          .update(leaves.join(':'))
-          .digest('hex');
+        asset.evidenceRoot = this._computeEvidenceRoot(asset.evidence);
 
         this._appendAudit(
           caller,
@@ -1313,10 +1302,8 @@ export class MockGateway {
       }
 
       case 'approveValuation': {
-        if (caller.role !== Role.COMPLIANCE && caller.role !== Role.VALUER) {
-          throw new Error(
-            'Only Compliance or a second Valuer can approve valuation (Maker-Checker)'
-          );
+        if (caller.role !== Role.COMPLIANCE) {
+          throw new Error('Only Compliance can approve valuation');
         }
         const valuation = this.valuations.get(args.valuationId);
         if (!valuation)
@@ -1486,10 +1473,16 @@ export class MockGateway {
       }
 
       case 'proposeTransfer': {
+        if (caller.role !== Role.ISSUER && caller.role !== Role.INVESTOR) {
+          throw new Error('Unauthorized role for transfer proposal');
+        }
         const token = this.tokens.get(args.tokenId);
         if (!token) throw new Error(`Token not found: ${args.tokenId}`);
         const fromParticipantId =
           args.fromParticipantId || caller.participantId;
+        if (caller.participantId && fromParticipantId !== caller.participantId) {
+          throw new Error('Cannot propose transfer from another participant account');
+        }
         const balKey = `${token.id}:${fromParticipantId}`;
         const currentBal = this.balances.get(balKey) || 0;
 
@@ -1524,9 +1517,26 @@ export class MockGateway {
       }
 
       case 'executeTransfer': {
+        if (
+          caller.role !== Role.ISSUER &&
+          caller.role !== Role.INVESTOR &&
+          caller.role !== Role.COMPLIANCE
+        ) {
+          throw new Error('Unauthorized role for transfer execution');
+        }
         const transfer = this.transfers.get(args.transferId);
         if (!transfer)
           throw new Error(`Transfer not found: ${args.transferId}`);
+        if (
+          (caller.role === Role.ISSUER || caller.role === Role.INVESTOR) &&
+          caller.participantId &&
+          transfer.fromParticipantId !== caller.participantId &&
+          transfer.toParticipantId !== caller.participantId
+        ) {
+          throw new Error(
+            'Unauthorized: only parties to transfer or compliance can execute'
+          );
+        }
         const token = this.tokens.get(transfer.tokenId);
         if (!token) throw new Error(`Token not found: ${transfer.tokenId}`);
         const asset = this.assets.get(token.assetId);
@@ -1584,9 +1594,26 @@ export class MockGateway {
       }
 
       case 'cancelTransfer': {
+        if (
+          caller.role !== Role.ISSUER &&
+          caller.role !== Role.INVESTOR &&
+          caller.role !== Role.COMPLIANCE
+        ) {
+          throw new Error('Unauthorized role for transfer cancellation');
+        }
         const transfer = this.transfers.get(args.transferId || args.id);
         if (!transfer)
           throw new Error(`Transfer not found: ${args.transferId || args.id}`);
+        if (
+          (caller.role === Role.ISSUER || caller.role === Role.INVESTOR) &&
+          caller.participantId &&
+          transfer.fromParticipantId !== caller.participantId &&
+          transfer.toParticipantId !== caller.participantId
+        ) {
+          throw new Error(
+            'Unauthorized: only parties to transfer or compliance can cancel'
+          );
+        }
         const prev = transfer.status;
         transfer.status = TransferStatus.CANCELLED;
         this._appendAudit(
@@ -1672,13 +1699,8 @@ export class MockGateway {
       }
 
       case 'redeemAsset': {
-        if (
-          caller.role !== Role.COMPLIANCE &&
-          caller.role !== Role.ADMINISTRATOR
-        ) {
-          throw new Error(
-            'Only Compliance or Administrator can approve redemption'
-          );
+        if (caller.role !== Role.COMPLIANCE) {
+          throw new Error('Only Compliance can approve redemption');
         }
         const asset = this.assets.get(args.assetId);
         if (!asset) throw new Error(`Asset not found: ${args.assetId}`);
@@ -1704,11 +1726,8 @@ export class MockGateway {
       }
 
       case 'retireAsset': {
-        if (
-          caller.role !== Role.COMPLIANCE &&
-          caller.role !== Role.ADMINISTRATOR
-        ) {
-          throw new Error('Only Compliance or Administrator can retire assets');
+        if (caller.role !== Role.COMPLIANCE) {
+          throw new Error('Only Compliance can retire assets');
         }
         const asset = this.assets.get(args.assetId);
         if (!asset) throw new Error(`Asset not found: ${args.assetId}`);
@@ -2120,6 +2139,21 @@ export class MockGateway {
       results,
       rejectionReasons,
     };
+  }
+
+  /**
+   * Computes the Merkle-style evidence root from the actual on-chain evidence
+   * leaves (SHA-256 digests). Deterministic — no hardcoded/fake roots.
+   * An empty evidence set yields the root of no documents (sha256 of "").
+   */
+  _computeEvidenceRoot(evidenceArray = []) {
+    const leaves = (evidenceArray || [])
+      .map((e) => e.sha256)
+      .sort();
+    return crypto
+      .createHash('sha256')
+      .update(leaves.join(':'))
+      .digest('hex');
   }
 
   _filterAssetVisibility(asset, caller) {

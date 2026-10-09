@@ -166,20 +166,17 @@ export function RegisterAssetWizard({ isOpen, onClose, onCreated, user }) {
         throw new Error('Asset registration did not return a valid Asset ID.');
       }
 
-      // 2. Attach evidence documents (using real binary upload if file object exists, fallback to on-chain hash leaf)
+      // 2. Attach evidence documents — always the real file the issuer selected.
+      // The binary is encrypted server-side (AES-256-GCM) and its exact SHA-256
+      // is anchored on-chain. No hash-only placeholders: verifiers open exactly
+      // these uploaded documents.
       for (const ev of Object.values(evidenceFiles)) {
-        if (ev.file) {
-          await api.uploadEvidence(assetId, ev.docType, ev.file);
-        } else {
-          await api.attachEvidence(assetId, {
-            assetId,
-            docType: ev.docType,
-            fileName: ev.fileName,
-            sha256: ev.sha256,
-            fileSize: ev.fileSize,
-            mimeType: ev.mimeType || 'application/pdf',
-          });
+        if (!ev.file) {
+          throw new Error(
+            `The document file is missing for "${ev.docType}". Please re-select the file — evidence must be the actual uploaded document.`
+          );
         }
+        await api.uploadEvidence(assetId, ev.docType, ev.file);
       }
 
       onCreated();

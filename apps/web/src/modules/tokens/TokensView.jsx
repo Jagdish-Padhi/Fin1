@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../shared/services/api.js';
 import { useAuth } from '../../shared/context/AuthContext.jsx';
 import { useToast } from '../../shared/components/Toast.jsx';
+import { can } from '../../shared/utils/permissions.js';
 import { Coins, PlusCircle, Users, ExternalLink, ShieldCheck, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export function TokensView() {
@@ -23,7 +24,8 @@ export function TokensView() {
   const [rightsType, setRightsType] = useState('UNDIVIDED_FRACTION');
   const [representation, setRepresentation] = useState('Undivided economic fractional interest');
 
-  const canMint = user?.role === 'COMPLIANCE' || user?.role === 'ADMINISTRATOR';
+  const canMint = can(user?.role, 'mintToken');
+  const canViewCapTable = can(user?.role, 'viewCapTable') || can(user?.role, 'viewHolders');
 
   const loadTokens = async () => {
     try {
@@ -47,11 +49,16 @@ export function TokensView() {
   };
 
   const handleSelectToken = async (tok) => {
+    if (!tok) return;
     setSelectedToken(tok);
     try {
       setLoadingHolders(true);
-      const res = await api.getTokenHolders(tok.id);
-      setHolders(res.data || []);
+      if (canViewCapTable) {
+        const res = await api.getTokenHolders(tok.id);
+        setHolders(res.data || []);
+      } else {
+        setHolders([]);
+      }
     } catch (err) {
       setHolders([]);
     } finally {

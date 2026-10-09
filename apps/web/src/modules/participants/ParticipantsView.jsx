@@ -331,7 +331,7 @@ export function ParticipantsView() {
                         Passport
                       </button>
 
-                      {/* Compliance-specific actions */}
+                      {/* Compliance-specific governance actions */}
                       {isCompliance && (
                         <>
                           <button
@@ -340,18 +340,6 @@ export function ParticipantsView() {
                           >
                             Review KYC
                           </button>
-                          <button
-                            onClick={() => setBlacklistDialogTarget(p)}
-                            className="px-2.5 py-1 rounded-md bg-[#FEF2F2] hover:bg-[#FECDD3] text-[#B42318] border border-[#FECDD3] text-[11px] font-semibold transition"
-                          >
-                            {p.status === 'BLACKLISTED' ? 'Unblacklist' : 'Blacklist'}
-                          </button>
-                        </>
-                      )}
-
-                      {/* Administrator actions */}
-                      {isAdmin && (
-                        <>
                           <button
                             onClick={() => {
                               setLimitsDialogTarget(p);
@@ -369,6 +357,12 @@ export function ParticipantsView() {
                             className="px-2.5 py-1 rounded-md bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#5A6A7E] text-[11px] font-semibold transition"
                           >
                             {p.status === 'SUSPENDED' ? 'Reinstate' : 'Suspend'}
+                          </button>
+                          <button
+                            onClick={() => setBlacklistDialogTarget(p)}
+                            className="px-2.5 py-1 rounded-md bg-[#FEF2F2] hover:bg-[#FECDD3] text-[#B42318] border border-[#FECDD3] text-[11px] font-semibold transition"
+                          >
+                            {p.status === 'BLACKLISTED' ? 'Unblacklist' : 'Blacklist'}
                           </button>
                         </>
                       )}

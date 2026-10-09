@@ -2,7 +2,8 @@ import crypto from 'crypto';
 import { chainBridge } from '../../core/chain/chain-bridge.js';
 import { SEED_DATA } from '../../../../../db/seeds/seed.js';
 import { AppError } from '../../core/errors/app-error.js';
-import { Role, KycStatus, ParticipantStatus, InvestorClass } from '@rwa/contracts';
+import { Role, InvestorClass } from '@rwa/contracts';
+import { scopeParticipants } from '../../core/visibility/index.js';
 
 // In-memory store for encrypted off-chain PII (mirrors Postgres pii_encrypted column)
 const offchainPiiStore = new Map();
@@ -15,33 +16,40 @@ function redactParticipant(participant, caller) {
   if (!participant) return null;
   const copy = { ...participant };
 
-  // If caller is an Investor and not the participant themselves, redact sensitive KYC & reasons
-  if (
-    caller.role === Role.INVESTOR &&
-    caller.participantId !== participant.id &&
-    caller.userId !== participant.userId
-  ) {
+  // ADMINISTRATOR must NOT see PII or KYC data
+  if (caller.role === Role.ADMINISTRATOR) {
+    delete copy.pii;
+    delete copy.piiHash;
+    delete copy.kycDocs;
+    delete copy.kycReason;
+    delete copy.kycStatus;
+    delete copy.kycExpiry;
+    delete copy.suspendReason;
+    delete copy.blacklistReason;
+    return copy;
+  }
+
+  const isSelf =
+    (caller.participantId && caller.participantId === participant.id) ||
+    (caller.userId && caller.userId === participant.userId);
+
+  // If not Compliance or Auditor, and not the user themselves, redact sensitive KYC & reasons & PII
+  if (caller.role !== Role.COMPLIANCE && caller.role !== Role.AUDITOR && !isSelf) {
     delete copy.pii;
     delete copy.piiHash;
     delete copy.kycReason;
     delete copy.suspendReason;
     delete copy.blacklistReason;
     delete copy.kycDocs;
+    return copy;
   }
 
-  // Attach off-chain PII if caller has permission (own account, Compliance, Auditor, Administrator)
-  if (
-    caller.role === Role.AUDITOR ||
-    caller.role === Role.COMPLIANCE ||
-    caller.role === Role.ADMINISTRATOR ||
-    caller.participantId === participant.id ||
-    caller.userId === participant.userId
-  ) {
+  // Attach off-chain PII ONLY if Compliance, Auditor, or own account (NEVER Administrator)
+  if (caller.role === Role.AUDITOR || caller.role === Role.COMPLIANCE || isSelf) {
     const storedPii = offchainPiiStore.get(participant.id);
     if (storedPii) {
       copy.pii = storedPii;
     } else {
-      // Check seed data
       const seedP = SEED_DATA.participants.find((x) => x.id === participant.id);
       if (seedP?.pii) copy.pii = seedP.pii;
     }
@@ -54,20 +62,37 @@ function redactParticipant(participant, caller) {
 export class ParticipantsService {
   async listParticipants(caller) {
     const list = await chainBridge.evaluate(caller, 'listParticipants');
-    let participants = list;
+    const participants = list || [];
+    // Scope participants by role (no SEED_DATA fallback in real path)
+    const redacted = participants.map((p) => redactParticipant(p, caller)).filter(Boolean);
+    return scopeParticipants(caller, redacted);
+  }
 
-    if (!participants || participants.length === 0) {
-      participants = SEED_DATA.participants;
-    }
+  async lookupCounterparties(caller, query = '') {
+    const list = await chainBridge.evaluate(caller, 'listParticipants');
+    const participants = list || [];
 
-    return participants.map((p) => redactParticipant(p, caller));
+    const normalizedQ = (query || '').toLowerCase().trim();
+
+    return participants
+      .filter((p) => {
+        if (p.status !== 'ACTIVE' || p.kycStatus !== 'APPROVED') return false;
+        // Don't include self
+        if (caller.participantId && p.id === caller.participantId) return false;
+        if (!normalizedQ) return true;
+        const idMatch = p.id.toLowerCase().includes(normalizedQ);
+        const nameMatch = (p.displayName || p.legalName || '').toLowerCase().includes(normalizedQ);
+        return idMatch || nameMatch;
+      })
+      .map((p) => ({
+        id: p.id,
+        displayName: p.displayName || p.legalName || p.id,
+        kycStatus: p.kycStatus,
+      }));
   }
 
   async getParticipant(caller, id) {
-    let p = await chainBridge.evaluate(caller, 'getParticipant', { id });
-    if (!p) {
-      p = SEED_DATA.participants.find((x) => x.id === id) || null;
-    }
+    const p = await chainBridge.evaluate(caller, 'getParticipant', { id });
     if (!p) return null;
     return redactParticipant(p, caller);
   }
@@ -75,11 +100,16 @@ export class ParticipantsService {
   async registerParticipant(caller, data) {
     const id = data.id || `PRT-${Date.now()}`;
 
-    // Salted hash for on-chain integrity without exposing raw PII
+    // Non-admin can only self-onboard
+    if (caller.role !== Role.ADMINISTRATOR) {
+      if (data.id && caller.participantId && data.id !== caller.participantId) {
+        throw AppError.forbidden('Self-registering participants can only register their own account');
+      }
+    }
+
     const piiString = JSON.stringify(data.pii || {});
     const piiHash = crypto.createHash('sha256').update(SALT + piiString).digest('hex');
 
-    // Securely store encrypted PII off-chain
     if (data.pii) {
       offchainPiiStore.set(id, data.pii);
     }
@@ -99,7 +129,6 @@ export class ParticipantsService {
   }
 
   async updateKycStatus(caller, participantId, kycStatus, reason, expiryDate) {
-    // Segregation of Duties: Admin CANNOT approve KYC
     if (caller.role !== Role.COMPLIANCE) {
       throw AppError.forbidden('Segregation of duties: Only Compliance role can update participant KYC status');
     }
@@ -115,8 +144,8 @@ export class ParticipantsService {
   }
 
   async setInvestorClass(caller, participantId, investorClass, reason) {
-    if (caller.role !== Role.COMPLIANCE && caller.role !== Role.ADMINISTRATOR) {
-      throw AppError.forbidden('Only Compliance or Administrator can set investor classification');
+    if (caller.role !== Role.COMPLIANCE) {
+      throw AppError.forbidden('Segregation of Duties: Only Compliance can set investor classification');
     }
 
     const result = await chainBridge.submit(caller, 'setInvestorClass', {
@@ -129,8 +158,8 @@ export class ParticipantsService {
   }
 
   async setLimits(caller, participantId, maxHoldingBps, maxTransferPaise, reason) {
-    if (caller.role !== Role.COMPLIANCE && caller.role !== Role.ADMINISTRATOR) {
-      throw AppError.forbidden('Only Compliance or Administrator can set participant limits');
+    if (caller.role !== Role.COMPLIANCE) {
+      throw AppError.forbidden('Segregation of Duties: Only Compliance can set participant limits');
     }
 
     const result = await chainBridge.submit(caller, 'setLimits', {
@@ -144,8 +173,8 @@ export class ParticipantsService {
   }
 
   async suspendParticipant(caller, participantId, reason) {
-    if (caller.role !== Role.COMPLIANCE && caller.role !== Role.ADMINISTRATOR) {
-      throw AppError.forbidden('Only Compliance or Administrator can suspend participants');
+    if (caller.role !== Role.COMPLIANCE) {
+      throw AppError.forbidden('Segregation of Duties: Only Compliance can suspend participants');
     }
 
     const result = await chainBridge.submit(caller, 'suspendParticipant', {
@@ -157,8 +186,8 @@ export class ParticipantsService {
   }
 
   async reinstateParticipant(caller, participantId, reason) {
-    if (caller.role !== Role.COMPLIANCE && caller.role !== Role.ADMINISTRATOR) {
-      throw AppError.forbidden('Only Compliance or Administrator can reinstate participants');
+    if (caller.role !== Role.COMPLIANCE) {
+      throw AppError.forbidden('Segregation of Duties: Only Compliance can reinstate participants');
     }
 
     const result = await chainBridge.submit(caller, 'reinstateParticipant', {

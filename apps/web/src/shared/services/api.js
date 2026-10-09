@@ -230,6 +230,11 @@ export class ApiClient {
     return this.request(`/participants/${encodeURIComponent(id)}`);
   }
 
+  lookupCounterparties(q = '') {
+    const query = q ? `?q=${encodeURIComponent(q)}` : '';
+    return this.request(`/participants/lookup${query}`);
+  }
+
   registerParticipant(data) {
     return this.request('/participants', {
       method: 'POST',

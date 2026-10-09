@@ -559,9 +559,7 @@ export class TransferContract extends Contract {
     const caller = requireRole(
       ctx,
       Role.ISSUER,
-      Role.INVESTOR,
-      Role.COMPLIANCE,
-      Role.ADMINISTRATOR
+      Role.INVESTOR
     );
     const data = this._parseObject(transferJson, 'transfer proposal');
 
@@ -588,6 +586,10 @@ export class TransferContract extends Contract {
       caller.userId;
     if (!fromParticipantId) {
       throw new Error('fromParticipantId is required');
+    }
+
+    if (caller.participantId && fromParticipantId !== caller.participantId) {
+      throw new Error('Cannot propose transfer from another participant account');
     }
 
     const txId = ctx.stub.getTxID();
@@ -694,8 +696,7 @@ export class TransferContract extends Contract {
       ctx,
       Role.ISSUER,
       Role.INVESTOR,
-      Role.COMPLIANCE,
-      Role.ADMINISTRATOR
+      Role.COMPLIANCE
     );
     const transferId = this._parseId(executeInput, 'transferId');
 
@@ -925,8 +926,7 @@ export class TransferContract extends Contract {
       ctx,
       Role.ISSUER,
       Role.INVESTOR,
-      Role.COMPLIANCE,
-      Role.ADMINISTRATOR
+      Role.COMPLIANCE
     );
     const data = this._parseObject(cancelInput, 'cancel transfer input');
     const transferId = this._requiredString(

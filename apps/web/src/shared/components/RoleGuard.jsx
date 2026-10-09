@@ -1,21 +1,32 @@
 import React from 'react';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
-import { ROLE_PERMISSIONS } from '../utils/permissions';
+import { ROLE_PERMISSIONS, tabAccess } from '../utils/permissions.js';
 
 export function RoleGuard({ 
   currentRole, 
+  tab,
   allowedRoles = [], 
   onNavigateHome,
   children 
 }) {
-  const isAuthorized = allowedRoles.length === 0 || allowedRoles.includes(currentRole);
+  let isAuthorized = false;
+
+  if (tab) {
+    isAuthorized = Boolean(currentRole && tabAccess(currentRole, tab) !== null);
+  } else if (allowedRoles.length > 0) {
+    isAuthorized = Boolean(currentRole && allowedRoles.includes(currentRole));
+  } else {
+    isAuthorized = true;
+  }
 
   if (isAuthorized) {
     return <>{children}</>;
   }
 
-  const roleLabel = ROLE_PERMISSIONS[currentRole]?.label || currentRole || 'Unknown Role';
-  const allowedLabels = allowedRoles.map((r) => ROLE_PERMISSIONS[r]?.label || r).join(', ');
+  const roleLabel = (currentRole && ROLE_PERMISSIONS[currentRole]?.label) || currentRole || 'Unknown Role';
+  const restrictionText = tab
+    ? `The '${tab}' module requires authorized credentials under Segregation of Duties.`
+    : `Restricted to: ${allowedRoles.map((r) => ROLE_PERMISSIONS[r]?.label || r).join(', ')}`;
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-6">
@@ -29,11 +40,11 @@ export function RoleGuard({
         </h3>
 
         <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-          Your current active identity (<span className="font-semibold text-[#0F2A43]">{roleLabel}</span>) does not have authorization to view or operate in this module. Under consortium governance rules, operations in this domain are restricted to:
+          Your active identity (<span className="font-semibold text-[#0F2A43]">{roleLabel}</span>) does not have authorization to view or operate in this module under consortium governance rules.
         </p>
 
         <div className="bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg p-3 text-xs font-mono text-[#0F2A43] mb-6">
-          {allowedLabels || 'Restricted Module'}
+          {restrictionText}
         </div>
 
         <div className="flex justify-center">

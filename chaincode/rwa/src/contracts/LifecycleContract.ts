@@ -22,13 +22,13 @@ export class LifecycleContract extends Contract {
 
   @Transaction()
   async redeemAsset(ctx: Context, assetId: string, reasonText: string): Promise<string> {
-    requireRole(ctx, Role.COMPLIANCE, Role.ADMINISTRATOR);
+    requireRole(ctx, Role.COMPLIANCE);
     return JSON.stringify({ status: 'OK' });
   }
 
   @Transaction()
   async retireAsset(ctx: Context, assetId: string, reasonCode: string, reasonText: string): Promise<string> {
-    requireRole(ctx, Role.COMPLIANCE, Role.ADMINISTRATOR);
+    requireRole(ctx, Role.COMPLIANCE);
     return JSON.stringify({ status: 'OK' });
   }
 }

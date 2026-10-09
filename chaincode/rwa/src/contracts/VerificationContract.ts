@@ -72,7 +72,7 @@ export class VerificationContract extends Contract {
     caseId: string,
     verifierUserId?: string
   ): Promise<string> {
-    requireRole(ctx, Role.ADMINISTRATOR, Role.COMPLIANCE, Role.VERIFIER);
+    requireRole(ctx, Role.COMPLIANCE, Role.VERIFIER);
 
     const key = this._getKey(caseId);
     const bytes = await ctx.stub.getState(key);
@@ -83,7 +83,6 @@ export class VerificationContract extends Contract {
     const record: VerificationCaseRecord = JSON.parse(bytes.toString());
     const caller = requireRole(
       ctx,
-      Role.ADMINISTRATOR,
       Role.COMPLIANCE,
       Role.VERIFIER
     );
@@ -335,7 +334,7 @@ export class VerificationContract extends Contract {
     caseId: string,
     reasonText: string = 'Verification reopened for resubmission'
   ): Promise<string> {
-    requireRole(ctx, Role.VERIFIER, Role.ADMINISTRATOR, Role.COMPLIANCE);
+    requireRole(ctx, Role.VERIFIER, Role.COMPLIANCE);
 
     const key = this._getKey(caseId);
     const bytes = await ctx.stub.getState(key);
