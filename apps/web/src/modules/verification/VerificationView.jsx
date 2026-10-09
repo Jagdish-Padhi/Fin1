@@ -13,6 +13,9 @@ import {
   ExternalLink,
   PlusCircle,
   FileText,
+  Paperclip,
+  Eye,
+  Download,
 } from 'lucide-react';
 
 // The ledger stores verification checks as a keyed map ({ [checkKey]: {...} }),
@@ -27,6 +30,16 @@ function normalizeChecks(checks) {
   }
   return [];
 }
+
+// Supporting evidence is exposed on the asset as `evidence` (ledger shape);
+// tolerate `evidenceFiles` as well for API/version compatibility.
+function getAssetEvidence(asset) {
+  if (!asset) return [];
+  if (Array.isArray(asset.evidence)) return asset.evidence;
+  if (Array.isArray(asset.evidenceFiles)) return asset.evidenceFiles;
+  return [];
+}
+
 
 export function VerificationView() {
   const { user } = useAuth();
@@ -51,6 +64,9 @@ export function VerificationView() {
   const [reasonCode, setReasonCode] = useState('SATISFIES_CRITERIA');
   const [reasonText, setReasonText] = useState('');
   const [submittingDecision, setSubmittingDecision] = useState(false);
+
+  // Supporting-evidence review state
+  const [downloadingEvidenceId, setDownloadingEvidenceId] = useState(null);
 
   const isVerifier = user?.role === 'VERIFIER';
 
@@ -119,6 +135,45 @@ export function VerificationView() {
       toast.error(err.message || 'Failed to record verification decision.');
     } finally {
       setSubmittingDecision(false);
+    }
+  };
+
+  // Opens the decrypted evidence in a new tab ("view") or saves a copy ("download").
+  const handleEvidenceAction = async (doc, mode = 'view') => {
+    const evidenceId = doc?.id || doc?.evidenceId;
+    if (!evidenceId) {
+      toast.error('This document has no stored file — only its hash was anchored.');
+      return;
+    }
+
+    // Open the tab synchronously so browsers do not treat it as a popup.
+    const newWindow = mode === 'view' ? window.open('', '_blank') : null;
+    try {
+      setDownloadingEvidenceId(evidenceId);
+      const { blob, fileName } = await api.downloadEvidence(evidenceId);
+      const url = URL.createObjectURL(blob);
+
+      if (mode === 'view') {
+        if (newWindow) {
+          newWindow.location.href = url;
+        } else {
+          window.open(url, '_blank', 'noopener');
+        }
+      } else {
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = fileName;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+      }
+
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      if (newWindow) newWindow.close();
+      toast.error(err.message || 'Failed to open the evidence document.');
+    } finally {
+      setDownloadingEvidenceId(null);
     }
   };
 
@@ -210,7 +265,7 @@ export function VerificationView() {
                     </div>
                     <div className="text-[10px] text-[#5A6A7E] mt-1 flex items-center justify-between">
                       <span>Verifier: {c.assignedVerifier || 'Consortium Pool'}</span>
-                      <span>Checks: {c.checks?.length || 0}</span>
+                      <span>Docs: {getAssetEvidence(c.asset).length} • Checks: {c.checks?.length || 0}</span>
                     </div>
                   </button>
                 );
@@ -278,6 +333,71 @@ export function VerificationView() {
                     {selectedCase.checks?.length || 0} Criteria Tested
                   </div>
                 </div>
+              </div>
+
+              {/* Supporting Evidence Documents */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider flex items-center gap-1.5">
+                  <Paperclip className="w-4 h-4 text-[#1F5A7A]" />
+                  Supporting Evidence for Review ({getAssetEvidence(selectedCase.asset).length})
+                </h4>
+
+                {getAssetEvidence(selectedCase.asset).length === 0 ? (
+                  <div className="p-6 text-center text-xs text-[#5A6A7E] bg-[#F8FAFC] rounded-lg border border-[#D8E0E8]">
+                    No evidence documents were attached to this asset.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {getAssetEvidence(selectedCase.asset).map((doc, idx) => {
+                      const evidenceId = doc.id || doc.evidenceId;
+                      const hasStoredFile = Boolean(doc.storageKey);
+                      return (
+                        <div
+                          key={evidenceId || idx}
+                          className="p-3 bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg text-xs space-y-2"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <FileText className="w-4 h-4 text-[#0F766E] shrink-0" />
+                              <span className="font-semibold text-[#0F2A43] truncate">
+                                {doc.title || doc.fileName || 'Evidence Document'}
+                              </span>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8] shrink-0">
+                                {doc.docType}
+                              </span>
+                              {!hasStoredFile && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#FEFCE8] text-[#A16207] border border-[#FDE68A] shrink-0">
+                                  Hash only
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                onClick={() => handleEvidenceAction(doc, 'view')}
+                                disabled={downloadingEvidenceId === evidenceId}
+                                className="px-2.5 py-1 rounded-lg bg-[#0F2A43] hover:bg-[#1F5A7A] disabled:opacity-50 text-white text-[11px] font-semibold flex items-center gap-1 transition"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                View
+                              </button>
+                              <button
+                                onClick={() => handleEvidenceAction(doc, 'download')}
+                                disabled={downloadingEvidenceId === evidenceId}
+                                className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F1F5F9] disabled:opacity-50 border border-[#D8E0E8] text-[#0F2A43] text-[11px] font-semibold flex items-center gap-1 transition"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                Download
+                              </button>
+                            </div>
+                          </div>
+                          <div className="text-[10px] font-mono text-[#5A6A7E] truncate">
+                            SHA-256: {doc.sha256 || 'N/A'}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Recorded Checklist Items */}

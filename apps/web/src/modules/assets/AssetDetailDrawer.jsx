@@ -18,6 +18,7 @@ import {
   User,
   ArrowRight,
   RefreshCw,
+  Download,
 } from 'lucide-react';
 
 import { ModalPortal } from '../../shared/components/ModalPortal.jsx';
@@ -33,8 +34,10 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
   const [uploadDocType, setUploadDocType] = useState('');
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadHash, setUploadHash] = useState('');
+  const [uploadFile, setUploadFile] = useState(null);
   const [attaching, setAttaching] = useState(false);
   const [attachSuccess, setAttachSuccess] = useState(null);
+  const [downloadingEvidenceId, setDownloadingEvidenceId] = useState(null);
 
   // Submitting for verification state
   const [submittingVerification, setSubmittingVerification] = useState(false);
@@ -79,25 +82,32 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
 
   const handleAttachEvidence = async (e) => {
     e.preventDefault();
-    if (!uploadDocType || !uploadHash) return;
+    if (!uploadDocType || (!uploadHash && !uploadFile)) return;
     try {
       setAttaching(true);
       setAttachSuccess(null);
       setError(null);
 
-      const payload = {
-        docType: uploadDocType,
-        title: uploadTitle || `${uploadDocType} Document`,
-        sha256: uploadHash,
-        mimeType: 'application/pdf',
-        sizeBytes: 1048576,
-      };
+      if (uploadFile) {
+        // Real binary upload: encrypted server-side (AES-256-GCM) with the
+        // SHA-256 anchored on-chain. This is what makes the document openable later.
+        await api.uploadEvidence(asset.id, uploadDocType, uploadFile);
+      } else {
+        await api.attachEvidence(asset.id, {
+          assetId: asset.id,
+          docType: uploadDocType,
+          title: uploadTitle || `${uploadDocType} Document`,
+          sha256: uploadHash,
+          mimeType: 'application/pdf',
+          sizeBytes: 1048576,
+        });
+      }
 
-      await api.attachEvidence(asset.id, payload);
       setAttachSuccess('Evidence successfully anchored to Merkle vault!');
       setUploadDocType('');
       setUploadTitle('');
       setUploadHash('');
+      setUploadFile(null);
       await loadAsset();
       onAssetUpdated?.();
     } catch (err) {
@@ -105,6 +115,31 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
       setError(err?.response?.data?.error?.message || err.message || 'Attachment failed');
     } finally {
       setAttaching(false);
+    }
+  };
+
+  const handleDownloadEvidence = async (doc) => {
+    const evidenceId = doc?.id || doc?.evidenceId;
+    if (!evidenceId) {
+      setError('This document has no stored file — only its hash was anchored.');
+      return;
+    }
+    try {
+      setDownloadingEvidenceId(evidenceId);
+      setError(null);
+      const { blob, fileName } = await api.downloadEvidence(evidenceId);
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      setError(err?.response?.data?.error?.message || err.message || 'Failed to download evidence');
+    } finally {
+      setDownloadingEvidenceId(null);
     }
   };
 
@@ -143,6 +178,9 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
 
   const canEdit =
     asset?.status === 'REGISTERED' && (user?.role === 'ISSUER' || user?.role === 'ADMINISTRATOR');
+
+  // Ledger returns attached documents under `evidence`; tolerate `evidenceFiles`.
+  const evidenceFiles = asset?.evidence || asset?.evidenceFiles || [];
 
   return (
     <ModalPortal isOpen={isOpen} onClose={onClose}>
@@ -222,9 +260,9 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
             }`}
           >
             Evidence Vault & Merkle
-            {asset?.evidenceFiles && (
+            {evidenceFiles.length > 0 && (
               <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[#F0FDFA] text-[#0F766E] font-semibold border border-[#CCFBF1]">
-                {asset.evidenceFiles.length}
+                {evidenceFiles.length}
               </span>
             )}
           </button>
@@ -516,39 +554,63 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
 
               {/* Evidence Document List */}
               <div className="space-y-2">
-                {asset.evidenceFiles && asset.evidenceFiles.length > 0 ? (
-                  asset.evidenceFiles.map((doc, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3.5 trust-card space-y-2 hover:border-[#BAC7D5] transition"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <FileCheck className="w-4 h-4 text-[#0F766E]" />
-                          <span className="text-xs font-bold text-[#0F2A43]">{doc.title}</span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8]">
-                            {doc.docType}
+                {evidenceFiles.length > 0 ? (
+                  evidenceFiles.map((doc, idx) => {
+                    const evidenceId = doc.id || doc.evidenceId;
+                    const hasStoredFile = Boolean(doc.storageKey);
+                    return (
+                      <div
+                        key={evidenceId || idx}
+                        className="p-3.5 trust-card space-y-2 hover:border-[#BAC7D5] transition"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <FileCheck className="w-4 h-4 text-[#0F766E] shrink-0" />
+                            <span className="text-xs font-bold text-[#0F2A43] truncate">
+                              {doc.title || doc.fileName || doc.docType}
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8] shrink-0">
+                              {doc.docType}
+                            </span>
+                            {!hasStoredFile && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#FEFCE8] text-[#A16207] border border-[#FDE68A] shrink-0">
+                                Hash only
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-[#5A6A7E] font-medium shrink-0">
+                            {doc.createdAt || doc.uploadedAt
+                              ? new Date(doc.createdAt || doc.uploadedAt).toLocaleDateString()
+                              : 'Anchored'}
                           </span>
                         </div>
-                        <span className="text-[10px] text-[#5A6A7E] font-medium">
-                          {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'Anchored'}
-                        </span>
-                      </div>
 
-                      <div className="flex items-center justify-between bg-[#F8FAFC] p-2 rounded-lg text-[10px] font-mono border border-[#D8E0E8]">
-                        <span className="text-[#5A6A7E] truncate max-w-sm">
-                          SHA256: {doc.sha256}
-                        </span>
-                        <button
-                          onClick={() => handleCopy(doc.sha256)}
-                          className="p-1 rounded text-[#5A6A7E] hover:text-[#0F2A43]"
-                          title="Copy hash"
-                        >
-                          <Copy className="w-3 h-3" />
-                        </button>
+                        <div className="flex items-center justify-between gap-2 bg-[#F8FAFC] p-2 rounded-lg text-[10px] font-mono border border-[#D8E0E8]">
+                          <span className="text-[#5A6A7E] truncate">
+                            SHA256: {doc.sha256}
+                          </span>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              onClick={() => handleCopy(doc.sha256)}
+                              className="p-1 rounded text-[#5A6A7E] hover:text-[#0F2A43]"
+                              title="Copy hash"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => handleDownloadEvidence(doc)}
+                              disabled={downloadingEvidenceId === evidenceId || !evidenceId}
+                              className="px-2 py-1 rounded-md bg-white hover:bg-[#F1F5F9] disabled:opacity-40 border border-[#D8E0E8] text-[#0F2A43] text-[10px] font-semibold flex items-center gap-1 transition"
+                              title={hasStoredFile ? 'Download document' : 'No stored file to download'}
+                            >
+                              <Download className="w-3 h-3" />
+                              Download
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="py-8 text-center text-xs text-[#5A6A7E] trust-card">
                     No evidence documents attached yet.
@@ -592,6 +654,7 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
                           const file = e.target.files?.[0];
                           if (file) {
                             setUploadTitle(file.name);
+                            setUploadFile(file);
                             const buffer = await file.arrayBuffer();
                             const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
                             const hashArray = Array.from(new Uint8Array(hashBuffer));

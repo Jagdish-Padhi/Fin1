@@ -1,48 +1,43 @@
-.PHONY: help dev dev-api dev-worker dev-web test lint seed fixtures network-up network-down docker-up docker-down
+.PHONY: help install up down deploy enroll bootstrap all test smoke ping clean
 
 help:
-	@echo "EkamVistar RWA Platform - Development Commands"
-	@echo "  make dev          - Run Web, API, and Worker concurrently"
-	@echo "  make dev-api      - Run API server"
-	@echo "  make dev-web      - Run Web UI"
-	@echo "  make seed         - Seed database with 6 orgs and demo roles"
-	@echo "  make fixtures     - Run state-forcing fixture generator"
-	@echo "  make docker-up    - Start Postgres, Redis, and MinIO containers"
-	@echo "  make network-up   - Start 6-org Fabric network"
-	@echo "  make network-down - Teardown Fabric network"
+	@echo "EkamVistar Hyperledger Fabric Operations"
+	@echo "  make install    - Install Fabric 2.5 and CA binaries & samples"
+	@echo "  make up         - Start Fabric network, CAs, CouchDB, and channel"
+	@echo "  make down       - Tear down Fabric network and clean wallets"
+	@echo "  make deploy     - Bundle chaincode and deploy to channel"
+	@echo "  make enroll     - Enroll users and generate identities/wallets"
+	@echo "  make bootstrap  - Initialize asset types and seed participants"
+	@echo "  make all        - Full up + deploy + enroll + bootstrap pipeline"
+	@echo "  make ping       - Quick smoke check evaluating chaincode via FabricGateway"
+	@echo "  make smoke      - Run end-to-end 6-persona golden path against Fabric API"
+	@echo "  make test       - Run all test suites across the monorepo"
 
-dev:
-	pnpm dev:all
+install:
+	bash scripts/fabric/install.sh
 
-dev-api:
-	pnpm dev:api
+up:
+	bash scripts/fabric/network-up.sh
 
-dev-worker:
-	pnpm dev:worker
+down:
+	bash scripts/fabric/network-down.sh
 
-dev-web:
-	pnpm dev
+deploy:
+	bash scripts/fabric/cc-deploy.sh
+
+enroll:
+	node tools/identity/enroll.mjs
+
+bootstrap:
+	node tools/bootstrap/ledger-init.mjs
+
+all: up deploy enroll bootstrap
+
+ping:
+	node tools/smoke/ping.mjs
+
+smoke:
+	node tools/smoke/golden-path.mjs
 
 test:
-	pnpm test
-
-lint:
-	pnpm lint
-
-seed:
-	node db/seeds/seed.js
-
-fixtures:
-	node tools/fixtures/fixture-runner.js
-
-docker-up:
-	docker compose -f infra/docker-compose.yml up -d postgres redis minio
-
-docker-down:
-	docker compose -f infra/docker-compose.yml down
-
-network-up:
-	bash network/scripts/bootstrap.sh
-
-network-down:
-	bash network/scripts/teardown.sh
+	pnpm -r test

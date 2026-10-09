@@ -136,6 +136,42 @@ export class ApiClient {
     return data;
   }
 
+  /**
+   * Downloads a stored evidence document as a Blob.
+   * The document is fetched with the bearer token (not a public URL) and
+   * decrypts server-side; the response echoes the SHA-256 for integrity checks.
+   */
+  async downloadEvidence(evidenceId) {
+    const headers = {};
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    const response = await fetch(
+      `${API_PREFIX}/evidence/${encodeURIComponent(evidenceId)}/download`,
+      { headers }
+    );
+
+    if (!response.ok) {
+      let message = `Failed to download evidence (${response.status})`;
+      try {
+        const data = await response.json();
+        message = data?.error?.message || data?.message || message;
+      } catch (e) {
+        // Non-JSON error body; keep the default message.
+      }
+      throw new Error(message);
+    }
+
+    const disposition = response.headers.get('content-disposition') || '';
+    const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition);
+    const fileName = match ? decodeURIComponent(match[1]) : `evidence-${evidenceId}`;
+    const sha256 = response.headers.get('x-evidence-sha256') || null;
+    const blob = await response.blob();
+
+    return { blob, fileName, sha256 };
+  }
+
   submitForVerification(assetId) {
     return this.request(`/assets/${encodeURIComponent(assetId)}/submit-verification`, {
       method: 'POST',

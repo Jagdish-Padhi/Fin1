@@ -39,6 +39,8 @@ services:
     restart: always
     ports:
       - "5000:5000"
+    volumes:
+      - ./vault_storage:/app/apps/api/vault_storage
     environment:
       - NODE_ENV=development
       - PORT=5000
