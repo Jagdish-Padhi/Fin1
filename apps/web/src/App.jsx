@@ -28,7 +28,7 @@ function MainLayout() {
 
   const currentRole = user?.role || null;
 
-  // ─── Loading spinner ───────────────────────────────────────────────────────
+  // ΓöÇΓöÇΓöÇ Loading spinner ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
@@ -43,7 +43,7 @@ function MainLayout() {
     );
   }
 
-  // ─── Unauthenticated or Landing View ───────────────────────────────────────
+  // ΓöÇΓöÇΓöÇ Unauthenticated or Landing View ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   if (!user || view === 'landing') {
     return (
       <div className="app-view-transition">
@@ -75,7 +75,7 @@ function MainLayout() {
     );
   }
 
-  // ─── Authenticated Console View ────────────────────────────────────────────
+  // ΓöÇΓöÇΓöÇ Authenticated Console View ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#17202A] app-view-transition">
       <Navbar
@@ -99,15 +99,7 @@ function MainLayout() {
           )}
 
           {currentTab === 'participants' && (
-<<<<<<< HEAD
             <RoleGuard currentRole={currentRole} tab="participants" onNavigateHome={() => setCurrentTab('dashboard')}>
-=======
-            <RoleGuard
-              currentRole={currentRole}
-              allowedRoles={['ADMINISTRATOR']}
-              onNavigateHome={() => setCurrentTab('dashboard')}
-            >
->>>>>>> 3acd21411c5b9f7d11e403d7eb4aa0a33256278c
               <ParticipantsView />
             </RoleGuard>
           )}
