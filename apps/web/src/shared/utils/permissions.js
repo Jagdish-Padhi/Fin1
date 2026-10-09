@@ -5,11 +5,11 @@
  * Roles:
  * - ADMINISTRATOR: Consortium Operator (EkamVistarMSP). Schema configuration, user provisioning.
  *                  Segregation: CANNOT verify assets, value assets, or initiate transfers.
- * - ISSUER: Asset Originator (IssuerMSP). Registers assets, submits verification requests, proposes transfers.
+ * - ISSUER: Asset Originator (IssuerMSP). Registers assets, submits verification requests, reviews investor offers.
  * - VERIFIER: Third-Party Inspector (VerifierMSP). Conducts independent audits, records checklist items, approves/rejects.
  * - VALUER: Independent Appraiser (VerifierMSP / Independent). Submits valuation models and certified amounts.
  * - COMPLIANCE: Regulatory / Legal Officer (ComplianceMSP). Approves valuations, mints tokens, freezes/unfreezes, revokes.
- * - INVESTOR: Qualified Buyer / Token Holder (InvestorMSP). Views portfolio, holds tokens, participates in secondary transfers.
+ * - INVESTOR: Qualified Buyer / Token Holder (InvestorMSP). Proposes investment offers to issuers, negotiates, settles.
  * - AUDITOR: Consortium Oversight (AuditorMSP). Read-only access across all operations, unredacted PDC audit logs.
  */
 
@@ -27,7 +27,7 @@ export const ROLE_PERMISSIONS = {
   [ROLES.ADMINISTRATOR]: {
     label: 'Consortium Administrator',
     badge: 'System Admin',
-    tabs: ['dashboard', 'participants', 'assets', 'identity', 'identity-admin', 'asset-types', 'audit'],
+    tabs: ['dashboard', 'participants', 'identity', 'identity-admin', 'asset-types'],
     canRegisterAsset: false,
     canVerify: false,
     canValue: false,
@@ -38,7 +38,7 @@ export const ROLE_PERMISSIONS = {
   [ROLES.ISSUER]: {
     label: 'Asset Originator / Issuer',
     badge: 'Issuer',
-    tabs: ['assets', 'tokens', 'transfers', 'lifecycle'],
+    tabs: ['assets', 'investment-offers'],
     canRegisterAsset: true,
     canVerify: false,
     canValue: false,
@@ -49,7 +49,7 @@ export const ROLE_PERMISSIONS = {
   [ROLES.VERIFIER]: {
     label: 'Independent Verifier',
     badge: 'Verifier',
-    tabs: ['assets', 'verification', 'audit'],
+    tabs: ['verification'],
     canRegisterAsset: false,
     canVerify: true,
     canValue: false,
@@ -60,7 +60,7 @@ export const ROLE_PERMISSIONS = {
   [ROLES.VALUER]: {
     label: 'Certified Valuer',
     badge: 'Valuer',
-    tabs: ['assets', 'valuation', 'audit'],
+    tabs: ['valuation'],
     canRegisterAsset: false,
     canVerify: false,
     canValue: true,
@@ -71,7 +71,7 @@ export const ROLE_PERMISSIONS = {
   [ROLES.COMPLIANCE]: {
     label: 'Compliance Officer',
     badge: 'Compliance',
-    tabs: ['assets', 'verification', 'valuation', 'tokens', 'transfers', 'lifecycle', 'audit'],
+    tabs: ['assets', 'verification', 'valuation', 'transfers', 'lifecycle', 'audit'],
     canRegisterAsset: false,
     canVerify: false,
     canValue: false,
@@ -82,7 +82,7 @@ export const ROLE_PERMISSIONS = {
   [ROLES.INVESTOR]: {
     label: 'Accredited Investor',
     badge: 'Investor',
-    tabs: ['assets', 'tokens', 'transfers'],
+    tabs: ['assets', 'invest'],
     canRegisterAsset: false,
     canVerify: false,
     canValue: false,
@@ -93,7 +93,7 @@ export const ROLE_PERMISSIONS = {
   [ROLES.AUDITOR]: {
     label: 'Consortium Auditor',
     badge: 'Auditor',
-    tabs: ['assets', 'verification', 'valuation', 'tokens', 'transfers', 'lifecycle', 'audit'],
+    tabs: ['assets', 'verification', 'valuation', 'transfers', 'lifecycle', 'audit'],
     canRegisterAsset: false,
     canVerify: false,
     canValue: false,

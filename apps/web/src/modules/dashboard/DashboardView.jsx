@@ -17,6 +17,7 @@ import {
   Users,
   ShieldCheck,
   XCircle,
+  Inbox,
 } from 'lucide-react';
 
 const settledList = (result) =>
@@ -78,6 +79,9 @@ function getRoleCounters(role, data, onNavigate) {
         ['REGISTERED', 'CHANGES_REQUESTED', 'REJECTED', 'DRAFT'].includes(a.status)
       ).length;
       const inVerification = assets.filter((a) => a.status === 'UNDER_VERIFICATION').length;
+      const pendingOffers = transfers.filter((t) =>
+        ['PROPOSED', 'PENDING_COMPLIANCE', 'PENDING'].includes(t.status)
+      ).length;
       const ready = assets.filter((a) =>
         ['VERIFIED', 'VALUED', 'TOKENIZED'].includes(a.status)
       ).length;
@@ -90,6 +94,15 @@ function getRoleCounters(role, data, onNavigate) {
           icon: Clock,
           tone: 'amber',
           onClick: link('assets'),
+        },
+        {
+          key: 'investment-offers',
+          label: 'Investment Offers',
+          value: pendingOffers,
+          sub: 'Investor requests awaiting review',
+          icon: Inbox,
+          tone: 'navy',
+          onClick: link('investment-offers'),
         },
         {
           key: 'in-verification',
@@ -233,25 +246,25 @@ function getRoleCounters(role, data, onNavigate) {
           sub: 'Whole & fractional',
           icon: Coins,
           tone: 'teal',
-          onClick: link('tokens'),
+          onClick: link('assets'),
         },
         {
           key: 'pending',
-          label: 'Pending Transfers',
+          label: 'Pending Offers',
           value: proposed,
-          sub: 'Awaiting settlement',
+          sub: 'Awaiting issuer response',
           icon: Clock,
           tone: 'amber',
-          onClick: link('transfers'),
+          onClick: link('invest'),
         },
         {
           key: 'settled',
-          label: 'Settled Transfers',
+          label: 'Settled Investments',
           value: settled,
           sub: 'Executed on ledger',
           icon: CheckCircle2,
           tone: 'green',
-          onClick: link('transfers'),
+          onClick: link('invest'),
         },
       ];
     }
@@ -274,7 +287,7 @@ function getRoleCounters(role, data, onNavigate) {
           sub: 'Traceable to collateral',
           icon: Coins,
           tone: 'teal',
-          onClick: link('tokens'),
+          onClick: link('assets'),
         },
         {
           key: 'commits',
@@ -308,7 +321,7 @@ function getRoleCounters(role, data, onNavigate) {
           sub: 'Whole & fractional',
           icon: Coins,
           tone: 'teal',
-          onClick: link('tokens'),
+          onClick: link('assets'),
         },
         {
           key: 'pending',

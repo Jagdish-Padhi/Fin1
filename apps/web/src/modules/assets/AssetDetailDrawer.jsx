@@ -19,6 +19,9 @@ import {
   ArrowRight,
   RefreshCw,
   Download,
+  Coins,
+  Users,
+  PlusCircle,
 } from 'lucide-react';
 
 import { ModalPortal } from '../../shared/components/ModalPortal.jsx';
@@ -27,8 +30,22 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
   const [asset, setAsset] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'attributes' | 'evidence'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'attributes' | 'evidence' | 'tokenization'
   const [showSticker, setShowSticker] = useState(false);
+
+  // Tokenization (security details moved from standalone Tokens tab)
+  const [token, setToken] = useState(null);
+  const [tokenLoading, setTokenLoading] = useState(false);
+  const [tokenError, setTokenError] = useState(null);
+  const [holders, setHolders] = useState([]);
+  const [holdersLoading, setHoldersLoading] = useState(false);
+  const [showMint, setShowMint] = useState(false);
+  const [mintSubmitting, setMintSubmitting] = useState(false);
+  const [mintStandard, setMintStandard] = useState('FRACTIONAL');
+  const [mintTotalUnits, setMintTotalUnits] = useState(10000);
+  const [mintUnitLabel, setMintUnitLabel] = useState('SQM');
+  const [mintRightsType, setMintRightsType] = useState('UNDIVIDED_FRACTION');
+  const [mintRepresentation, setMintRepresentation] = useState('Undivided economic fractional interest');
 
   // Evidence upload state
   const [uploadDocType, setUploadDocType] = useState('');
@@ -73,6 +90,67 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
       setError(err?.response?.data?.error?.message || err.message || 'Failed to load asset');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTokenization = async () => {
+    if (!assetId) return;
+    try {
+      setTokenLoading(true);
+      setTokenError(null);
+      const res = await api.getTokens();
+      const list = res?.data || [];
+      const match = list.find((t) => t.assetId === assetId) || null;
+      setToken(match);
+      if (match?.id) {
+        try {
+          setHoldersLoading(true);
+          const hRes = await api.getTokenHolders(match.id);
+          setHolders(hRes?.data || []);
+        } catch {
+          setHolders([]);
+        } finally {
+          setHoldersLoading(false);
+        }
+      } else {
+        setHolders([]);
+      }
+    } catch (err) {
+      console.error('Failed to load tokenization:', err);
+      setTokenError(err?.message || 'Failed to load token details');
+      setToken(null);
+      setHolders([]);
+    } finally {
+      setTokenLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && assetId && asset && activeTab === 'tokenization') {
+      loadTokenization();
+    }
+  }, [isOpen, assetId, asset, activeTab]);
+
+  const handleMintFromDrawer = async (e) => {
+    e.preventDefault();
+    try {
+      setMintSubmitting(true);
+      setTokenError(null);
+      await api.mintToken({
+        assetId: asset.id,
+        standard: mintStandard,
+        totalUnits: Number(mintTotalUnits),
+        unitLabel: mintUnitLabel,
+        rightsType: mintRightsType,
+        representation: mintRepresentation,
+      });
+      setShowMint(false);
+      await loadTokenization();
+      onAssetUpdated?.();
+    } catch (err) {
+      setTokenError(err?.message || 'Token minting failed. Check verification & valuation approval.');
+    } finally {
+      setMintSubmitting(false);
     }
   };
 
@@ -177,8 +255,12 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
   const canEdit =
     asset?.status === 'REGISTERED' && (user?.role === 'ISSUER' || user?.role === 'ADMINISTRATOR');
 
+  const canMint = user?.role === 'COMPLIANCE' || user?.role === 'ADMINISTRATOR';
+
   // Ledger returns attached documents under `evidence`; tolerate `evidenceFiles`.
   const evidenceFiles = asset?.evidence || asset?.evidenceFiles || [];
+  const tokenSupply = token ? Number(token.totalUnits || token.totalSupply || 0) : 0;
+  const tokenLabel = token ? token.unitLabel || token.symbol || 'UNITS' : 'UNITS';
 
   return (
     <ModalPortal isOpen={isOpen} onClose={onClose}>
@@ -261,6 +343,22 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
             {evidenceFiles.length > 0 && (
               <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[#F0FDFA] text-[#0F766E] font-semibold border border-[#CCFBF1]">
                 {evidenceFiles.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('tokenization')}
+            className={`py-3 px-3 text-xs font-bold border-b-2 transition flex items-center gap-1.5 ${
+              activeTab === 'tokenization'
+                ? 'border-[#0F2A43] text-[#0F2A43]'
+                : 'border-transparent text-[#5A6A7E] hover:text-[#0F2A43]'
+            }`}
+          >
+            <Coins className="w-3.5 h-3.5" />
+            Tokenization & Holdings
+            {token && (
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[#F0F4F8] text-[#1F5A7A] font-semibold border border-[#D8E0E8]">
+                {token.status || 'ACTIVE'}
               </span>
             )}
           </button>
@@ -695,6 +793,233 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
                       </>
                     )}
                   </button>
+                </form>
+              )}
+            </div>
+          )}
+
+          {!loading && asset && activeTab === 'tokenization' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider flex items-center gap-1.5">
+                    <Coins className="w-4 h-4 text-[#1F5A7A]" />
+                    Security Token & Cap Table
+                  </h3>
+                  <p className="text-[11px] text-[#5A6A7E]">
+                    Tokenized claims anchored to this asset passport
+                  </p>
+                </div>
+                <button
+                  onClick={loadTokenization}
+                  disabled={tokenLoading}
+                  className="p-1.5 rounded-lg bg-white border border-[#D8E0E8] text-[#5A6A7E] hover:text-[#0F2A43] transition"
+                  title="Refresh token state"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${tokenLoading ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+
+              {tokenError && (
+                <div className="p-3 rounded-lg bg-[#FEF2F2] border border-[#FECDD3] text-xs text-[#B42318]">
+                  {tokenError}
+                </div>
+              )}
+
+              {tokenLoading ? (
+                <div className="py-10 flex flex-col items-center gap-2 text-[#5A6A7E]">
+                  <RefreshCw className="w-5 h-5 animate-spin text-[#0F766E]" />
+                  <span className="text-xs">Loading token state...</span>
+                </div>
+              ) : !token ? (
+                <div className="trust-card p-6 text-center space-y-3">
+                  <Coins className="w-8 h-8 text-[#BAC7D5] mx-auto" />
+                  <div className="text-xs font-bold text-[#0F2A43]">Not tokenized yet</div>
+                  <p className="text-[11px] text-[#5A6A7E]">
+                    No security token has been minted against this asset. Minting requires a verified
+                    and valuation-approved asset.
+                  </p>
+                  {canMint && (
+                    <button
+                      onClick={() => setShowMint(true)}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#0F2A43] hover:bg-[#1F5A7A] text-white rounded-lg text-xs font-semibold transition"
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                      Mint Security Token
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="trust-card p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono font-bold text-sm text-[#0F2A43]">{token.id}</span>
+                      <span
+                        className={`px-2.5 py-1 rounded-md text-xs font-bold border ${
+                          token.status === 'ACTIVE'
+                            ? 'bg-[#F0FDF4] text-[#18794E] border-[#DCFCE7]'
+                            : 'bg-[#FEF2F2] text-[#B42318] border-[#FECDD3]'
+                        }`}
+                      >
+                        {token.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#5A6A7E]">
+                      {token.representation || 'Undivided economic rights'}
+                    </p>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="bg-[#F8FAFC] p-3 rounded-lg border border-[#D8E0E8]">
+                        <div className="text-[10px] text-[#5A6A7E] font-bold uppercase">
+                          Total Authorized Supply
+                        </div>
+                        <div className="font-mono text-sm font-bold text-[#0F2A43] mt-0.5">
+                          {tokenSupply.toLocaleString()} {tokenLabel}
+                        </div>
+                      </div>
+                      <div className="bg-[#F8FAFC] p-3 rounded-lg border border-[#D8E0E8]">
+                        <div className="text-[10px] text-[#5A6A7E] font-bold uppercase">Standard</div>
+                        <div className="font-mono text-xs font-semibold text-[#1F5A7A] mt-1">
+                          {token.standard || 'FRACTIONAL'}
+                        </div>
+                        <div className="text-[10px] text-[#5A6A7E] mt-0.5">
+                          {token.rightsType || 'UNDIVIDED_FRACTION'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider flex items-center gap-1.5">
+                      <Users className="w-4 h-4 text-[#1F5A7A]" />
+                      On-Chain Cap Table / Holdings ({holders.length})
+                    </h4>
+                    {holdersLoading ? (
+                      <div className="p-4 text-center text-xs text-[#5A6A7E]">
+                        Querying ledger balance state...
+                      </div>
+                    ) : holders.length === 0 ? (
+                      <div className="p-4 text-center text-xs text-[#5A6A7E] bg-white rounded-lg border border-[#D8E0E8]">
+                        No active token holder records found.
+                      </div>
+                    ) : (
+                      <div className="border border-[#D8E0E8] rounded-lg overflow-hidden divide-y divide-[#D8E0E8] text-xs bg-white">
+                        {holders.map((h, i) => {
+                          const participantId = h.participantId || h.holderId || 'UNKNOWN';
+                          const unitsHeld = h.units !== undefined ? h.units : h.balance || 0;
+                          const percentage =
+                            tokenSupply > 0 ? ((unitsHeld / tokenSupply) * 100).toFixed(1) : '0.0';
+                          return (
+                            <div
+                              key={i}
+                              className="p-3 flex items-center justify-between hover:bg-[#F8FAFC] transition"
+                            >
+                              <div>
+                                <span className="font-mono font-semibold text-[#0F2A43]">
+                                  {participantId}
+                                </span>
+                                <div className="text-[10px] text-[#5A6A7E] mt-0.5">
+                                  Holding: {percentage}% of supply
+                                </div>
+                              </div>
+                              <span className="font-bold font-mono text-[#17202A] text-sm">
+                                {Number(unitsHeld).toLocaleString()}{' '}
+                                <span className="text-xs text-[#5A6A7E] font-normal">{tokenLabel}</span>
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {showMint && (
+                <form onSubmit={handleMintFromDrawer} className="trust-card p-4 space-y-3 text-xs">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#D8E0E8]">
+                    <span className="font-bold text-[#0F2A43]">Mint Security Token for {asset.id}</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowMint(false)}
+                      className="p-1 hover:bg-[#F0F4F8] rounded text-[#5A6A7E]"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[#5A6A7E] font-medium mb-1">Standard</label>
+                      <select
+                        value={mintStandard}
+                        onChange={(e) => setMintStandard(e.target.value)}
+                        className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg bg-white"
+                      >
+                        <option value="FRACTIONAL">FRACTIONAL</option>
+                        <option value="WHOLE">WHOLE</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[#5A6A7E] font-medium mb-1">Total Units</label>
+                      <input
+                        type="number"
+                        value={mintTotalUnits}
+                        onChange={(e) => setMintTotalUnits(e.target.value)}
+                        className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
+                        min="1"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[#5A6A7E] font-medium mb-1">Unit Label</label>
+                      <input
+                        type="text"
+                        value={mintUnitLabel}
+                        onChange={(e) => setMintUnitLabel(e.target.value)}
+                        className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[#5A6A7E] font-medium mb-1">Rights Type</label>
+                      <select
+                        value={mintRightsType}
+                        onChange={(e) => setMintRightsType(e.target.value)}
+                        className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg bg-white"
+                      >
+                        <option value="UNDIVIDED_FRACTION">UNDIVIDED_FRACTION</option>
+                        <option value="FULL_OWNERSHIP">FULL_OWNERSHIP</option>
+                        <option value="RECEIVABLE_CLAIM">RECEIVABLE_CLAIM</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[#5A6A7E] font-medium mb-1">Representation</label>
+                    <textarea
+                      value={mintRepresentation}
+                      onChange={(e) => setMintRepresentation(e.target.value)}
+                      className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg"
+                      rows={2}
+                      required
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowMint(false)}
+                      className="px-4 py-2 border border-[#D8E0E8] rounded-lg text-[#5A6A7E]"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={mintSubmitting}
+                      className="px-4 py-2 bg-[#0F2A43] text-white rounded-lg font-semibold hover:bg-[#1F5A7A]"
+                    >
+                      {mintSubmitting ? 'Minting...' : 'Mint Token'}
+                    </button>
+                  </div>
                 </form>
               )}
             </div>

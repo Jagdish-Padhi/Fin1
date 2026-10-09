@@ -70,7 +70,7 @@ export function AssetsView() {
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  const canRegister = user?.role === 'ISSUER' || user?.role === 'ADMINISTRATOR';
+  const canRegister = user?.role === 'ISSUER';
 
   const stats = {
     total: assets.length,

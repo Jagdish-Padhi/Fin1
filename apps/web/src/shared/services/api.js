@@ -92,13 +92,6 @@ export class ApiClient {
     });
   }
 
-  attachEvidence(assetId, data) {
-    return this.request(`/assets/${encodeURIComponent(assetId)}/evidence`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
   async uploadEvidence(assetId, docType, file) {
     const formData = new FormData();
     formData.append('assetId', assetId);
@@ -226,10 +219,6 @@ export class ApiClient {
     return this.request('/participants');
   }
 
-  getParticipant(id) {
-    return this.request(`/participants/${encodeURIComponent(id)}`);
-  }
-
   registerParticipant(data) {
     return this.request('/participants', {
       method: 'POST',
@@ -241,13 +230,6 @@ export class ApiClient {
     return this.request(`/participants/${encodeURIComponent(id)}/kyc`, {
       method: 'PATCH',
       body: JSON.stringify({ kycStatus, reason, expiryDate }),
-    });
-  }
-
-  setInvestorClass(id, investorClass, reason) {
-    return this.request(`/participants/${encodeURIComponent(id)}/investor-class`, {
-      method: 'PATCH',
-      body: JSON.stringify({ investorClass, reason }),
     });
   }
 
@@ -316,20 +298,9 @@ export class ApiClient {
     return this.request('/identity-admin/orgs');
   }
 
-  createAdminOrg(data) {
-    return this.request('/identity-admin/orgs', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
   // Verification Audit APIs
   getVerificationCases() {
     return this.request('/verification/cases');
-  }
-
-  getVerificationCase(caseId) {
-    return this.request(`/verification/cases/${encodeURIComponent(caseId)}`);
   }
 
   recordVerificationCheck(caseId, checkKey, result, notes, sourceRef) {
@@ -349,10 +320,6 @@ export class ApiClient {
   // Valuation APIs
   getValuations() {
     return this.request('/valuation');
-  }
-
-  getValuation(id) {
-    return this.request(`/valuation/${encodeURIComponent(id)}`);
   }
 
   proposeValuation(data) {
@@ -380,10 +347,6 @@ export class ApiClient {
     return this.request(`/tokens/${encodeURIComponent(id)}/holders`);
   }
 
-  getTokenTrace(id) {
-    return this.request(`/tokens/${encodeURIComponent(id)}/trace`);
-  }
-
   // Transfer APIs
   proposeTransfer(data) {
     return this.request('/transfers/propose', {
@@ -402,6 +365,13 @@ export class ApiClient {
   executeTransfer(id) {
     return this.request(`/transfers/${encodeURIComponent(id)}/execute`, {
       method: 'POST',
+    });
+  }
+
+  cancelTransfer(id, reason) {
+    return this.request(`/transfers/${encodeURIComponent(id)}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify(reason ? { reason } : {}),
     });
   }
 

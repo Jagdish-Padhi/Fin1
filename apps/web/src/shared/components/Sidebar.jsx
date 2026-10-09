@@ -5,7 +5,6 @@ import {
   Layers,
   FileCheck,
   TrendingUp,
-  Coins,
   ArrowRightLeft,
   Activity,
   History,
@@ -14,6 +13,8 @@ import {
   UserCheck,
   ChevronLeft,
   ChevronRight,
+  HandCoins,
+  Inbox,
 } from 'lucide-react';
 import { canAccessTab } from '../utils/permissions.js';
 
@@ -23,14 +24,15 @@ export function Sidebar({ currentTab, onSelectTab }) {
   const userRole = user?.role || 'ADMINISTRATOR';
 
   const allNavItems = [
-    { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
+    { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard, hideFor: ['VALUER'] },
     { id: 'participants', label: 'Participant Directory', icon: Users, requiredRole: 'ADMINISTRATOR' },
     { id: 'identity-admin', label: 'Consortium Governance', icon: UserCheck, requiredRole: 'ADMINISTRATOR' },
     { id: 'assets', label: 'Real-World Assets', icon: Layers },
     { id: 'asset-types', label: 'Asset Type Engine', icon: Building, requiredRole: 'ADMINISTRATOR' },
     { id: 'verification', label: 'Verification Audits', icon: FileCheck },
     { id: 'valuation', label: 'Valuation & Pricing', icon: TrendingUp },
-    { id: 'tokens', label: 'Tokenized Securities', icon: Coins },
+    { id: 'invest', label: 'Invest & Offers', icon: HandCoins },
+    { id: 'investment-offers', label: 'Investment Offers', icon: Inbox },
     { id: 'transfers', label: 'Settlement & Transfer Rules', icon: ArrowRightLeft },
     { id: 'lifecycle', label: 'Lifecycle Governance', icon: Activity },
     { id: 'audit', label: 'Consortium Audit Trail', icon: History },
@@ -38,6 +40,7 @@ export function Sidebar({ currentTab, onSelectTab }) {
 
   // Filter based on user's authorized tabs under segregation of duties
   const filteredNavItems = allNavItems.filter((item) => {
+    if (item.hideFor?.includes(userRole)) return false;
     if (item.id === 'dashboard') return true;
     if (item.requiredRole && item.requiredRole !== userRole) return false;
     return canAccessTab(userRole, item.id);

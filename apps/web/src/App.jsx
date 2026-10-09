@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './shared/context/AuthContext.jsx';
 import { Navbar } from './shared/components/Navbar.jsx';
 import { Sidebar } from './shared/components/Sidebar.jsx';
 import { RoleGuard } from './shared/components/RoleGuard.jsx';
+import { canAccessTab } from './shared/utils/permissions.js';
 import { DashboardView } from './modules/dashboard/DashboardView.jsx';
 import { ParticipantsView } from './modules/participants/ParticipantsView.jsx';
 import { IdentityAdminView } from './modules/identity-admin/IdentityAdminView.jsx';
@@ -10,8 +11,9 @@ import { AssetsView } from './modules/assets/AssetsView.jsx';
 import { AssetTypesView } from './modules/asset-types/AssetTypesView.jsx';
 import { VerificationView } from './modules/verification/VerificationView.jsx';
 import { ValuationView } from './modules/valuation/ValuationView.jsx';
-import { TokensView } from './modules/tokens/TokensView.jsx';
 import { TransfersView } from './modules/transfers/TransfersView.jsx';
+import { InvestView } from './modules/offers/InvestView.jsx';
+import { InvestmentOffersView } from './modules/offers/InvestmentOffersView.jsx';
 import { LifecycleView } from './modules/lifecycle/LifecycleView.jsx';
 import { AuditView } from './modules/audit/AuditView.jsx';
 import { PublicVerifyPage } from './modules/public-verify/PublicVerifyPage.jsx';
@@ -27,6 +29,23 @@ function MainLayout() {
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const currentRole = user?.role || null;
+
+  // If the active tab is not reachable for this identity (role switch,
+  // removed tab, stale state), fall back to dashboard instead of
+  // stranding the user on a Segregation-of-Duties denial card.
+  // Valuer has no dashboard — valuation is their home tab.
+  // RoleGuard stays in place below as defense-in-depth.
+  useEffect(() => {
+    if (!currentRole) return;
+    if (currentRole === 'VALUER' && currentTab === 'dashboard') {
+      setCurrentTab('valuation');
+      return;
+    }
+    if (currentTab === 'dashboard') return;
+    if (!canAccessTab(currentRole, currentTab)) {
+      setCurrentTab('dashboard');
+    }
+  }, [currentRole, currentTab]);
 
   // ─── Loading spinner ───────────────────────────────────────────────────────
   if (loading) {
@@ -114,7 +133,15 @@ function MainLayout() {
             </RoleGuard>
           )}
 
-          {currentTab === 'assets' && <AssetsView />}
+          {currentTab === 'assets' && (
+            <RoleGuard
+              currentRole={currentRole}
+              allowedRoles={['ISSUER', 'COMPLIANCE', 'INVESTOR', 'AUDITOR']}
+              onNavigateHome={() => setCurrentTab('dashboard')}
+            >
+              <AssetsView />
+            </RoleGuard>
+          )}
 
           {currentTab === 'asset-types' && (
             <RoleGuard
@@ -146,20 +173,30 @@ function MainLayout() {
             </RoleGuard>
           )}
 
-          {currentTab === 'tokens' && (
+          {currentTab === 'invest' && (
             <RoleGuard
               currentRole={currentRole}
-              allowedRoles={['ISSUER', 'COMPLIANCE', 'INVESTOR', 'AUDITOR', 'ADMINISTRATOR']}
+              allowedRoles={['INVESTOR']}
               onNavigateHome={() => setCurrentTab('dashboard')}
             >
-              <TokensView />
+              <InvestView />
+            </RoleGuard>
+          )}
+
+          {currentTab === 'investment-offers' && (
+            <RoleGuard
+              currentRole={currentRole}
+              allowedRoles={['ISSUER']}
+              onNavigateHome={() => setCurrentTab('dashboard')}
+            >
+              <InvestmentOffersView />
             </RoleGuard>
           )}
 
           {currentTab === 'transfers' && (
             <RoleGuard
               currentRole={currentRole}
-              allowedRoles={['ISSUER', 'INVESTOR', 'COMPLIANCE', 'AUDITOR', 'ADMINISTRATOR']}
+              allowedRoles={['COMPLIANCE', 'AUDITOR', 'ADMINISTRATOR']}
               onNavigateHome={() => setCurrentTab('dashboard')}
             >
               <TransfersView />
@@ -169,7 +206,7 @@ function MainLayout() {
           {currentTab === 'lifecycle' && (
             <RoleGuard
               currentRole={currentRole}
-              allowedRoles={['COMPLIANCE', 'ADMINISTRATOR']}
+              allowedRoles={['COMPLIANCE', 'ADMINISTRATOR', 'AUDITOR']}
               onNavigateHome={() => setCurrentTab('dashboard')}
             >
               <LifecycleView />
@@ -179,7 +216,7 @@ function MainLayout() {
           {currentTab === 'audit' && (
             <RoleGuard
               currentRole={currentRole}
-              allowedRoles={['AUDITOR', 'COMPLIANCE', 'ADMINISTRATOR', 'VERIFIER', 'VALUER']}
+              allowedRoles={['AUDITOR', 'COMPLIANCE']}
               onNavigateHome={() => setCurrentTab('dashboard')}
             >
               <AuditView />
