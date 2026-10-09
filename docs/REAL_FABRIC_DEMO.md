@@ -85,7 +85,17 @@ API_BASE_URL=http://localhost:5000/api/v1 node tools/smoke/golden-path.mjs
 
 `golden-path.mjs` uses only real schemas: `REAL_ESTATE + surveyNumber/propertyId`, `TITLE_DEED/ENCUMBRANCE_CERT/TAX_RECEIPT`, `PASS`, `DISCOUNTED_CASH_FLOW`, `Password@123`.
 
-## 6. What was removed (no fakes)
+## 6. Registry oracle (automated verification by number)
+
+`POST /api/v1/verification/cases/:caseId/registry-check` (VERIFIER) cross-checks
+ledger attributes against Vahan (Vehicle → `RC_VALID`), Bhoomi RTC (Real Estate →
+`TITLE_SEARCH`), GST e-invoice (Invoice → `E_INVOICE_PORTAL`) and records PASS/FAIL
+on-chain with `sourceRef = registry:<NAME>:<sha256(query+response)>`. Live provider
+lookup via `REGISTRY_<NAME>_URL/_KEY`, else the verifier submits the portal record
+and the oracle validates + compares it — never invents data. Human verifier keeps
+the final APPROVED/REJECTED decision. UI: case detail → Registry Check button.
+
+## 7. What was removed (no fakes)
 
 - `LifecycleContract` OK-stubs -> real state + audit + events
 - `AuditContract` empty `[]` -> real range scan + hash

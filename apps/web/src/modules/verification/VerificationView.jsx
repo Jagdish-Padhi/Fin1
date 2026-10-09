@@ -53,10 +53,19 @@ export function VerificationView() {
   // Form states for adding check
   const [showCheckModal, setShowCheckModal] = useState(false);
   const [checkKey, setCheckKey] = useState('LEGAL_TITLE_SEARCH');
-  const [checkResult, setCheckResult] = useState('PASSED');
+  const [checkResult, setCheckResult] = useState('PASS');
   const [checkNotes, setCheckNotes] = useState('');
   const [checkSourceRef, setCheckSourceRef] = useState('');
   const [submittingCheck, setSubmittingCheck] = useState(false);
+
+  // Registry oracle check states
+  const [showRegistryModal, setShowRegistryModal] = useState(false);
+  const [registryCaps, setRegistryCaps] = useState([]);
+  const [registryAsset, setRegistryAsset] = useState(null);
+  const [registryLoading, setRegistryLoading] = useState(false);
+  const [registryResponseText, setRegistryResponseText] = useState('');
+  const [registryReference, setRegistryReference] = useState('');
+  const [submittingRegistry, setSubmittingRegistry] = useState(false);
 
   // Form states for final decision
   const [showDecisionModal, setShowDecisionModal] = useState(false);
@@ -135,6 +144,64 @@ export function VerificationView() {
       toast.error(err.message || 'Failed to record verification decision.');
     } finally {
       setSubmittingDecision(false);
+    }
+  };
+
+  const openRegistryModal = async () => {
+    if (!selectedCase) return;
+    setShowRegistryModal(true);
+    setRegistryLoading(true);
+    try {
+      const [capsRes, assetRes] = await Promise.all([
+        api.getRegistryCapabilities().catch(() => ({ data: [] })),
+        selectedCase.asset?.typeKey
+          ? Promise.resolve({ data: selectedCase.asset })
+          : api.getAsset(selectedCase.assetId).catch(() => ({ data: null })),
+      ]);
+      setRegistryCaps(capsRes.data || []);
+      setRegistryAsset(assetRes.data || selectedCase.asset || null);
+    } catch (err) {
+      toast.error(err.message || 'Failed to load registry details.');
+    } finally {
+      setRegistryLoading(false);
+    }
+  };
+
+  const registrySpec = registryAsset?.typeKey
+    ? registryCaps.find((r) => r.typeKey === registryAsset.typeKey)
+    : null;
+
+  const handleRegistryCheck = async (e) => {
+    e.preventDefault();
+    if (!selectedCase) return;
+    let registryResponse;
+    if (registryResponseText.trim() !== '') {
+      try {
+        registryResponse = JSON.parse(registryResponseText);
+      } catch {
+        toast.error('Registry record is not valid JSON.');
+        return;
+      }
+    }
+    try {
+      setSubmittingRegistry(true);
+      const res = await api.runRegistryCheck(selectedCase.id || selectedCase.caseId, {
+        ...(registryResponse ? { registryResponse } : {}),
+        ...(registryReference.trim() !== '' ? { referenceNumber: registryReference.trim() } : {}),
+      });
+      const outcome = res.data?.comparison?.result || 'recorded';
+      const matched = res.data?.comparison;
+      toast.success(
+        matched ? `Registry cross-check ${outcome}: ${matched.matched}/${matched.total} fields matched.` : 'Registry cross-check recorded.'
+      );
+      setShowRegistryModal(false);
+      setRegistryResponseText('');
+      setRegistryReference('');
+      await loadCases();
+    } catch (err) {
+      toast.error(err.message || 'Registry cross-check failed.');
+    } finally {
+      setSubmittingRegistry(false);
     }
   };
 
@@ -296,6 +363,13 @@ export function VerificationView() {
                 {isVerifier && selectedCase.status !== 'APPROVED' && selectedCase.status !== 'REJECTED' && (
                   <div className="flex items-center gap-2">
                     <button
+                      onClick={openRegistryModal}
+                      className="px-3 py-1.5 bg-white hover:bg-[#F1F5F9] border border-[#D8E0E8] text-[#1F5A7A] text-xs font-semibold rounded-lg flex items-center gap-1.5 transition"
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                      Registry Check
+                    </button>
+                    <button
                       onClick={() => setShowCheckModal(true)}
                       className="px-3 py-1.5 bg-[#0F2A43] hover:bg-[#1F5A7A] text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition"
                     >
@@ -422,9 +496,9 @@ export function VerificationView() {
                           <span className="font-semibold text-[#0F2A43] font-mono">{chk.checkKey}</span>
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              chk.result === 'PASSED'
+                              chk.result === 'PASS'
                                 ? 'bg-[#ECFDF5] text-[#18794E]'
-                                : chk.result === 'FAILED'
+                                : chk.result === 'FAIL'
                                 ? 'bg-[#FEF2F2] text-[#B42318]'
                                 : 'bg-[#FEFCE8] text-[#A16207]'
                             }`}
@@ -451,6 +525,86 @@ export function VerificationView() {
           )}
         </div>
       </div>
+
+      {/* Registry Check Modal */}
+      {showRegistryModal && (
+        <div className="fixed inset-0 z-50 bg-[#0F2A43]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#D8E0E8] rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#D8E0E8]">
+              <h3 className="text-sm font-bold text-[#0F2A43]">Registry Cross-Check</h3>
+              <button
+                onClick={() => setShowRegistryModal(false)}
+                className="p-1 hover:bg-[#F0F4F8] rounded text-[#5A6A7E] transition"
+              >
+                ✕
+              </button>
+            </div>
+            {registryLoading ? (
+              <div className="p-6 text-center text-xs text-[#5A6A7E]">Loading registry details...</div>
+            ) : !registrySpec ? (
+              <div className="p-6 text-center text-xs text-[#5A6A7E] bg-[#F8FAFC] rounded-lg border border-[#D8E0E8]">
+                Registry verification is available for Vehicle, Real Estate and Invoice assets.
+              </div>
+            ) : (
+              <form onSubmit={handleRegistryCheck} className="space-y-3 text-xs">
+                <div className="p-3 bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg space-y-1">
+                  <div className="font-bold text-[#0F2A43]">{registrySpec.displayName}</div>
+                  <div className="text-[#5A6A7E]">
+                    Records <span className="font-mono font-semibold text-[#1F5A7A]">{registrySpec.checkKey}</span> on ledger
+                    {' '}• Mode: <span className="font-semibold">{registrySpec.mode === 'live' ? 'Live provider' : 'Manual record'}</span>
+                  </div>
+                  <div className="text-[#5A6A7E]">
+                    Required record fields: <span className="font-mono">{registrySpec.requiredResponseFields.join(', ')}</span>
+                  </div>
+                </div>
+
+                {registrySpec.mode === 'live' && (
+                  <div>
+                    <label className="block text-[#5A6A7E] font-medium mb-1">Registry Reference Number</label>
+                    <input
+                      type="text"
+                      value={registryReference}
+                      onChange={(e) => setRegistryReference(e.target.value)}
+                      placeholder="e.g. RC reference from the registry portal"
+                      className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-[#5A6A7E] font-medium mb-1">
+                    Registry Record (JSON){registrySpec.mode === 'live' ? ' — optional when reference is given' : ''}
+                  </label>
+                  <textarea
+                    rows="6"
+                    value={registryResponseText}
+                    onChange={(e) => setRegistryResponseText(e.target.value)}
+                    placeholder='{"registrationNumber": "KA-01-EQ-9001", "maker": "Tata Motors", "model": "Ultra T.7 Electric"}'
+                    className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowRegistryModal(false)}
+                    className="px-4 py-2 border border-[#D8E0E8] rounded-lg text-[#5A6A7E]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingRegistry}
+                    className="px-4 py-2 bg-[#0F2A43] text-white rounded-lg font-semibold hover:bg-[#1F5A7A]"
+                  >
+                    {submittingRegistry ? 'Verifying...' : 'Run Cross-Check'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Record Check Modal */}
       {showCheckModal && (
@@ -487,9 +641,9 @@ export function VerificationView() {
                   onChange={(e) => setCheckResult(e.target.value)}
                   className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg bg-white font-semibold"
                 >
-                  <option value="PASSED">PASSED</option>
-                  <option value="FAILED">FAILED</option>
-                  <option value="INCONCLUSIVE">INCONCLUSIVE</option>
+                  <option value="PASS">PASS</option>
+                  <option value="FAIL">FAIL</option>
+                  <option value="NOT_APPLICABLE">NOT APPLICABLE</option>
                 </select>
               </div>
 

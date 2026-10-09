@@ -30,4 +30,18 @@ export const config = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '15m',
   chainGatewayMode: process.env.CHAIN_GATEWAY_MODE || 'mock',
   encryptionMasterKey,
+  registryProviders: {
+    VAHAN: {
+      url: process.env.REGISTRY_VAHAN_URL || '',
+      key: process.env.REGISTRY_VAHAN_KEY || '',
+    },
+    BHOOMI_RTC: {
+      url: process.env.REGISTRY_BHOOMI_RTC_URL || '',
+      key: process.env.REGISTRY_BHOOMI_RTC_KEY || '',
+    },
+    GST_EINVOICE: {
+      url: process.env.REGISTRY_GST_EINVOICE_URL || '',
+      key: process.env.REGISTRY_GST_EINVOICE_KEY || '',
+    },
+  },
 };

@@ -331,6 +331,17 @@ export class ApiClient {
     });
   }
 
+  getRegistryCapabilities() {
+    return this.request('/verification/registries');
+  }
+
+  runRegistryCheck(caseId, payload) {
+    return this.request(`/verification/cases/${encodeURIComponent(caseId)}/registry-check`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
   // Valuation APIs
   getValuations() {
     return this.request('/valuation');

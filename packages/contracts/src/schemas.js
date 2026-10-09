@@ -254,6 +254,13 @@ export const ExecuteTransferSchema = z.object({
   transferId: z.string().min(1),
 });
 
+export const RegistryCheckSchema = z.object({
+  caseId: z.string().min(1),
+  registryQuery: z.record(z.any()).optional(),
+  registryResponse: z.record(z.any()).optional(),
+  referenceNumber: z.string().trim().min(3).max(64).optional(),
+});
+
 export const LifecycleTransitionSchema = z.object({
   entityId: z.string().min(1),
   action: z.enum(['FREEZE', 'UNFREEZE', 'REDEEM', 'RETIRE']),
