@@ -73,10 +73,13 @@ describe('Registry Oracle: automated registry cross-verification (API Integratio
     });
     assert.equal(res.status, 200);
     const registries = res.body.data.map((r) => r.registry).sort();
-    assert.deepEqual(registries, ['BHOOMI_RTC', 'GST_EINVOICE', 'VAHAN']);
+    assert.deepEqual(registries, ['BHOOMI_RTC', 'BHOOMI_RTC', 'GST_EINVOICE', 'VAHAN']);
     const vahan = res.body.data.find((r) => r.registry === 'VAHAN');
     assert.equal(vahan.checkKey, 'RC_VALID');
     assert.equal(vahan.mode, 'manual');
+    const land = res.body.data.find((r) => r.typeKey === 'LAND');
+    assert.equal(land.registry, 'BHOOMI_RTC');
+    assert.equal(land.checkKey, 'TITLE_SEARCH');
   });
 
   it('Vahan cross-check records PASS for matching RC and FAIL for mismatched maker', async () => {

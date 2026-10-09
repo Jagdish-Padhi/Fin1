@@ -88,14 +88,26 @@ API_BASE_URL=http://localhost:5000/api/v1 node tools/smoke/golden-path.mjs
 ## 6. Registry oracle (automated verification by number)
 
 `POST /api/v1/verification/cases/:caseId/registry-check` (VERIFIER) cross-checks
-ledger attributes against Vahan (Vehicle → `RC_VALID`), Bhoomi RTC (Real Estate →
-`TITLE_SEARCH`), GST e-invoice (Invoice → `E_INVOICE_PORTAL`) and records PASS/FAIL
+ledger attributes against Vahan (Vehicle → `RC_VALID`), Bhoomi RTC (Real Estate
+and Land → `TITLE_SEARCH`), GST e-invoice (Invoice → `E_INVOICE_PORTAL`) and records PASS/FAIL
 on-chain with `sourceRef = registry:<NAME>:<sha256(query+response)>`. Live provider
 lookup via `REGISTRY_<NAME>_URL/_KEY`, else the verifier submits the portal record
 and the oracle validates + compares it — never invents data. Human verifier keeps
 the final APPROVED/REJECTED decision. UI: case detail → Registry Check button.
 
-## 7. What was removed (no fakes)
+## 7. Valuation indication (valuer load reduction)
+
+`POST /api/v1/valuation/indication` (VALUER/COMPLIANCE/ADMIN, VERIFIED assets only)
+computes a deterministic indicative range for closed-form methods —
+`FACE_VALUE_DISCOUNTED` (RBI-yield discount math), `DEPRECIATED_COST` (15% WDV by
+age), `SPOT_MARKET_BENCHMARK` (Agmarknet live or supplied mandi slip),
+`CIRCLE_RATE` (guidance rate × area, source cited), `CAP_RATE` (rent ÷ cap rate).
+Open methods (`MARKET_COMPARABLE`, `DISCOUNTED_CASH_FLOW`) are refused instead of
+fabricated. Response carries `indicationHash` over full workings; the valuer
+one-clicks the figure into the propose form and the hash anchors in
+`methodDetails`. UI: Define Valuation modal → Compute Indication → Use This Amount.
+
+## 8. What was removed (no fakes)
 
 - `LifecycleContract` OK-stubs -> real state + audit + events
 - `AuditContract` empty `[]` -> real range scan + hash

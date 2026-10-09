@@ -62,6 +62,11 @@ export function ValuationView() {
   const [allowedMethods, setAllowedMethods] = useState([]);
   const [assetTypeError, setAssetTypeError] = useState('');
 
+  // Indication engine state (read-only compute, fills the form on accept)
+  const [indicationInputsText, setIndicationInputsText] = useState('{}');
+  const [indication, setIndication] = useState(null);
+  const [indicating, setIndicating] = useState(false);
+
   /**
    * SoD ENFORCEMENT: Only COMPLIANCE officer can approve/certify valuations.
    * VALUER submits valuations but CANNOT approve their own — strict SoD as per PS-01.
@@ -99,6 +104,11 @@ export function ValuationView() {
   const verifiedAssets = useMemo(
     () => assets.filter((a) => a.status === 'VERIFIED'),
     [assets]
+  );
+
+  const selectedAsset = useMemo(
+    () => assets.find((a) => a.id === assetId) || null,
+    [assets, assetId]
   );
 
   const valuationsByAsset = useMemo(() => {
@@ -191,6 +201,40 @@ export function ValuationView() {
     setShowProposeModal(false);
     setAssetId('');
     setAssetTypeError('');
+    setIndication(null);
+    setIndicationInputsText('{}');
+  };
+
+  const handleComputeIndication = async () => {
+    if (!assetId.trim() || !methodology) {
+      toast.error('Select a verified asset and method first.');
+      return;
+    }
+    let extra = {};
+    if (indicationInputsText.trim() !== '' && indicationInputsText.trim() !== '{}') {
+      try {
+        extra = JSON.parse(indicationInputsText);
+      } catch {
+        toast.error('Method inputs are not valid JSON.');
+        return;
+      }
+    }
+    try {
+      setIndicating(true);
+      const res = await api.getValuationIndication(assetId.trim(), methodology, extra);
+      setIndication(res.data || null);
+    } catch (err) {
+      setIndication(null);
+      toast.error(err.message || 'Indication failed.');
+    } finally {
+      setIndicating(false);
+    }
+  };
+
+  const handleUseIndication = () => {
+    if (!indication) return;
+    setAmountPaise(indication.recommendedPaise);
+    toast.success('Indication accepted — amount filled. Review and sign to propose.');
   };
 
   const handlePropose = async (e) => {
@@ -207,7 +251,7 @@ export function ValuationView() {
         currency: 'INR',
         amountPaise: Number(amountPaise),
         method: methodology,
-        methodDetails: { financialModelUri: modelUri },
+        methodDetails: { ...(indication?.suggestedMethodDetails || {}), financialModelUri: modelUri },
         source: {
           valuerName: user?.name || 'Registered Valuer',
           valuerOrg: user?.orgId || 'Valuation Organization',
@@ -360,7 +404,13 @@ export function ValuationView() {
                       >
                         <td className="px-4 py-3">
                           <div className="font-bold text-[#0F2A43]">{a.displayName || a.id}</div>
-                          <div className="font-mono text-[10px] text-[#5A6A7E]">{a.id}</div>
+                          <div className="font-mono text-[10px] text-[#5A6A7E] flex flex-wrap items-center gap-1.5 mt-0.5">
+                            <span>{a.id}</span>
+                            {a.attributes?.surveyNumber && <span>• Survey: {a.attributes.surveyNumber}</span>}
+                            {a.attributes?.registrationNumber && <span>• Reg: {a.attributes.registrationNumber}</span>}
+                            {a.attributes?.areaSqMeters && <span>• {Number(a.attributes.areaSqMeters).toLocaleString()} sqm</span>}
+                            {a.attributes?.builtUpSqFt && <span>• {Number(a.attributes.builtUpSqFt).toLocaleString()} sqft</span>}
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8]">
@@ -593,6 +643,36 @@ export function ValuationView() {
                     {assetTypeError}
                   </div>
                 )}
+                {selectedAsset && (
+                  <div className="p-3 bg-[#F8FAFC] border border-[#D8E0E8] rounded-xl text-xs space-y-1.5">
+                    <div className="flex items-center justify-between text-[#0F2A43] font-semibold">
+                      <span>{selectedAsset.displayName || selectedAsset.id}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded font-mono font-semibold bg-[#ECFDF5] text-[#18794E] border border-[#A7F3D0]">
+                        Verified Evidence Anchored
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[#5A6A7E] flex flex-wrap gap-x-3 gap-y-1 font-mono">
+                      {selectedAsset.attributes?.surveyNumber && (
+                        <span>Survey: {selectedAsset.attributes.surveyNumber}</span>
+                      )}
+                      {selectedAsset.attributes?.district && (
+                        <span>District: {selectedAsset.attributes.district}</span>
+                      )}
+                      {selectedAsset.attributes?.areaSqMeters && (
+                        <span>Area: {Number(selectedAsset.attributes.areaSqMeters).toLocaleString()} sqm</span>
+                      )}
+                      {selectedAsset.attributes?.builtUpSqFt && (
+                        <span>Built-up: {Number(selectedAsset.attributes.builtUpSqFt).toLocaleString()} sqft</span>
+                      )}
+                      {selectedAsset.attributes?.registrationNumber && (
+                        <span>Reg No: {selectedAsset.attributes.registrationNumber}</span>
+                      )}
+                      {selectedAsset.attributes?.make && (
+                        <span>Make: {selectedAsset.attributes.make}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -601,7 +681,27 @@ export function ValuationView() {
                   <div className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg bg-[#F8FAFC] text-[#5A6A7E]">INR (₹)</div>
                 </div>
                 <div>
-                  <label className="block text-[#5A6A7E] font-medium mb-1">Amount (in Paise)</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[#5A6A7E] font-medium">Amount (in Paise)</label>
+                    {selectedAsset && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (selectedAsset.typeKey === 'LAND') {
+                            setAmountPaise(500000000);
+                          } else if (selectedAsset.typeKey === 'VEHICLE') {
+                            setAmountPaise(75000000);
+                          } else if (selectedAsset.typeKey === 'REAL_ESTATE') {
+                            setAmountPaise(150000000);
+                          }
+                        }}
+                        className="text-[10px] text-[#1F5A7A] hover:underline font-semibold cursor-pointer"
+                        title="Populate authorized benchmark rate"
+                      >
+                        Apply Benchmark
+                      </button>
+                    )}
+                  </div>
                   <input
                     type="number"
                     value={amountPaise}
@@ -632,6 +732,51 @@ export function ValuationView() {
                 {allowedMethods.length > 0 && (
                   <div className="text-[10px] text-[#5A6A7E] mt-0.5">
                     Methods governed by the asset-type schema
+                  </div>
+                )}
+              </div>
+
+              {/* Indication engine: deterministic benchmark, valuer decides */}
+              <div className="p-3 bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-[#0F2A43]">Indication Engine</span>
+                  <button
+                    type="button"
+                    onClick={handleComputeIndication}
+                    disabled={indicating || !methodology || !assetId.trim()}
+                    className="px-3 py-1.5 bg-white hover:bg-[#F1F5F9] disabled:opacity-50 border border-[#D8E0E8] text-[#1F5A7A] rounded-lg text-[11px] font-semibold transition"
+                  >
+                    {indicating ? 'Computing...' : 'Compute Indication'}
+                  </button>
+                </div>
+                <textarea
+                  rows="2"
+                  value={indicationInputsText}
+                  onChange={(e) => setIndicationInputsText(e.target.value)}
+                  placeholder='Method inputs, e.g. {"ratePerSqM": 600, "rateSource": "Kaveri guidance 2024-25"}'
+                  className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono text-[11px] focus:outline-none focus:border-[#1F5A7A] bg-white"
+                />
+                <div className="text-[10px] text-[#5A6A7E]">
+                  Closed-form methods only (discount, depreciation, mandi, circle-rate, cap-rate). Open methods need your judgment.
+                </div>
+                {indication && (
+                  <div className="p-2.5 bg-white border border-[#D8E0E8] rounded-lg space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-[#18794E]">
+                        ₹{(indication.recommendedPaise / 100).toLocaleString('en-IN')} <span className="font-medium text-[#5A6A7E]">indicated</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleUseIndication}
+                        className="px-2.5 py-1 bg-[#18794E] hover:bg-[#146441] text-white rounded-lg text-[11px] font-semibold transition"
+                      >
+                        Use This Amount
+                      </button>
+                    </div>
+                    <div className="text-[10px] text-[#5A6A7E]">
+                      Range ₹{(indication.indicatedLowPaise / 100).toLocaleString('en-IN')} – ₹{(indication.indicatedHighPaise / 100).toLocaleString('en-IN')}
+                      {' '}• {indication.method} • hash <span className="font-mono">{indication.indicationHash?.slice(0, 12)}…</span>
+                    </div>
                   </div>
                 )}
               </div>

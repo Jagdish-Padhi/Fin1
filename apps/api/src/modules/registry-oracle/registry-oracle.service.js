@@ -85,6 +85,25 @@ const REGISTRY_SPECS = {
       return out;
     },
   },
+  LAND: {
+    registry: 'BHOOMI_RTC',
+    displayName: 'Bhoomi RTC / State Land Registry',
+    checkKey: 'TITLE_SEARCH',
+    requiredAssetFields: ['surveyNumber'],
+    requiredResponseFields: ['surveyNumber'],
+    optionalResponseFields: ['district', 'state', 'areaSqMeters', 'landUse', 'ownerName'],
+    compare(asset, query, response) {
+      const out = [cmpField('surveyNumber', asset.surveyNumber, response.surveyNumber)];
+      const districtRef = query.district ?? response.district;
+      if (query.district !== undefined || response.district !== undefined) {
+        out.push(cmpField('district', districtRef, response.district));
+      }
+      if (response.areaSqMeters !== undefined && asset.areaSqMeters !== undefined) {
+        out.push(cmpField('areaSqMeters', asset.areaSqMeters, response.areaSqMeters, { numeric: true, toleranceBps: 200 }));
+      }
+      return out;
+    },
+  },
   INVOICE: {
     registry: 'GST_EINVOICE',
     displayName: 'GST e-Invoice Registry (IRN)',

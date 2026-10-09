@@ -360,6 +360,13 @@ export class ApiClient {
     });
   }
 
+  getValuationIndication(assetId, method, inputs = {}) {
+    return this.request('/valuation/indication', {
+      method: 'POST',
+      body: JSON.stringify({ assetId, method, ...inputs }),
+    });
+  }
+
   // Token APIs
   mintToken(data) {
     return this.request('/tokens/mint', {

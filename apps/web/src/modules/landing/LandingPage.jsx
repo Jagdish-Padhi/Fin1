@@ -141,10 +141,7 @@ export function LandingPage({ onEnterConsole, onOpenPublicVerify, onOpenAuth }) 
         <div className="max-w-7xl mx-auto space-y-16">
           {/* Centered Section Header */}
           <div className="max-w-3xl mx-auto text-center space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0FDFA] border border-[#CCFBF1] text-[#0F766E] text-xs font-semibold uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#0F766E]" />
-              Institutional Architecture
-            </div>
+            
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0F2A43] tracking-tight font-['Outfit',sans-serif]">
               Institutional Asset Lifecycle
             </h2>

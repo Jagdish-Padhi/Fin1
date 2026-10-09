@@ -261,6 +261,21 @@ export const RegistryCheckSchema = z.object({
   referenceNumber: z.string().trim().min(3).max(64).optional(),
 });
 
+export const ValuationIndicationSchema = z.object({
+  assetId: z.string().trim().min(1),
+  method: z.string().trim().min(2).optional(),
+  annualDiscountRateBps: z.number().int().min(1).max(100000).optional(),
+  annualRentPaise: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).optional(),
+  capRateBps: z.number().int().min(1).max(100000).optional(),
+  marketPricePerKg: z.number().positive().optional(),
+  marketName: z.string().trim().min(2).max(120).optional(),
+  priceDate: z.string().optional(),
+  ratePerSqFt: z.number().positive().optional(),
+  ratePerSqM: z.number().positive().optional(),
+  rateSource: z.string().trim().min(4).max(200).optional(),
+  bandBps: z.number().int().min(0).max(5000).default(300),
+});
+
 export const LifecycleTransitionSchema = z.object({
   entityId: z.string().min(1),
   action: z.enum(['FREEZE', 'UNFREEZE', 'REDEEM', 'RETIRE']),
