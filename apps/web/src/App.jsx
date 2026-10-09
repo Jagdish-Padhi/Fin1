@@ -28,7 +28,7 @@ function MainLayout() {
 
   const currentRole = user?.role || null;
 
-  // ─── Loading spinner ───────────────────────────────────────────────────────
+  // ΓöÇΓöÇΓöÇ Loading spinner ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
@@ -43,7 +43,7 @@ function MainLayout() {
     );
   }
 
-  // ─── Unauthenticated or Landing View ───────────────────────────────────────
+  // ΓöÇΓöÇΓöÇ Unauthenticated or Landing View ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   if (!user || view === 'landing') {
     return (
       <div className="app-view-transition">
@@ -75,7 +75,7 @@ function MainLayout() {
     );
   }
 
-  // ─── Authenticated Console View ────────────────────────────────────────────
+  // ΓöÇΓöÇΓöÇ Authenticated Console View ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#17202A] app-view-transition">
       <Navbar
@@ -93,16 +93,6 @@ function MainLayout() {
 
         <main key={currentTab} className="flex-1 overflow-y-auto p-6 md:p-8 max-w-7xl mx-auto w-full app-view-transition">
           {currentTab === 'dashboard' && <DashboardView onNavigate={setCurrentTab} />}
-
-          {currentTab === 'participants' && (
-            <RoleGuard
-              currentRole={currentRole}
-              allowedRoles={['ADMINISTRATOR']}
-              onNavigateHome={() => setCurrentTab('dashboard')}
-            >
-              <ParticipantsView />
-            </RoleGuard>
-          )}
 
           {currentTab === 'participants' && (
             <RoleGuard currentRole={currentRole} tab="participants" onNavigateHome={() => setCurrentTab('dashboard')}>
