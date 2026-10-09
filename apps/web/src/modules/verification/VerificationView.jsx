@@ -15,6 +15,19 @@ import {
   FileText,
 } from 'lucide-react';
 
+// The ledger stores verification checks as a keyed map ({ [checkKey]: {...} }),
+// while this view renders them as a list. Normalize either shape to an array.
+function normalizeChecks(checks) {
+  if (Array.isArray(checks)) return checks;
+  if (checks && typeof checks === 'object') {
+    return Object.entries(checks).map(([checkKey, check]) => ({
+      checkKey,
+      ...check,
+    }));
+  }
+  return [];
+}
+
 export function VerificationView() {
   const { user } = useAuth();
   const toast = useToast();
@@ -45,10 +58,15 @@ export function VerificationView() {
     try {
       setLoading(true);
       const res = await api.getVerificationCases();
-      setCases(res.data || []);
-      if (res.data?.length > 0 && !selectedCase) {
-        setSelectedCase(res.data[0]);
-      }
+      const normalized = (res.data || []).map((c) => ({
+        ...c,
+        checks: normalizeChecks(c.checks),
+      }));
+      setCases(normalized);
+      setSelectedCase((prev) => {
+        if (!prev) return normalized[0] || null;
+        return normalized.find((c) => c.id === prev.id) || normalized[0] || null;
+      });
     } catch (err) {
       console.error('Failed to load verification cases:', err);
     } finally {

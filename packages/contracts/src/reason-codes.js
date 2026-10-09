@@ -12,6 +12,10 @@ export const TransferRuleReason = {
     code: 'RULE_KYC_NOT_VERIFIED',
     message: 'One or both parties do not possess approved KYC status',
   },
+  KYC_EXPIRED: {
+    code: 'RULE_KYC_EXPIRED',
+    message: 'One or both parties have expired KYC accreditation',
+  },
   BUYER_CLASS_INSUFFICIENT: {
     code: 'RULE_BUYER_CLASS_INSUFFICIENT',
     message: 'Buyer investor class does not satisfy required tier for this asset',

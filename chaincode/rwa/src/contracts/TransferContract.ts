@@ -201,14 +201,16 @@ export class TransferContract extends Contract {
     const receiverBalBytes = await ctx.stub.getState(
       this._balanceKey(transferData.tokenId, transferData.toParticipantId)
     );
-    const senderBal =
+    const senderBalRecord =
       senderBalBytes && senderBalBytes.length > 0
-        ? JSON.parse(senderBalBytes.toString()).units || 0
-        : 0;
-    const receiverBal =
+        ? JSON.parse(senderBalBytes.toString())
+        : null;
+    const receiverBalRecord =
       receiverBalBytes && receiverBalBytes.length > 0
-        ? JSON.parse(receiverBalBytes.toString()).units || 0
-        : 0;
+        ? JSON.parse(receiverBalBytes.toString())
+        : null;
+    const senderBal = senderBalRecord?.units || 0;
+    const receiverBal = receiverBalRecord?.units || 0;
 
     // RULE: PARTICIPANT_ACTIVE (both parties must exist and be ACTIVE)
     if (
@@ -387,6 +389,157 @@ export class TransferContract extends Contract {
         results.MAX_VALUE_CAP = { passed: false, pricePaise };
       } else {
         results.MAX_VALUE_CAP = { passed: true };
+      }
+    }
+
+    // Transaction timestamp for time-based rules
+    let txTimeMs = Date.now();
+    try {
+      const ts = ctx.stub.getTxTimestamp();
+      if (ts && ts.seconds) {
+        txTimeMs = ts.seconds.low * 1000;
+      }
+    } catch {
+      // fallback
+    }
+
+    // RULE: LOCK_IN_PERIOD (seller's units held less than lockInDays)
+    const lockInDays =
+      assetType?.complianceRules?.lockInDays ??
+      assetType?.token?.lockInDays ??
+      assetType?.rules?.lockInDays ??
+      0;
+    if (lockInDays > 0) {
+      const acquiredAt = senderBalRecord?.acquiredAt;
+      if (acquiredAt) {
+        const acquiredAtMs = new Date(acquiredAt).getTime() || 0;
+        const elapsedDays = (txTimeMs - acquiredAtMs) / (24 * 60 * 60 * 1000);
+        if (elapsedDays < lockInDays) {
+          rejectionReasons.push({
+            code: TransferRuleReason.LOCK_IN_ACTIVE.code,
+            message: TransferRuleReason.LOCK_IN_ACTIVE.message,
+            observedValue: Math.floor(elapsedDays),
+            limit: lockInDays,
+          });
+          results.LOCK_IN_PERIOD = {
+            passed: false,
+            elapsedDays: Math.floor(elapsedDays),
+            lockInDays,
+          };
+        } else {
+          results.LOCK_IN_PERIOD = { passed: true };
+        }
+      } else {
+        results.LOCK_IN_PERIOD = { passed: true };
+      }
+    }
+
+    // RULE: BUYER_CLASS_INSUFFICIENT (investor class tier below minBuyerClass)
+    const minBuyerClass =
+      assetType?.complianceRules?.minBuyerClass ??
+      assetType?.token?.minBuyerClass ??
+      assetType?.rules?.minBuyerClass;
+    if (minBuyerClass) {
+      const CLASS_TIER: Record<string, number> = {
+        RETAIL: 1,
+        QUALIFIED: 2,
+        INSTITUTIONAL: 3,
+      };
+      const buyerTier = CLASS_TIER[receiver?.investorClass] || 0;
+      const requiredTier = CLASS_TIER[minBuyerClass] || 0;
+      if (buyerTier < requiredTier) {
+        rejectionReasons.push({
+          code: TransferRuleReason.BUYER_CLASS_INSUFFICIENT.code,
+          message: TransferRuleReason.BUYER_CLASS_INSUFFICIENT.message,
+          observedValue: receiver?.investorClass || 'NONE',
+          limit: minBuyerClass,
+        });
+        results.BUYER_CLASS = {
+          passed: false,
+          buyerClass: receiver?.investorClass,
+          minBuyerClass,
+        };
+      } else {
+        results.BUYER_CLASS = { passed: true };
+      }
+    }
+
+    // RULE: JURISDICTION_NOT_ALLOWED (buyer jurisdiction restricted)
+    const allowedJurisdictions =
+      assetType?.complianceRules?.allowedJurisdictions ??
+      assetType?.token?.allowedJurisdictions ??
+      assetType?.rules?.allowedJurisdictions;
+    if (
+      Array.isArray(allowedJurisdictions) &&
+      allowedJurisdictions.length > 0
+    ) {
+      if (
+        receiver?.jurisdiction &&
+        !allowedJurisdictions.includes(receiver.jurisdiction)
+      ) {
+        rejectionReasons.push({
+          code: TransferRuleReason.JURISDICTION_RESTRICTED.code,
+          message: TransferRuleReason.JURISDICTION_RESTRICTED.message,
+          observedValue: receiver.jurisdiction,
+          limit: allowedJurisdictions,
+        });
+        results.JURISDICTION = {
+          passed: false,
+          buyerJurisdiction: receiver.jurisdiction,
+          allowedJurisdictions,
+        };
+      } else {
+        results.JURISDICTION = { passed: true };
+      }
+    }
+
+    // RULE: KYC_EXPIRED (participant KYC expiry timestamp exceeded)
+    const senderKycExpired =
+      sender?.kycExpiresAt &&
+      new Date(sender.kycExpiresAt).getTime() <= txTimeMs;
+    const receiverKycExpired =
+      receiver?.kycExpiresAt &&
+      new Date(receiver.kycExpiresAt).getTime() <= txTimeMs;
+    if (senderKycExpired || receiverKycExpired) {
+      rejectionReasons.push({
+        code: (TransferRuleReason as any).KYC_EXPIRED?.code || 'RULE_KYC_EXPIRED',
+        message:
+          (TransferRuleReason as any).KYC_EXPIRED?.message ||
+          'One or both parties have expired KYC accreditation',
+        observedValue: {
+          senderKycExpiresAt: sender?.kycExpiresAt,
+          receiverKycExpiresAt: receiver?.kycExpiresAt,
+        },
+      });
+      results.KYC_EXPIRED = {
+        passed: false,
+        senderKycExpiresAt: sender?.kycExpiresAt,
+        receiverKycExpiresAt: receiver?.kycExpiresAt,
+      };
+    } else {
+      results.KYC_EXPIRED = { passed: true };
+    }
+
+    // RULE: VALUATION_STALE (asset valuation validUntil window has passed)
+    const blockOnStaleValuation =
+      assetType?.complianceRules?.blockOnStaleValuation ??
+      assetType?.token?.blockOnStaleValuation ??
+      assetType?.rules?.blockOnStaleValuation;
+    if (blockOnStaleValuation && asset?.valuation?.validUntil) {
+      const validUntilMs = new Date(asset.valuation.validUntil).getTime();
+      if (validUntilMs > 0 && validUntilMs <= txTimeMs) {
+        rejectionReasons.push({
+          code: TransferRuleReason.VALUATION_STALE.code,
+          message: TransferRuleReason.VALUATION_STALE.message,
+          observedValue: asset.valuation.validUntil,
+          limit: new Date(txTimeMs).toISOString(),
+        });
+        results.VALUATION_STALE = {
+          passed: false,
+          validUntil: asset.valuation.validUntil,
+        };
+      } else {
+        results.VALUATION_STALE = { passed: true };
       }
     }
 
@@ -633,6 +786,11 @@ export class TransferContract extends Contract {
     const newSenderBal = currentSenderBal - transfer.units;
     const newReceiverBal = currentReceiverBal + transfer.units;
 
+    const senderBalRecord =
+      senderBalBytes && senderBalBytes.length > 0
+        ? JSON.parse(senderBalBytes.toString())
+        : null;
+
     await ctx.stub.putState(
       senderBalKey,
       Buffer.from(
@@ -640,6 +798,7 @@ export class TransferContract extends Contract {
           tokenId: transfer.tokenId,
           participantId: transfer.fromParticipantId,
           units: newSenderBal,
+          acquiredAt: senderBalRecord?.acquiredAt,
         })
       )
     );
@@ -651,6 +810,7 @@ export class TransferContract extends Contract {
           tokenId: transfer.tokenId,
           participantId: transfer.toParticipantId,
           units: newReceiverBal,
+          acquiredAt: timestamp,
         })
       )
     );

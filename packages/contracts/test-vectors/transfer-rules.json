@@ -1,0 +1,348 @@
+[
+  {
+    "id": "valid-transfer-basic",
+    "description": "Standard compliant transfer where all checks pass",
+    "transfer": {
+      "id": "TRF-TEST-001",
+      "tokenId": "TKN-001",
+      "fromParticipantId": "PRT-ALICE",
+      "toParticipantId": "PRT-BOB",
+      "units": 100,
+      "pricePaise": 500000
+    },
+    "token": {
+      "id": "TKN-001",
+      "assetId": "AST-001",
+      "standard": "FRACTIONAL",
+      "totalUnits": 10000,
+      "status": "ACTIVE"
+    },
+    "asset": {
+      "id": "AST-001",
+      "typeKey": "COMMERCIAL_REAL_ESTATE",
+      "typeVersion": 1,
+      "status": "TOKENIZED",
+      "encumbranceCount": 0,
+      "valuation": {
+        "validUntil": "2030-01-01T00:00:00.000Z"
+      }
+    },
+    "assetType": {
+      "key": "COMMERCIAL_REAL_ESTATE",
+      "version": 1,
+      "complianceRules": {
+        "lockInDays": 0,
+        "minBuyerClass": "RETAIL",
+        "allowedJurisdictions": ["IN", "SG"],
+        "blockOnStaleValuation": true
+      }
+    },
+    "sender": {
+      "id": "PRT-ALICE",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED",
+      "kycExpiresAt": "2030-01-01T00:00:00.000Z",
+      "investorClass": "RETAIL",
+      "jurisdiction": "IN"
+    },
+    "receiver": {
+      "id": "PRT-BOB",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED",
+      "kycExpiresAt": "2030-01-01T00:00:00.000Z",
+      "investorClass": "RETAIL",
+      "jurisdiction": "IN",
+      "limits": {
+        "maxHoldingBps": 2500
+      }
+    },
+    "senderBalance": { "units": 500, "acquiredAt": "2020-01-01T00:00:00.000Z" },
+    "receiverBalance": { "units": 0, "acquiredAt": null },
+    "expectedPassed": true,
+    "expectedReasonCodes": []
+  },
+  {
+    "id": "fail-lock-in-period",
+    "description": "Fails because sender acquired units within lock-in period",
+    "transfer": {
+      "id": "TRF-TEST-002",
+      "tokenId": "TKN-001",
+      "fromParticipantId": "PRT-ALICE",
+      "toParticipantId": "PRT-BOB",
+      "units": 100
+    },
+    "token": {
+      "id": "TKN-001",
+      "assetId": "AST-001",
+      "standard": "FRACTIONAL",
+      "totalUnits": 10000,
+      "status": "ACTIVE"
+    },
+    "asset": {
+      "id": "AST-001",
+      "typeKey": "COMMERCIAL_REAL_ESTATE",
+      "typeVersion": 1,
+      "status": "TOKENIZED",
+      "encumbranceCount": 0
+    },
+    "assetType": {
+      "key": "COMMERCIAL_REAL_ESTATE",
+      "version": 1,
+      "complianceRules": {
+        "lockInDays": 30
+      }
+    },
+    "sender": {
+      "id": "PRT-ALICE",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED"
+    },
+    "receiver": {
+      "id": "PRT-BOB",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED"
+    },
+    "senderBalance": {
+      "units": 500,
+      "acquiredAt": "2026-10-05T00:00:00.000Z"
+    },
+    "receiverBalance": { "units": 0 },
+    "txTimeMs": 1791517200000,
+    "expectedPassed": false,
+    "expectedReasonCodes": ["RULE_LOCK_IN_ACTIVE"]
+  },
+  {
+    "id": "fail-buyer-class-insufficient",
+    "description": "Fails because receiver investor class is RETAIL but QUALIFIED is required",
+    "transfer": {
+      "id": "TRF-TEST-003",
+      "tokenId": "TKN-001",
+      "fromParticipantId": "PRT-ALICE",
+      "toParticipantId": "PRT-BOB",
+      "units": 100
+    },
+    "token": {
+      "id": "TKN-001",
+      "assetId": "AST-001",
+      "standard": "FRACTIONAL",
+      "totalUnits": 10000,
+      "status": "ACTIVE"
+    },
+    "asset": {
+      "id": "AST-001",
+      "typeKey": "PRIVATE_CREDIT",
+      "typeVersion": 1,
+      "status": "TOKENIZED",
+      "encumbranceCount": 0
+    },
+    "assetType": {
+      "key": "PRIVATE_CREDIT",
+      "version": 1,
+      "complianceRules": {
+        "minBuyerClass": "QUALIFIED"
+      }
+    },
+    "sender": {
+      "id": "PRT-ALICE",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED"
+    },
+    "receiver": {
+      "id": "PRT-BOB",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED",
+      "investorClass": "RETAIL"
+    },
+    "senderBalance": { "units": 500 },
+    "receiverBalance": { "units": 0 },
+    "expectedPassed": false,
+    "expectedReasonCodes": ["RULE_BUYER_CLASS_INSUFFICIENT"]
+  },
+  {
+    "id": "fail-jurisdiction-restricted",
+    "description": "Fails because receiver jurisdiction is not in allowed list",
+    "transfer": {
+      "id": "TRF-TEST-004",
+      "tokenId": "TKN-001",
+      "fromParticipantId": "PRT-ALICE",
+      "toParticipantId": "PRT-BOB",
+      "units": 100
+    },
+    "token": {
+      "id": "TKN-001",
+      "assetId": "AST-001",
+      "standard": "FRACTIONAL",
+      "totalUnits": 10000,
+      "status": "ACTIVE"
+    },
+    "asset": {
+      "id": "AST-001",
+      "typeKey": "COMMERCIAL_REAL_ESTATE",
+      "typeVersion": 1,
+      "status": "TOKENIZED",
+      "encumbranceCount": 0
+    },
+    "assetType": {
+      "key": "COMMERCIAL_REAL_ESTATE",
+      "version": 1,
+      "complianceRules": {
+        "allowedJurisdictions": ["IN", "SG"]
+      }
+    },
+    "sender": {
+      "id": "PRT-ALICE",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED"
+    },
+    "receiver": {
+      "id": "PRT-BOB",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED",
+      "jurisdiction": "US"
+    },
+    "senderBalance": { "units": 500 },
+    "receiverBalance": { "units": 0 },
+    "expectedPassed": false,
+    "expectedReasonCodes": ["RULE_JURISDICTION_RESTRICTED"]
+  },
+  {
+    "id": "fail-kyc-expired",
+    "description": "Fails because receiver KYC has expired",
+    "transfer": {
+      "id": "TRF-TEST-005",
+      "tokenId": "TKN-001",
+      "fromParticipantId": "PRT-ALICE",
+      "toParticipantId": "PRT-BOB",
+      "units": 100
+    },
+    "token": {
+      "id": "TKN-001",
+      "assetId": "AST-001",
+      "standard": "FRACTIONAL",
+      "totalUnits": 10000,
+      "status": "ACTIVE"
+    },
+    "asset": {
+      "id": "AST-001",
+      "typeKey": "COMMERCIAL_REAL_ESTATE",
+      "typeVersion": 1,
+      "status": "TOKENIZED",
+      "encumbranceCount": 0
+    },
+    "assetType": {
+      "key": "COMMERCIAL_REAL_ESTATE",
+      "version": 1
+    },
+    "sender": {
+      "id": "PRT-ALICE",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED",
+      "kycExpiresAt": "2030-01-01T00:00:00.000Z"
+    },
+    "receiver": {
+      "id": "PRT-BOB",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED",
+      "kycExpiresAt": "2020-01-01T00:00:00.000Z"
+    },
+    "senderBalance": { "units": 500 },
+    "receiverBalance": { "units": 0 },
+    "expectedPassed": false,
+    "expectedReasonCodes": ["RULE_KYC_EXPIRED"]
+  },
+  {
+    "id": "fail-valuation-stale",
+    "description": "Fails because asset valuation validUntil has expired",
+    "transfer": {
+      "id": "TRF-TEST-006",
+      "tokenId": "TKN-001",
+      "fromParticipantId": "PRT-ALICE",
+      "toParticipantId": "PRT-BOB",
+      "units": 100
+    },
+    "token": {
+      "id": "TKN-001",
+      "assetId": "AST-001",
+      "standard": "FRACTIONAL",
+      "totalUnits": 10000,
+      "status": "ACTIVE"
+    },
+    "asset": {
+      "id": "AST-001",
+      "typeKey": "COMMERCIAL_REAL_ESTATE",
+      "typeVersion": 1,
+      "status": "TOKENIZED",
+      "encumbranceCount": 0,
+      "valuation": {
+        "validUntil": "2020-01-01T00:00:00.000Z"
+      }
+    },
+    "assetType": {
+      "key": "COMMERCIAL_REAL_ESTATE",
+      "version": 1,
+      "complianceRules": {
+        "blockOnStaleValuation": true
+      }
+    },
+    "sender": {
+      "id": "PRT-ALICE",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED"
+    },
+    "receiver": {
+      "id": "PRT-BOB",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED"
+    },
+    "senderBalance": { "units": 500 },
+    "receiverBalance": { "units": 0 },
+    "expectedPassed": false,
+    "expectedReasonCodes": ["RULE_VALUATION_STALE"]
+  },
+  {
+    "id": "fail-max-holding-cap",
+    "description": "Fails because resulting holding exceeds buyer holding cap",
+    "transfer": {
+      "id": "TRF-TEST-007",
+      "tokenId": "TKN-001",
+      "fromParticipantId": "PRT-ALICE",
+      "toParticipantId": "PRT-BOB",
+      "units": 3000
+    },
+    "token": {
+      "id": "TKN-001",
+      "assetId": "AST-001",
+      "standard": "FRACTIONAL",
+      "totalUnits": 10000,
+      "status": "ACTIVE"
+    },
+    "asset": {
+      "id": "AST-001",
+      "typeKey": "COMMERCIAL_REAL_ESTATE",
+      "typeVersion": 1,
+      "status": "TOKENIZED",
+      "encumbranceCount": 0
+    },
+    "assetType": {
+      "key": "COMMERCIAL_REAL_ESTATE",
+      "version": 1
+    },
+    "sender": {
+      "id": "PRT-ALICE",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED"
+    },
+    "receiver": {
+      "id": "PRT-BOB",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED",
+      "limits": {
+        "maxHoldingBps": 2500
+      }
+    },
+    "senderBalance": { "units": 5000 },
+    "receiverBalance": { "units": 0 },
+    "expectedPassed": false,
+    "expectedReasonCodes": ["RULE_MAX_HOLDING_CAP_EXCEEDED"]
+  }
+]

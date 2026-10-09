@@ -11,6 +11,7 @@ import {
   LifecycleReason,
   EventName,
   RequestMintTokenSchema,
+  DEFAULT_ASSET_TYPES,
 } from '@rwa/contracts';
 
 /**
@@ -28,6 +29,7 @@ export class MockGateway {
     this.valuations = new Map();
     this.tokens = new Map();
     this.balances = new Map(); // `${tokenId}:${participantId}` -> number
+    this.balanceAcquiredAt = new Map(); // `${tokenId}:${participantId}` -> string (timestamp)
     this.transfers = new Map();
     this.auditTrail = [];
     this.blocks = [];
@@ -39,332 +41,10 @@ export class MockGateway {
   }
 
   initDefaultSeed() {
-    // Seed default types: VEHICLE, REAL_ESTATE, INVOICE, COMMODITY, LAND
-    this.assetTypes.set('VEHICLE:1', {
-      key: 'VEHICLE',
-      version: 1,
-      displayName: 'Commercial & Agricultural Vehicles',
-      uniqueFields: ['registrationNumber', 'chassisNumber'],
-      attributeSchema: {
-        registrationNumber: {
-          type: 'string',
-          required: true,
-          visibility: 'PUBLIC',
-        },
-        chassisNumber: { type: 'string', required: true, visibility: 'PUBLIC' },
-        make: { type: 'string', required: true, visibility: 'PUBLIC' },
-        model: { type: 'string', required: true, visibility: 'PUBLIC' },
-        year: { type: 'number', required: false, visibility: 'PUBLIC' },
-        manufacturingYear: {
-          type: 'number',
-          required: false,
-          visibility: 'PUBLIC',
-        },
-        fuelType: { type: 'string', required: false, visibility: 'PUBLIC' },
-        fleetOperator: {
-          type: 'string',
-          required: false,
-          visibility: 'PUBLIC',
-        },
-        purchasePriceInr: {
-          type: 'number',
-          required: false,
-          visibility: 'RESTRICTED',
-        },
-      },
-      evidenceRequirements: [
-        {
-          docType: 'RC_BOOK',
-          required: true,
-          description: 'Vehicle Registration Certificate',
-        },
-        {
-          docType: 'INSURANCE_POLICY',
-          required: true,
-          description: 'Valid Commercial Insurance Policy',
-        },
-        {
-          docType: 'FITNESS_CERT',
-          required: true,
-          description: 'Transport Department Fitness Certificate',
-        },
-      ],
-      verificationChecklist: [
-        {
-          key: 'RC_VALID',
-          label: 'Verify RC with Vahan / Transport Dept',
-          required: true,
-        },
-        {
-          key: 'CHASSIS_MATCH',
-          label: 'Physical inspection match on chassis/engine',
-          required: true,
-        },
-        {
-          key: 'NO_HYPOTHECATION',
-          label: 'Verify no undeclared bank lien / hypothecation',
-          required: true,
-        },
-      ],
-      valuation: {
-        methods: ['DEPRECIATED_COST', 'MARKET_COMPARABLE'],
-        validityDays: 180,
-      },
-      token: { standard: TokenStandard.WHOLE },
-      transferRules: [
-        { id: 'PARTY_KYC_VERIFIED', type: 'PARTY_KYC_VERIFIED' },
-        { id: 'WHOLE_ONLY', type: 'WHOLE_ONLY' },
-      ],
-      terminalReasons: {
-        REDEEMED: ['OFF_PLATFORM_REPOSSESSION'],
-        RETIRED: ['SCRAPPED', 'THEFT_TOTAL_LOSS'],
-      },
-    });
-
-    this.assetTypes.set('REAL_ESTATE:1', {
-      key: 'REAL_ESTATE',
-      version: 1,
-      displayName: 'Commercial Real Estate & Grade-A Offices',
-      uniqueFields: ['surveyNumber', 'propertyId'],
-      attributeSchema: {
-        surveyNumber: { type: 'string', required: true, visibility: 'PUBLIC' },
-        propertyId: { type: 'string', required: true, visibility: 'PUBLIC' },
-        locality: { type: 'string', required: true, visibility: 'PUBLIC' },
-        builtUpSqFt: { type: 'number', required: true, visibility: 'PUBLIC' },
-        occupancyRate: {
-          type: 'number',
-          required: false,
-          visibility: 'PUBLIC',
-        },
-        purchasePriceInr: {
-          type: 'number',
-          required: false,
-          visibility: 'RESTRICTED',
-        },
-      },
-      evidenceRequirements: [
-        {
-          docType: 'TITLE_DEED',
-          required: true,
-          description: 'Registered Title Deed',
-        },
-        {
-          docType: 'ENCUMBRANCE_CERT',
-          required: true,
-          description: 'Encumbrance Certificate',
-        },
-        {
-          docType: 'TAX_RECEIPT',
-          required: true,
-          description: 'Municipal Property Tax Receipt',
-        },
-      ],
-      verificationChecklist: [
-        {
-          key: 'TITLE_SEARCH',
-          label: '30-Year Search Report by Empaneled Advocate',
-          required: true,
-        },
-        {
-          key: 'PHYSICAL_INSPECTION',
-          label: 'Physical Geo-tagged Site Survey',
-          required: true,
-        },
-      ],
-      valuation: {
-        methods: ['DISCOUNTED_CASH_FLOW', 'CAP_RATE'],
-        validityDays: 180,
-      },
-      token: {
-        standard: TokenStandard.FRACTIONAL,
-        minUnits: 100,
-        maxUnits: 1000000,
-      },
-      transferRules: [
-        { id: 'PARTY_KYC_VERIFIED', type: 'PARTY_KYC_VERIFIED' },
-        {
-          id: 'MAX_HOLDING_BPS',
-          type: 'MAX_HOLDING_BPS',
-          params: { maxBps: 2500 },
-        },
-      ],
-      terminalReasons: {
-        REDEEMED: ['CONSOLIDATED_BUYOUT'],
-        RETIRED: ['DEMOLISHED', 'GOVT_ACQUISITION'],
-      },
-    });
-
-    this.assetTypes.set('INVOICE:1', {
-      key: 'INVOICE',
-      version: 1,
-      displayName: 'Supply Chain Trade Receivables',
-      uniqueFields: ['invoiceNumber'],
-      attributeSchema: {
-        invoiceNumber: { type: 'string', required: true, visibility: 'PUBLIC' },
-        supplierGstin: { type: 'string', required: true, visibility: 'PUBLIC' },
-        buyerGstin: { type: 'string', required: true, visibility: 'PUBLIC' },
-        amountPaise: { type: 'number', required: true, visibility: 'PUBLIC' },
-        dueDate: { type: 'string', required: true, visibility: 'PUBLIC' },
-        discountRateBps: {
-          type: 'number',
-          required: false,
-          visibility: 'RESTRICTED',
-        },
-      },
-      evidenceRequirements: [
-        {
-          docType: 'INVOICE_PDF',
-          required: true,
-          description: 'Signed Digitized Commercial Invoice',
-        },
-        {
-          docType: 'EWAY_BILL',
-          required: true,
-          description: 'GST E-Way Bill Consignment Proof',
-        },
-      ],
-      verificationChecklist: [
-        {
-          key: 'E_INVOICE_PORTAL',
-          label: 'IRN Validated on GST Portal',
-          required: true,
-        },
-        {
-          key: 'BUYER_ACCEPTANCE',
-          label: 'Buyer Written Goods Receipt & Acceptance',
-          required: true,
-        },
-      ],
-      valuation: { methods: ['FACE_VALUE_DISCOUNTED'], validityDays: 90 },
-      token: { standard: TokenStandard.WHOLE },
-      transferRules: [{ id: 'PARTY_KYC_VERIFIED', type: 'PARTY_KYC_VERIFIED' }],
-      terminalReasons: {
-        REDEEMED: ['PAID_IN_FULL'],
-        RETIRED: ['WRITTEN_OFF_BAD_DEBT'],
-      },
-    });
-
-    this.assetTypes.set('COMMODITY:1', {
-      key: 'COMMODITY',
-      version: 1,
-      displayName: 'Warehoused Agricultural & Metal Commodities',
-      uniqueFields: ['batchId', 'warehouseReceiptNo'],
-      attributeSchema: {
-        batchId: { type: 'string', required: true, visibility: 'PUBLIC' },
-        warehouseReceiptNo: {
-          type: 'string',
-          required: true,
-          visibility: 'PUBLIC',
-        },
-        commodityType: { type: 'string', required: true, visibility: 'PUBLIC' },
-        quantityKg: { type: 'number', required: true, visibility: 'PUBLIC' },
-        grade: { type: 'string', required: false, visibility: 'PUBLIC' },
-        storageLocation: {
-          type: 'string',
-          required: true,
-          visibility: 'PUBLIC',
-        },
-      },
-      evidenceRequirements: [
-        {
-          docType: 'WAREHOUSE_RECEIPT',
-          required: true,
-          description: 'Negotiable Electronic Warehouse Receipt (e-NWR)',
-        },
-        {
-          docType: 'ASSAYING_CERT',
-          required: true,
-          description: 'Quality & Assaying Lab Certificate',
-        },
-      ],
-      verificationChecklist: [
-        {
-          key: 'WDRA_VERIFIED',
-          label: 'WDRA Accredited Warehouse Audit Verified',
-          required: true,
-        },
-      ],
-      valuation: { methods: ['SPOT_MARKET_BENCHMARK'], validityDays: 30 },
-      token: {
-        standard: TokenStandard.FRACTIONAL,
-        minUnits: 10,
-        maxUnits: 100000,
-      },
-      transferRules: [{ id: 'PARTY_KYC_VERIFIED', type: 'PARTY_KYC_VERIFIED' }],
-      terminalReasons: {
-        REDEEMED: ['PHYSICAL_DELIVERY_TAKEN'],
-        RETIRED: ['DAMAGED_EXPIRED'],
-      },
-    });
-
-    this.assetTypes.set('LAND:1', {
-      key: 'LAND',
-      version: 1,
-      displayName: 'Agricultural & Commercial Land Parcels',
-      uniqueFields: ['surveyNumber'],
-      attributeSchema: {
-        surveyNumber: { type: 'string', required: true, visibility: 'PUBLIC' },
-        district: { type: 'string', required: true, visibility: 'PUBLIC' },
-        state: { type: 'string', required: true, visibility: 'PUBLIC' },
-        areaSqMeters: { type: 'number', required: true, visibility: 'PUBLIC' },
-        landUse: { type: 'string', required: true, visibility: 'PUBLIC' },
-      },
-      evidenceRequirements: [
-        {
-          docType: 'TITLE_DEED',
-          required: true,
-          description: 'Registered Title Deed',
-        },
-        {
-          docType: 'ENCUMBRANCE_CERT',
-          required: true,
-          description: '15-Year Encumbrance Certificate',
-        },
-        {
-          docType: 'SURVEY_MAP',
-          required: true,
-          description: 'Government Survey & Boundary Map',
-        },
-      ],
-      verificationChecklist: [
-        {
-          key: 'TITLE_CHAIN',
-          label: 'Chain of title 30-year search verified',
-          required: true,
-        },
-        {
-          key: 'ENCUMBRANCE_CLEAR',
-          label: 'Encumbrance certificate shows zero active lien',
-          required: true,
-        },
-        {
-          key: 'SURVEY_MATCH',
-          label: 'Boundary coordinates match revenue map',
-          required: true,
-        },
-      ],
-      valuation: {
-        methods: ['CIRCLE_RATE', 'MARKET_COMPARABLE'],
-        validityDays: 180,
-      },
-      token: {
-        standard: TokenStandard.FRACTIONAL,
-        minUnits: 100,
-        maxUnits: 100000,
-      },
-      transferRules: [
-        { id: 'PARTY_KYC_VERIFIED', type: 'PARTY_KYC_VERIFIED' },
-        {
-          id: 'MAX_HOLDING_BPS',
-          type: 'MAX_HOLDING_BPS',
-          params: { maxBps: 2500 },
-        }, // 25% max cap
-      ],
-      terminalReasons: {
-        REDEEMED: ['CONSOLIDATED_BUYOUT'],
-        RETIRED: ['LEGAL_INVALIDATION', 'GOVT_ACQUISITION'],
-      },
-    });
+    // Seed default types from single source of truth
+    for (const type of DEFAULT_ASSET_TYPES) {
+      this.assetTypes.set(`${type.key}:${type.version || 1}`, type);
+    }
 
     // Seed default Phase 1 participants
     this.participants.set('PRT-ISSUER-01', {
@@ -1884,6 +1564,7 @@ export class MockGateway {
 
         this.balances.set(senderKey, senderBal - transfer.units);
         this.balances.set(receiverKey, receiverBal + transfer.units);
+        this.balanceAcquiredAt.set(receiverKey, this._now());
 
         transfer.status = TransferStatus.EXECUTED;
         transfer.executedTxId = txId;
@@ -2318,6 +1999,119 @@ export class MockGateway {
         } else {
           results.MAX_HOLDING_CAP = { passed: true };
         }
+      }
+    }
+
+    const assetType = asset
+      ? this.assetTypes.get(`${asset.typeKey}:${asset.typeVersion || 1}`)
+      : null;
+    const txTimeMs = Date.now();
+
+    // RULE: LOCK_IN_PERIOD (seller's units held less than lockInDays)
+    const lockInDays =
+      assetType?.complianceRules?.lockInDays ??
+      assetType?.token?.lockInDays ??
+      assetType?.rules?.lockInDays ??
+      0;
+    if (lockInDays > 0 && token) {
+      const senderKey = `${token.id}:${transfer.fromParticipantId}`;
+      const acquiredAt = this.balanceAcquiredAt.get(senderKey);
+      if (acquiredAt) {
+        const acquiredAtMs = new Date(acquiredAt).getTime() || 0;
+        const elapsedDays = (txTimeMs - acquiredAtMs) / (24 * 60 * 60 * 1000);
+        if (elapsedDays < lockInDays) {
+          rejectionReasons.push(TransferRuleReason.LOCK_IN_ACTIVE);
+          results.LOCK_IN_PERIOD = {
+            passed: false,
+            elapsedDays: Math.floor(elapsedDays),
+            lockInDays,
+          };
+        } else {
+          results.LOCK_IN_PERIOD = { passed: true };
+        }
+      } else {
+        results.LOCK_IN_PERIOD = { passed: true };
+      }
+    }
+
+    // RULE: BUYER_CLASS_INSUFFICIENT (investor class tier below minBuyerClass)
+    const minBuyerClass =
+      assetType?.complianceRules?.minBuyerClass ??
+      assetType?.token?.minBuyerClass ??
+      assetType?.rules?.minBuyerClass;
+    if (minBuyerClass) {
+      const CLASS_TIER = { RETAIL: 1, QUALIFIED: 2, INSTITUTIONAL: 3 };
+      const buyerTier = CLASS_TIER[receiver?.investorClass] || 0;
+      const requiredTier = CLASS_TIER[minBuyerClass] || 0;
+      if (buyerTier < requiredTier) {
+        rejectionReasons.push(TransferRuleReason.BUYER_CLASS_INSUFFICIENT);
+        results.BUYER_CLASS = {
+          passed: false,
+          buyerClass: receiver?.investorClass,
+          minBuyerClass,
+        };
+      } else {
+        results.BUYER_CLASS = { passed: true };
+      }
+    }
+
+    // RULE: JURISDICTION_NOT_ALLOWED (buyer jurisdiction restricted)
+    const allowedJurisdictions =
+      assetType?.complianceRules?.allowedJurisdictions ??
+      assetType?.token?.allowedJurisdictions ??
+      assetType?.rules?.allowedJurisdictions;
+    if (
+      Array.isArray(allowedJurisdictions) &&
+      allowedJurisdictions.length > 0
+    ) {
+      if (
+        receiver?.jurisdiction &&
+        !allowedJurisdictions.includes(receiver.jurisdiction)
+      ) {
+        rejectionReasons.push(TransferRuleReason.JURISDICTION_RESTRICTED);
+        results.JURISDICTION = {
+          passed: false,
+          buyerJurisdiction: receiver.jurisdiction,
+          allowedJurisdictions,
+        };
+      } else {
+        results.JURISDICTION = { passed: true };
+      }
+    }
+
+    // RULE: KYC_EXPIRED (participant KYC expiry timestamp exceeded)
+    const senderKycExpired =
+      sender?.kycExpiresAt &&
+      new Date(sender.kycExpiresAt).getTime() <= txTimeMs;
+    const receiverKycExpired =
+      receiver?.kycExpiresAt &&
+      new Date(receiver.kycExpiresAt).getTime() <= txTimeMs;
+    if (senderKycExpired || receiverKycExpired) {
+      rejectionReasons.push(TransferRuleReason.KYC_EXPIRED);
+      results.KYC_EXPIRED = {
+        passed: false,
+        senderKycExpiresAt: sender?.kycExpiresAt,
+        receiverKycExpiresAt: receiver?.kycExpiresAt,
+      };
+    } else {
+      results.KYC_EXPIRED = { passed: true };
+    }
+
+    // RULE: VALUATION_STALE (asset valuation validUntil window has passed)
+    const blockOnStaleValuation =
+      assetType?.complianceRules?.blockOnStaleValuation ??
+      assetType?.token?.blockOnStaleValuation ??
+      assetType?.rules?.blockOnStaleValuation;
+    if (blockOnStaleValuation && asset?.valuation?.validUntil) {
+      const validUntilMs = new Date(asset.valuation.validUntil).getTime();
+      if (validUntilMs > 0 && validUntilMs <= txTimeMs) {
+        rejectionReasons.push(TransferRuleReason.VALUATION_STALE);
+        results.VALUATION_STALE = {
+          passed: false,
+          validUntil: asset.valuation.validUntil,
+        };
+      } else {
+        results.VALUATION_STALE = { passed: true };
       }
     }
 
