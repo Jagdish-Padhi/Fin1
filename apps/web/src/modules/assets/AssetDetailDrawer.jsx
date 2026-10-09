@@ -82,28 +82,26 @@ export function AssetDetailDrawer({ isOpen, onClose, assetId, user, onAssetUpdat
 
   const handleAttachEvidence = async (e) => {
     e.preventDefault();
-    if (!uploadDocType || (!uploadHash && !uploadFile)) return;
+    if (!uploadDocType) {
+      setError('Please choose the document type before attaching evidence.');
+      return;
+    }
+    if (!uploadFile) {
+      setError(
+        'Please select the actual document file to upload. Evidence must be the real uploaded file, not just a hash.'
+      );
+      return;
+    }
     try {
       setAttaching(true);
       setAttachSuccess(null);
       setError(null);
 
-      if (uploadFile) {
-        // Real binary upload: encrypted server-side (AES-256-GCM) with the
-        // SHA-256 anchored on-chain. This is what makes the document openable later.
-        await api.uploadEvidence(asset.id, uploadDocType, uploadFile);
-      } else {
-        await api.attachEvidence(asset.id, {
-          assetId: asset.id,
-          docType: uploadDocType,
-          title: uploadTitle || `${uploadDocType} Document`,
-          sha256: uploadHash,
-          mimeType: 'application/pdf',
-          sizeBytes: 1048576,
-        });
-      }
+      // Real binary upload: the exact file is encrypted server-side (AES-256-GCM)
+      // and its SHA-256 anchored on-chain. Verifiers open this same uploaded file.
+      await api.uploadEvidence(asset.id, uploadDocType, uploadFile);
 
-      setAttachSuccess('Evidence successfully anchored to Merkle vault!');
+      setAttachSuccess('Evidence document uploaded and anchored to the Merkle vault!');
       setUploadDocType('');
       setUploadTitle('');
       setUploadHash('');

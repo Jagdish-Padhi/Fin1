@@ -130,10 +130,7 @@ export class MockGateway {
         .digest('hex'),
       status: AssetStatus.TOKENIZED,
       tokenId: 'TKN-LAND-001',
-      evidenceRoot: crypto
-        .createHash('sha256')
-        .update('EVD-ROOT-LAND')
-        .digest('hex'),
+      evidenceRoot: this._computeEvidenceRoot([]),
       version: 1,
       evidence: [],
       createdAt: this._now(),
@@ -159,10 +156,7 @@ export class MockGateway {
         .digest('hex'),
       status: AssetStatus.TOKENIZED,
       tokenId: 'TKN-TRACTOR-001',
-      evidenceRoot: crypto
-        .createHash('sha256')
-        .update('EVD-ROOT-TRACTOR')
-        .digest('hex'),
+      evidenceRoot: this._computeEvidenceRoot([]),
       version: 1,
       evidence: [],
       createdAt: this._now(),
@@ -189,6 +183,7 @@ export class MockGateway {
       tokenId: 'TKN-FROZEN-001',
       freezeReason: 'High Court Compliance Hold Order #HC-9921',
       version: 1,
+      evidenceRoot: this._computeEvidenceRoot([]),
       evidence: [],
       createdAt: this._now(),
       updatedAt: this._now(),
@@ -922,11 +917,7 @@ export class MockGateway {
         asset.evidence.push(evidence);
 
         // Compute Merkle / evidence root from active evidence leaves
-        const leaves = asset.evidence.map((e) => e.sha256).sort();
-        asset.evidenceRoot = crypto
-          .createHash('sha256')
-          .update(leaves.join(':'))
-          .digest('hex');
+        asset.evidenceRoot = this._computeEvidenceRoot(asset.evidence);
 
         this._appendAudit(
           caller,
@@ -2120,6 +2111,21 @@ export class MockGateway {
       results,
       rejectionReasons,
     };
+  }
+
+  /**
+   * Computes the Merkle-style evidence root from the actual on-chain evidence
+   * leaves (SHA-256 digests). Deterministic — no hardcoded/fake roots.
+   * An empty evidence set yields the root of no documents (sha256 of "").
+   */
+  _computeEvidenceRoot(evidenceArray = []) {
+    const leaves = (evidenceArray || [])
+      .map((e) => e.sha256)
+      .sort();
+    return crypto
+      .createHash('sha256')
+      .update(leaves.join(':'))
+      .digest('hex');
   }
 
   _filterAssetVisibility(asset, caller) {
