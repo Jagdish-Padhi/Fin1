@@ -342,4 +342,15 @@ export class AssetContract extends Contract {
     const asset: AssetRecord = JSON.parse(bytes.toString());
     return asset.evidenceRoot || '';
   }
+
+  @Transaction(false)
+  @Returns('string')
+  async getEvidence(ctx: Context, evidenceId: string): Promise<string> {
+    const key = `${Keys.EVIDENCE}:${evidenceId}`;
+    const bytes = await ctx.stub.getState(key);
+    if (!bytes || bytes.length === 0) {
+      throw new Error(`Evidence not found: ${evidenceId}`);
+    }
+    return bytes.toString();
+  }
 }
