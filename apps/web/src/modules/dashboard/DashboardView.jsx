@@ -1,164 +1,451 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../shared/context/AuthContext.jsx';
 import { api } from '../../shared/services/api.js';
-import { StatusBadge } from '../../shared/components/StatusBadge.jsx';
 import { HashChip } from '../../shared/components/HashChip.jsx';
 import {
   Layers,
   Coins,
   ArrowRightLeft,
-  ShieldCheck,
   CheckCircle2,
   Clock,
   ArrowUpRight,
   Building,
-  UserCheck,
   FileCheck,
   TrendingUp,
   Activity,
   History,
+  Users,
+  ShieldCheck,
+  XCircle,
 } from 'lucide-react';
+
+const settledList = (result) =>
+  result.status === 'fulfilled' && Array.isArray(result.value?.data)
+    ? result.value.data
+    : [];
+
+function isPendingKyc(p) {
+  return p?.kycStatus === 'SUBMITTED' || p?.kycStatus === 'UNDER_REVIEW';
+}
+
+function isStaleValuation(v) {
+  if (!v) return false;
+  if (v.status === 'EXPIRED') return true;
+  if (!v.validUntil) return false;
+  return new Date(v.validUntil).getTime() < Date.now();
+}
+
+function getRoleCounters(role, data, onNavigate) {
+  const { assets, tokens, transfers, participants, valuations, cases, types, explorer } = data;
+  const link = (tab) => (onNavigate ? () => onNavigate(tab) : undefined);
+
+  switch (role) {
+    case 'ADMINISTRATOR': {
+      const pendingKyc = participants.filter(isPendingKyc).length;
+      const activeTypes = types.filter((t) => (t.status || 'ACTIVE') !== 'DEPRECATED').length;
+      return [
+        {
+          key: 'pending-kyc',
+          label: 'Pending KYC Review',
+          value: pendingKyc,
+          sub: 'Across consortium participants',
+          icon: Users,
+          tone: 'amber',
+          onClick: link('participants'),
+        },
+        {
+          key: 'asset-types',
+          label: 'Active Asset Types',
+          value: activeTypes,
+          sub: 'Versioned schemas in force',
+          icon: Building,
+          tone: 'teal',
+          onClick: link('asset-types'),
+        },
+        {
+          key: 'participants',
+          label: 'Registered Participants',
+          value: participants.length,
+          sub: 'Identities anchored on ledger',
+          icon: ShieldCheck,
+          tone: 'navy',
+          onClick: link('participants'),
+        },
+      ];
+    }
+    case 'ISSUER': {
+      const actionNeeded = assets.filter((a) =>
+        ['REGISTERED', 'CHANGES_REQUESTED', 'REJECTED', 'DRAFT'].includes(a.status)
+      ).length;
+      const inVerification = assets.filter((a) => a.status === 'UNDER_VERIFICATION').length;
+      const ready = assets.filter((a) =>
+        ['VERIFIED', 'VALUED', 'TOKENIZED'].includes(a.status)
+      ).length;
+      return [
+        {
+          key: 'action-needed',
+          label: 'Action Needed',
+          value: actionNeeded,
+          sub: 'Draft / changes requested / rejected',
+          icon: Clock,
+          tone: 'amber',
+          onClick: link('assets'),
+        },
+        {
+          key: 'in-verification',
+          label: 'In Verification',
+          value: inVerification,
+          sub: 'With independent verifiers',
+          icon: FileCheck,
+          tone: 'navy',
+          onClick: link('assets'),
+        },
+        {
+          key: 'ready',
+          label: 'Verified & Tokenized',
+          value: ready,
+          sub: 'Ready for valuation / mint',
+          icon: CheckCircle2,
+          tone: 'green',
+          onClick: link('assets'),
+        },
+      ];
+    }
+    case 'VERIFIER': {
+      const open = cases.filter((c) =>
+        ['OPEN', 'IN_PROGRESS', 'PENDING', 'UNDER_REVIEW'].includes(c.status)
+      ).length;
+      const approved = cases.filter((c) => c.status === 'APPROVED').length;
+      const rejected = cases.filter((c) =>
+        ['REJECTED', 'CHANGES_REQUESTED'].includes(c.status)
+      ).length;
+      return [
+        {
+          key: 'open-queue',
+          label: 'Open Audit Queue',
+          value: open,
+          sub: 'Cases awaiting your checks',
+          icon: FileCheck,
+          tone: 'navy',
+          onClick: link('verification'),
+        },
+        {
+          key: 'approved',
+          label: 'Approved',
+          value: approved,
+          sub: 'Signed off by you / pool',
+          icon: CheckCircle2,
+          tone: 'green',
+          onClick: link('verification'),
+        },
+        {
+          key: 'returned',
+          label: 'Rejected / Changes Asked',
+          value: rejected,
+          sub: 'Closed with findings',
+          icon: XCircle,
+          tone: 'red',
+          onClick: link('verification'),
+        },
+      ];
+    }
+    case 'VALUER': {
+      const proposed = valuations.filter((v) => v.status === 'PROPOSED').length;
+      const approved = valuations.filter((v) => v.status === 'APPROVED').length;
+      const stale = valuations.filter(isStaleValuation).length;
+      return [
+        {
+          key: 'awaiting-cert',
+          label: 'Awaiting Certification',
+          value: proposed,
+          sub: 'With compliance officers',
+          icon: Clock,
+          tone: 'amber',
+          onClick: link('valuation'),
+        },
+        {
+          key: 'certified',
+          label: 'Certified',
+          value: approved,
+          sub: 'Approved NAV on ledger',
+          icon: CheckCircle2,
+          tone: 'green',
+          onClick: link('valuation'),
+        },
+        {
+          key: 'stale',
+          label: 'Expired / Stale',
+          value: stale,
+          sub: 'Needs revaluation',
+          icon: TrendingUp,
+          tone: 'red',
+          onClick: link('valuation'),
+        },
+      ];
+    }
+    case 'COMPLIANCE': {
+      const toCertify = valuations.filter((v) => v.status === 'PROPOSED').length;
+      const awaitingSettlement = transfers.filter((t) =>
+        ['PROPOSED', 'PENDING_COMPLIANCE', 'PENDING'].includes(t.status)
+      ).length;
+      const rejected = transfers.filter((t) => t.status === 'REJECTED').length;
+      return [
+        {
+          key: 'to-certify',
+          label: 'Valuations to Certify',
+          value: toCertify,
+          sub: 'Maker-checker queue',
+          icon: TrendingUp,
+          tone: 'amber',
+          onClick: link('valuation'),
+        },
+        {
+          key: 'awaiting-settlement',
+          label: 'Transfers Awaiting Decision',
+          value: awaitingSettlement,
+          sub: 'Proposed / escalated',
+          icon: ArrowRightLeft,
+          tone: 'navy',
+          onClick: link('transfers'),
+        },
+        {
+          key: 'rejected',
+          label: 'Rejected Transfers',
+          value: rejected,
+          sub: 'First-class audit records',
+          icon: XCircle,
+          tone: 'red',
+          onClick: link('transfers'),
+        },
+      ];
+    }
+    case 'INVESTOR': {
+      const activeTokens = tokens.filter((t) => (t.status || 'ACTIVE') === 'ACTIVE').length;
+      const proposed = transfers.filter((t) =>
+        ['PROPOSED', 'PENDING_COMPLIANCE', 'PENDING'].includes(t.status)
+      ).length;
+      const settled = transfers.filter((t) => t.status === 'EXECUTED').length;
+      return [
+        {
+          key: 'tokens',
+          label: 'Active Token Offerings',
+          value: activeTokens,
+          sub: 'Whole & fractional',
+          icon: Coins,
+          tone: 'teal',
+          onClick: link('tokens'),
+        },
+        {
+          key: 'pending',
+          label: 'Pending Transfers',
+          value: proposed,
+          sub: 'Awaiting settlement',
+          icon: Clock,
+          tone: 'amber',
+          onClick: link('transfers'),
+        },
+        {
+          key: 'settled',
+          label: 'Settled Transfers',
+          value: settled,
+          sub: 'Executed on ledger',
+          icon: CheckCircle2,
+          tone: 'green',
+          onClick: link('transfers'),
+        },
+      ];
+    }
+    case 'AUDITOR': {
+      const txCount = explorer?.txCount ?? explorer?.totalTransactions ?? transfers.length;
+      return [
+        {
+          key: 'assets',
+          label: 'Assets Tracked',
+          value: assets.length,
+          sub: 'Passports on channel',
+          icon: Layers,
+          tone: 'navy',
+          onClick: link('assets'),
+        },
+        {
+          key: 'tokens',
+          label: 'Tokens Issued',
+          value: tokens.length,
+          sub: 'Traceable to collateral',
+          icon: Coins,
+          tone: 'teal',
+          onClick: link('tokens'),
+        },
+        {
+          key: 'commits',
+          label: 'Ledger Transactions',
+          value: txCount,
+          sub: 'Committed & auditable',
+          icon: Activity,
+          tone: 'green',
+          onClick: link('audit'),
+        },
+      ];
+    }
+    default: {
+      const awaiting = transfers.filter((t) =>
+        ['PROPOSED', 'PENDING_COMPLIANCE', 'PENDING'].includes(t.status)
+      ).length;
+      return [
+        {
+          key: 'assets',
+          label: 'Registered Assets',
+          value: assets.length,
+          sub: 'Anchored passports',
+          icon: Layers,
+          tone: 'navy',
+          onClick: link('assets'),
+        },
+        {
+          key: 'tokens',
+          label: 'Tokenized Securities',
+          value: tokens.length,
+          sub: 'Whole & fractional',
+          icon: Coins,
+          tone: 'teal',
+          onClick: link('tokens'),
+        },
+        {
+          key: 'pending',
+          label: 'Pending Transfers',
+          value: awaiting,
+          sub: 'Awaiting settlement',
+          icon: ArrowRightLeft,
+          tone: 'amber',
+          onClick: link('transfers'),
+        },
+      ];
+    }
+  }
+}
+
+const toneStyles = {
+  navy: { chip: 'bg-[#F0F4F8] text-[#1F5A7A]', value: 'text-[#0F2A43]' },
+  teal: { chip: 'bg-[#F0FDFA] text-[#0F766E]', value: 'text-[#0F766E]' },
+  green: { chip: 'bg-[#F0FDF4] text-[#18794E]', value: 'text-[#18794E]' },
+  amber: { chip: 'bg-[#FEFCE8] text-[#A16207]', value: 'text-[#A16207]' },
+  red: { chip: 'bg-[#FEF2F2] text-[#B42318]', value: 'text-[#B42318]' },
+};
 
 export function DashboardView({ onNavigate }) {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
-    totalAssets: 0,
-    totalTokens: 0,
-    totalTransfers: 0,
-    blockHeight: 1,
+  const role = user?.role || 'ADMINISTRATOR';
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({
+    assets: [],
+    tokens: [],
+    transfers: [],
+    participants: [],
+    valuations: [],
+    cases: [],
+    types: [],
+    explorer: null,
     recentEntries: [],
   });
-  const [loading, setLoading] = useState(true);
-
-  const fetchStats = async () => {
-    try {
-      setLoading(true);
-      const res = await api.getExplorer();
-      if (res?.data) {
-        setStats(res.data);
-      }
-    } catch (err) {
-      console.warn('Could not fetch explorer stats:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    fetchStats();
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      const [
+        explorerRes,
+        assetsRes,
+        tokensRes,
+        transfersRes,
+        participantsRes,
+        valuationsRes,
+        casesRes,
+        typesRes,
+      ] = await Promise.allSettled([
+        api.getExplorer(),
+        api.getAssets(),
+        api.getTokens(),
+        api.getTransfers(),
+        api.getParticipants(),
+        api.getValuations(),
+        api.getVerificationCases(),
+        api.getAssetTypes(),
+      ]);
+      if (cancelled) return;
+      const explorerData =
+        explorerRes.status === 'fulfilled' ? explorerRes.value?.data ?? null : null;
+      setData({
+        assets: settledList(assetsRes),
+        tokens: settledList(tokensRes),
+        transfers: settledList(transfersRes),
+        participants: settledList(participantsRes),
+        valuations: settledList(valuationsRes),
+        cases: settledList(casesRes),
+        types: settledList(typesRes),
+        explorer: explorerData,
+        recentEntries:
+          explorerData?.recentEntries && Array.isArray(explorerData.recentEntries)
+            ? explorerData.recentEntries
+            : [],
+      });
+      setLoading(false);
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
+
+  const counters = useMemo(() => getRoleCounters(role, data, onNavigate), [role, data, onNavigate]);
 
   return (
     <div className="space-y-6">
-
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="trust-card p-5 space-y-2 hover:border-[#BAC7D5] transition">
-          <div className="flex items-center justify-between text-[#5A6A7E]">
-            <span className="text-xs font-bold uppercase tracking-wider">Registered Assets</span>
-            <div className="p-2 rounded-lg bg-[#F0F4F8] text-[#1F5A7A]">
-              <Layers className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-extrabold text-[#0F2A43]">{stats.totalAssets}</div>
-          <div className="text-[11px] text-[#5A6A7E]">Cryptographically Anchored Passports</div>
-        </div>
-
-        <div className="trust-card p-5 space-y-2 hover:border-[#BAC7D5] transition">
-          <div className="flex items-center justify-between text-[#5A6A7E]">
-            <span className="text-xs font-bold uppercase tracking-wider">Tokenized Securities</span>
-            <div className="p-2 rounded-lg bg-[#F0FDFA] text-[#0F766E]">
-              <Coins className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-extrabold text-[#0F766E]">{stats.totalTokens}</div>
-          <div className="text-[11px] text-[#5A6A7E]">Whole & Fractional Offerings</div>
-        </div>
-
-        <div className="trust-card p-5 space-y-2 hover:border-[#BAC7D5] transition">
-          <div className="flex items-center justify-between text-[#5A6A7E]">
-            <span className="text-xs font-bold uppercase tracking-wider">Rule Transfers</span>
-            <div className="p-2 rounded-lg bg-[#F0F4F8] text-[#1F5A7A]">
-              <ArrowRightLeft className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-extrabold text-[#1F5A7A]">{stats.totalTransfers}</div>
-          <div className="text-[11px] text-[#5A6A7E]">Compliance-Gated Settlements</div>
-        </div>
-
-        <div className="trust-card p-5 space-y-2 hover:border-[#BAC7D5] transition">
-          <div className="flex items-center justify-between text-[#5A6A7E]">
-            <span className="text-xs font-bold uppercase tracking-wider">Fabric Consensus</span>
-            <div className="p-2 rounded-lg bg-[#F0FDF4] text-[#18794E]">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-extrabold text-[#18794E]">Healthy</div>
-          <div className="text-[11px] text-[#5A6A7E]">Raft Cluster Operational</div>
-        </div>
-      </div>
-
-      {/* Role-Specific Action Grid */}
+      {/* Role-specific operational counters */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-[#0F2A43] uppercase tracking-wider">
-            Governance Workflows ({user?.role})
+            Operational Overview ({role})
           </h3>
-          <span className="text-xs text-[#5A6A7E]">Direct Action Shortcuts</span>
+          <span className="text-xs text-[#5A6A7E]">
+            {loading ? 'Reading ledger state…' : 'Live from consortium state'}
+          </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div
-            onClick={() => onNavigate('assets')}
-            className="trust-card p-5 cursor-pointer hover:border-[#1F5A7A] transition group space-y-2"
-          >
-            <div className="flex items-center justify-between">
-              <div className="p-2.5 rounded-xl bg-[#F0F4F8] text-[#0F2A43] group-hover:bg-[#0F2A43] group-hover:text-white transition">
-                <Layers className="w-5 h-5" />
+          {counters.map((c) => {
+            const Icon = c.icon;
+            const tone = toneStyles[c.tone] || toneStyles.navy;
+            const clickable = typeof c.onClick === 'function';
+            return (
+              <div
+                key={c.key}
+                onClick={c.onClick}
+                className={`trust-card p-5 space-y-2 transition ${
+                  clickable ? 'cursor-pointer hover:border-[#1F5A7A] group' : ''
+                }`}
+              >
+                <div className="flex items-center justify-between text-[#5A6A7E]">
+                  <span className="text-xs font-bold uppercase tracking-wider">{c.label}</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className={`p-2 rounded-lg ${tone.chip}`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    {clickable && (
+                      <ArrowUpRight className="w-4 h-4 text-[#8795A5] group-hover:text-[#0F2A43] transition" />
+                    )}
+                  </div>
+                </div>
+                <div className={`text-2xl font-extrabold ${tone.value}`}>
+                  {loading ? '—' : c.value}
+                </div>
+                <div className="text-[11px] text-[#5A6A7E]">{c.sub}</div>
               </div>
-              <ArrowUpRight className="w-4 h-4 text-[#8795A5] group-hover:text-[#0F2A43] transition" />
-            </div>
-            <div className="text-sm font-bold text-[#0F2A43]">Real-World Asset Directory</div>
-            <p className="text-xs text-[#5A6A7E]">
-              Explore registered asset passports, dynamic schemas, and Merkle evidence vaults.
-            </p>
-          </div>
-
-          <div
-            onClick={() => onNavigate('participants')}
-            className="trust-card p-5 cursor-pointer hover:border-[#1F5A7A] transition group space-y-2"
-          >
-            <div className="flex items-center justify-between">
-              <div className="p-2.5 rounded-xl bg-[#F0F4F8] text-[#1F5A7A] group-hover:bg-[#1F5A7A] group-hover:text-white transition">
-                <Building className="w-5 h-5" />
-              </div>
-              <ArrowUpRight className="w-4 h-4 text-[#8795A5] group-hover:text-[#1F5A7A] transition" />
-            </div>
-            <div className="text-sm font-bold text-[#0F2A43]">Participant Directory & KYC</div>
-            <p className="text-xs text-[#5A6A7E]">
-              Manage participant eligibility, KYC verification workflows, and transfer limit caps.
-            </p>
-          </div>
-
-          <div
-            onClick={() => onNavigate('asset-types')}
-            className="trust-card p-5 cursor-pointer hover:border-[#0F766E] transition group space-y-2"
-          >
-            <div className="flex items-center justify-between">
-              <div className="p-2.5 rounded-xl bg-[#F0FDFA] text-[#0F766E] group-hover:bg-[#0F766E] group-hover:text-white transition">
-                <FileCheck className="w-5 h-5" />
-              </div>
-              <ArrowUpRight className="w-4 h-4 text-[#8795A5] group-hover:text-[#0F766E] transition" />
-            </div>
-            <div className="text-sm font-bold text-[#0F2A43]">Asset Type Engine</div>
-            <p className="text-xs text-[#5A6A7E]">
-              Inspect parametric attribute schemas, required evidence rules, and field privacy levels.
-            </p>
-          </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Recent Ledger Audit Trail */}
+      {/* Recent Ledger Audit Trail (unchanged) */}
       <div className="trust-card overflow-hidden">
         <div className="p-4 border-b border-[#D8E0E8] flex items-center justify-between bg-[#F8FAFC]">
           <div className="flex items-center gap-2">
@@ -182,8 +469,8 @@ export function DashboardView({ onNavigate }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E8EEF3] text-[#17202A]">
-              {stats.recentEntries && stats.recentEntries.length > 0 ? (
-                stats.recentEntries.slice(0, 6).map((entry, idx) => (
+              {data.recentEntries && data.recentEntries.length > 0 ? (
+                data.recentEntries.slice(0, 6).map((entry, idx) => (
                   <tr key={idx} className="hover:bg-[#F8FAFC] transition">
                     <td className="py-3 px-4 font-semibold text-[#0F2A43]">
                       <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8]">
