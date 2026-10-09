@@ -16,11 +16,20 @@
     "db:push": "prisma db push --schema=./db/prisma/schema.prisma",
     "db:seed": "node ./db/seeds/seed.js",
     "fixtures": "node ./tools/fixtures/fixture-runner.js",
-    "network:up": "bash ./network/scripts/bootstrap.sh",
-    "network:down": "bash ./network/scripts/teardown.sh"
+    "fabric:install": "bash scripts/fabric/install.sh",
+    "fabric:up": "bash scripts/fabric/network-up.sh",
+    "fabric:down": "bash scripts/fabric/network-down.sh",
+    "fabric:cc-deploy": "bash scripts/fabric/cc-deploy.sh",
+    "fabric:enroll": "node tools/identity/enroll.mjs",
+    "fabric:bootstrap": "node tools/bootstrap/ledger-init.mjs",
+    "fabric:all": "bash scripts/fabric/network-up.sh && bash scripts/fabric/cc-deploy.sh && node tools/identity/enroll.mjs && node tools/bootstrap/ledger-init.mjs",
+    "smoke:golden": "node tools/smoke/golden-path.mjs",
+    "smoke:ping": "node tools/smoke/ping.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
+    "fabric-ca-client": "^2.2.20",
+    "fabric-common": "^2.2.20",
     "prettier": "^3.5.0",
     "prisma": "^6.4.1"
   },
