@@ -145,7 +145,7 @@ describe('Phase 5: TokenContract', () => {
     );
   });
 
-  it('allows an administrator to mint a token', async () => {
+  it('rejects an administrator from minting a token (separation of duties)', async () => {
     const adminCtx = createMockCtx(
       {
         mspId: 'EkamVistarMSP',
@@ -156,10 +156,10 @@ describe('Phase 5: TokenContract', () => {
       state,
       'tx-mint-admin'
     );
-    const token = JSON.parse(await contract.mintToken(adminCtx, mintInput()));
-
-    assert.equal(token.status, 'ACTIVE');
-    assert.equal(token.initialHolderId, 'PRT-ISSUER-01');
+    await assert.rejects(
+      contract.mintToken(adminCtx, mintInput()),
+      /Unauthorized/
+    );
   });
 
   it('returns token, balance, holders, and token trace from ledger state', async () => {

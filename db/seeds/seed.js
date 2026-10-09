@@ -7,6 +7,8 @@ try {
   // fallback if native bcrypt is unavailable
 }
 
+const DEFAULT_PASSWORD_HASH = '$2b$10$.O7JKe0p3jirWumzJtmsKehrZ6z/HeVklqBX66FwLzqqIhcvdbUJ6';
+
 /**
  * Seed data definition for EkamVistar RWA Platform
  * Exportable both as JSON/in-memory seed and runnable via Prisma
@@ -27,6 +29,7 @@ export const SEED_DATA = {
       email: 'admin@assetrust.io',
       name: 'Aditi Sharma (Platform Admin)',
       role: 'ADMINISTRATOR',
+      passwordHash: DEFAULT_PASSWORD_HASH,
     },
     {
       id: 'USR-ADMIN-EKAM',
@@ -34,6 +37,7 @@ export const SEED_DATA = {
       email: 'admin@ekamvistar.com',
       name: 'Aditi Sharma (Platform Admin)',
       role: 'ADMINISTRATOR',
+      passwordHash: DEFAULT_PASSWORD_HASH,
     },
     {
       id: 'USR-ISSUER',
@@ -41,6 +45,7 @@ export const SEED_DATA = {
       email: 'issuer@originator.com',
       name: 'Rajesh Patel (Agro Originator)',
       role: 'ISSUER',
+      passwordHash: DEFAULT_PASSWORD_HASH,
     },
     {
       id: 'USR-VERIFIER',
@@ -48,6 +53,7 @@ export const SEED_DATA = {
       email: 'verifier@auditfirm.com',
       name: 'Vikram Singh (Senior Verifier)',
       role: 'VERIFIER',
+      passwordHash: DEFAULT_PASSWORD_HASH,
     },
     {
       id: 'USR-VALUER',
@@ -55,6 +61,7 @@ export const SEED_DATA = {
       email: 'valuer@valuationpartners.com',
       name: 'Ananya Roy (Registered Valuer)',
       role: 'VALUER',
+      passwordHash: DEFAULT_PASSWORD_HASH,
     },
     {
       id: 'USR-COMPLIANCE',
@@ -62,6 +69,7 @@ export const SEED_DATA = {
       email: 'compliance@regulatory.gov.in',
       name: 'Suresh Menon (Chief Compliance Officer)',
       role: 'COMPLIANCE',
+      passwordHash: DEFAULT_PASSWORD_HASH,
     },
     {
       id: 'USR-INVESTOR',
@@ -69,6 +77,7 @@ export const SEED_DATA = {
       email: 'investor@capitalfund.com',
       name: 'Pooja Iyer (Qualified Investor)',
       role: 'INVESTOR',
+      passwordHash: DEFAULT_PASSWORD_HASH,
     },
     {
       id: 'USR-AUDITOR',
@@ -76,6 +85,7 @@ export const SEED_DATA = {
       email: 'auditor@kpmg-audit.com',
       name: 'Deepak Verma (Consortium Auditor)',
       role: 'AUDITOR',
+      passwordHash: DEFAULT_PASSWORD_HASH,
     },
   ],
   participants: [

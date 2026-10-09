@@ -164,6 +164,18 @@ describe('Phase 5: Tokens API', () => {
     });
     assert.equal(denied.status, 403);
 
+    const adminDenied = await requestApp('POST', '/api/v1/tokens/mint', {
+      token: adminToken,
+      body: {
+        assetId,
+        standard: 'FRACTIONAL',
+        totalUnits: 10000,
+        rightsType: 'UNDIVIDED_FRACTION',
+        representation: 'Undivided economic interest in the asset',
+      },
+    });
+    assert.equal(adminDenied.status, 403);
+
     const invalid = await requestApp('POST', '/api/v1/tokens/mint', {
       token: complianceToken,
       body: {
@@ -258,7 +270,7 @@ describe('Phase 5: Tokens API', () => {
     assert.equal(asset.body.data.tokenId, token.id);
 
     const duplicate = await requestApp('POST', '/api/v1/tokens/mint', {
-      token: adminToken,
+      token: complianceToken,
       body: {
         assetId,
         standard: 'FRACTIONAL',

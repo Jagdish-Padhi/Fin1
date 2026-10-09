@@ -51,6 +51,18 @@ export class StorageService {
     const storageKey = `DOC-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
     const filePath = path.join(this.vaultDir, `${storageKey}.bin`);
     fs.writeFileSync(filePath, encryptedData);
+    const metaPath = path.join(this.vaultDir, `${storageKey}.meta.json`);
+    fs.writeFileSync(
+      metaPath,
+      JSON.stringify({
+        dekEnvelope,
+        storageKey,
+        sha256,
+        size: buffer.length,
+        mimeType,
+        fileName: originalName,
+      })
+    );
 
     return {
       storageKey,
@@ -69,6 +81,16 @@ export class StorageService {
     const filePath = path.join(this.vaultDir, `${storageKey}.bin`);
     if (!fs.existsSync(filePath)) {
       throw new Error(`Document file not found for key: ${storageKey}`);
+    }
+
+    if (!encryptedDekJson) {
+      const metaPath = path.join(this.vaultDir, `${storageKey}.meta.json`);
+      if (fs.existsSync(metaPath)) {
+        const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+        encryptedDekJson = JSON.stringify(meta.dekEnvelope);
+      } else {
+        throw new Error(`Envelope metadata not found for key: ${storageKey}`);
+      }
     }
 
     const encryptedData = fs.readFileSync(filePath);

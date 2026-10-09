@@ -24,6 +24,20 @@ export class EvidenceController {
       next(err);
     }
   }
+
+  async download(req, res, next) {
+    try {
+      const { id } = req.params;
+      const fileData = await evidenceService.downloadDocument(req.user, id);
+
+      res.setHeader('Content-Type', fileData.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileData.fileName)}"`);
+      res.setHeader('X-Evidence-SHA256', fileData.sha256);
+      res.status(200).send(fileData.buffer);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const evidenceController = new EvidenceController();

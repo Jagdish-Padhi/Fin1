@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { config } from './core/config/env.js';
 import { requestLogger } from './core/middleware/request-logger.js';
 import { idempotency } from './core/middleware/idempotency.middleware.js';
+import { globalRateLimiter } from './core/middleware/rate-limiter.js';
 import { errorHandler } from './core/errors/error-handler.js';
 
 // Modular routes
@@ -36,6 +37,7 @@ app.use(
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(globalRateLimiter);
 app.use(requestLogger);
 app.use(idempotency);
 

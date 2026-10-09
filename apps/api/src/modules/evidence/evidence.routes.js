@@ -17,3 +17,9 @@ evidenceRouter.post(
   upload.single('file'),
   (req, res, next) => evidenceController.upload(req, res, next)
 );
+
+evidenceRouter.get(
+  '/:id/download',
+  requireRole(Role.ISSUER, Role.VERIFIER, Role.COMPLIANCE, Role.AUDITOR),
+  (req, res, next) => evidenceController.download(req, res, next)
+);

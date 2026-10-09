@@ -131,7 +131,7 @@ export class TokenContract extends Contract {
   @Transaction()
   @Returns('string')
   async mintToken(ctx: Context, tokenJson: string): Promise<string> {
-    const caller = requireRole(ctx, Role.COMPLIANCE, Role.ADMINISTRATOR);
+    const caller = requireRole(ctx, Role.COMPLIANCE);
     const data = this._parseObject(tokenJson, 'token');
     const input: MintTokenInput = {
       assetId: this._requiredString(data.assetId, 'assetId'),

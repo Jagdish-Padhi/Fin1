@@ -23,12 +23,16 @@ jobs:
           version: 10.28.2
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile=false
+        run: pnpm install --frozen-lockfile
 
-      - name: Lint & Typecheck
-        run: |
-          echo "Running foundation verification..."
-          pnpm run test || true
+      - name: Build Chaincode
+        run: (cd chaincode/rwa && pnpm run build:cc)
+
+      - name: Run Test Suite
+        run: pnpm -r test
+
+      - name: Build Frontend
+        run: (cd apps/web && npx vite build)
 
       - name: Verify Architecture & Contracts
         run: |
@@ -38,4 +42,4 @@ jobs:
           test -f apps/api/src/server.js
           test -f apps/worker/src/worker.js
           test -f apps/web/src/App.jsx
-          echo "Phase 0 Foundation check passed!"
+          echo "CI Pipeline Passed!"

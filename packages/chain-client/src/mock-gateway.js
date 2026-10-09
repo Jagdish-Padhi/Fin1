@@ -570,7 +570,7 @@ export class MockGateway {
       initialHolderId: 'PRT-ISSUER-01',
       status: 'ACTIVE',
       mintedAt: this._now(),
-      mintedTxId: '0x99a811cde72183921bdfa89127812bcdea819213',
+      mintedTxId: crypto.createHash('sha256').update('seed-token-land-001').digest('hex'),
     });
 
     this.tokens.set('TKN-TRACTOR-001', {
@@ -585,7 +585,7 @@ export class MockGateway {
       initialHolderId: 'PRT-ISSUER-01',
       status: 'ACTIVE',
       mintedAt: this._now(),
-      mintedTxId: '0x88b722abde62719221cdfa88271827bcea718221',
+      mintedTxId: crypto.createHash('sha256').update('seed-token-tractor-001').digest('hex'),
     });
 
     this.tokens.set('TKN-FROZEN-001', {
@@ -600,7 +600,7 @@ export class MockGateway {
       initialHolderId: 'PRT-ISSUER-01',
       status: 'FROZEN',
       mintedAt: this._now(),
-      mintedTxId: '0x77c611abde52618211cdfa77182717bcea617112',
+      mintedTxId: crypto.createHash('sha256').update('seed-token-frozen-001').digest('hex'),
     });
 
     // Seed default Balances
@@ -632,7 +632,7 @@ export class MockGateway {
       proposedByMspId: 'IssuerMSP',
       createdAt: this._now(),
       executedAt: this._now(),
-      executedTxId: '0x123abc456def789',
+      executedTxId: crypto.createHash('sha256').update('seed-transfer-demo-001').digest('hex'),
     });
   }
 
@@ -641,7 +641,7 @@ export class MockGateway {
   }
 
   _generateTxId() {
-    return '0x' + crypto.randomBytes(32).toString('hex');
+    return crypto.randomBytes(32).toString('hex');
   }
 
   _appendAudit(
@@ -1736,13 +1736,8 @@ export class MockGateway {
       }
 
       case 'mintToken': {
-        if (
-          caller.role !== Role.COMPLIANCE &&
-          caller.role !== Role.ADMINISTRATOR
-        ) {
-          throw new Error(
-            'Only Compliance or Administrator can execute/approve token mint'
-          );
+        if (caller.role !== Role.COMPLIANCE) {
+          throw new Error('Only Compliance can execute/approve token mint');
         }
         const input = RequestMintTokenSchema.parse(args);
         const asset = this.assets.get(input.assetId);
@@ -2076,6 +2071,22 @@ export class MockGateway {
         const raw = this.assets.get(args.id);
         if (!raw) return null;
         return this._filterAssetVisibility(raw, caller);
+      }
+      case 'getEvidence': {
+        const id = args.id || args.evidenceId;
+        let found = this.evidence.get(id);
+        if (!found) {
+          for (const asset of this.assets.values()) {
+            if (asset.evidence) {
+              const match = asset.evidence.find((e) => e.id === id);
+              if (match) {
+                found = { ...match, assetId: asset.id };
+                break;
+              }
+            }
+          }
+        }
+        return found || null;
       }
       case 'listAssets':
         return Array.from(this.assets.values()).map((a) =>

@@ -22,6 +22,6 @@ tokensRouter.get('/:id/trace', (req, res, next) => tokensController.getTrace(req
 
 tokensRouter.post(
   '/mint',
-  requireRole(Role.COMPLIANCE, Role.ADMINISTRATOR),
+  requireRole(Role.COMPLIANCE),
   (req, res, next) => tokensController.mint(req, res, next)
 );

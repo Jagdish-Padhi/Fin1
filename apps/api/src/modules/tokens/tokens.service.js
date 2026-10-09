@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { chainBridge } from '../../core/chain/chain-bridge.js';
 
 export class TokensService {
@@ -39,6 +40,12 @@ export class TokensService {
           token = await chainBridge.evaluate({ role: 'PUBLIC' }, 'getToken', { id: assetDirect.tokenId });
         } else {
           // Asset exists but has not been tokenized yet
+          const leaves = (assetDirect.evidence || []).map((e) => e.sha256).filter(Boolean).sort();
+          const computedEvidenceRoot = leaves.length > 0
+            ? crypto.createHash('sha256').update(leaves.join(':')).digest('hex')
+            : (assetDirect.evidenceRoot || '');
+          const stateValid = !assetDirect.evidenceRoot || computedEvidenceRoot === assetDirect.evidenceRoot;
+
           return {
             tokenId: 'NOT_YET_TOKENIZED',
             assetId: assetDirect.id,
@@ -52,11 +59,17 @@ export class TokensService {
             mintedTxId: assetDirect.attributesHash || 'N/A',
             mintedAt: assetDirect.createdAt,
             holderCount: 0,
+            evidenceRoot: assetDirect.evidenceRoot || computedEvidenceRoot,
+            valuation: null,
+            verifiedBy: assetDirect.verifiedBy || null,
+            verifiedAt: assetDirect.verifiedAt || null,
             verifiedLedgerProof: {
               network: 'Hyperledger Fabric 2.5',
               channel: 'rwa-channel',
               chaincode: 'rwa',
-              stateValid: true,
+              mintedTxId: assetDirect.attributesHash || null,
+              blockNumber: 1,
+              stateValid,
             },
           };
         }
@@ -67,6 +80,38 @@ export class TokensService {
 
     const asset = await chainBridge.evaluate({ role: 'PUBLIC' }, 'getAsset', { id: token.assetId });
     const holders = await chainBridge.evaluate({ role: 'PUBLIC' }, 'listHolders', { tokenId: token.id });
+
+    // Recompute evidence root from asset's evidence leaves
+    const leaves = (asset?.evidence || []).map((e) => e.sha256).filter(Boolean).sort();
+    const computedEvidenceRoot = leaves.length > 0
+      ? crypto.createHash('sha256').update(leaves.join(':')).digest('hex')
+      : (asset?.evidenceRoot || '');
+
+    const evidenceRootMatches = !asset?.evidenceRoot || computedEvidenceRoot === asset.evidenceRoot;
+    const statusConsistent = token.status === 'ACTIVE' && asset?.status === 'TOKENIZED' && asset?.tokenId === token.id;
+    const stateValid = Boolean(evidenceRootMatches && statusConsistent);
+
+    let valuationSummary = null;
+    let verifiedBy = asset?.verifiedBy || null;
+    let verifiedAt = asset?.verifiedAt || null;
+
+    try {
+      const trace = await chainBridge.evaluate({ role: 'PUBLIC' }, 'getTokenTrace', { tokenId: token.id });
+      if (trace && trace.asset) {
+        verifiedBy = trace.asset.verifiedBy || verifiedBy;
+        verifiedAt = trace.asset.verifiedAt || verifiedAt;
+        if (trace.asset.valuation) {
+          valuationSummary = {
+            amountPaise: trace.asset.valuation.amountPaise || trace.asset.valuation.amount || null,
+            method: trace.asset.valuation.method || null,
+            date: trace.asset.valuation.date || trace.asset.valuation.createdAt || null,
+            valuerOrg: trace.asset.valuation.valuerOrg || trace.asset.valuation.proposedByMspId || null,
+          };
+        }
+      }
+    } catch {
+      // Ignore optional trace failure
+    }
 
     return {
       tokenId: token.id,
@@ -80,12 +125,18 @@ export class TokensService {
       status: token.status,
       mintedTxId: token.mintedTxId,
       mintedAt: token.mintedAt,
-      holderCount: holders.length,
+      holderCount: holders ? holders.length : 0,
+      evidenceRoot: asset?.evidenceRoot || computedEvidenceRoot,
+      valuation: valuationSummary,
+      verifiedBy,
+      verifiedAt,
       verifiedLedgerProof: {
         network: 'Hyperledger Fabric 2.5',
         channel: 'rwa-channel',
         chaincode: 'rwa',
-        stateValid: true,
+        mintedTxId: token.mintedTxId,
+        blockNumber: token.blockNumber || 1,
+        stateValid,
       },
     };
   }
