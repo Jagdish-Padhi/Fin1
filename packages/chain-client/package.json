@@ -7,9 +7,13 @@
   "exports": {
     ".": "./src/index.js"
   },
+  "scripts": {
+    "test": "node --test"
+  },
   "dependencies": {
-    "@rwa/contracts": "workspace:*",
+    "@grpc/grpc-js": "^1.12.6",
     "@hyperledger/fabric-gateway": "^1.7.1",
-    "@grpc/grpc-js": "^1.12.6"
+    "@rwa/contracts": "workspace:*",
+    "fabric-ca-client": "^2.2.20"
   }
 }
