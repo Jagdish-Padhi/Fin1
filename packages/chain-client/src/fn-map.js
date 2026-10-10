@@ -341,7 +341,7 @@ export const FUNCTION_MAP = {
   // AuditContract
   getAuditTrail: {
     contract: 'AuditContract',
-    args: (obj) => [obj.entityType || 'ASSET', obj.entityId || obj.id],
+    args: (obj) => [obj.entityType || 'ASSET', obj.entityId ?? obj.id ?? ''],
   },
   getStateHash: {
     contract: 'AuditContract',

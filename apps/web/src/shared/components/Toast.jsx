@@ -50,34 +50,10 @@ function ToastItem({ toast, onRemove }) {
   }, []);
 
   const configs = {
-    success: {
-      Icon: CheckCircle2,
-      containerClass: 'bg-white border-l-4 border-[#18794E] shadow-lg',
-      iconClass: 'text-[#18794E]',
-      titleClass: 'text-[#18794E]',
-      title: 'Success',
-    },
-    error: {
-      Icon: XCircle,
-      containerClass: 'bg-white border-l-4 border-[#B42318] shadow-lg',
-      iconClass: 'text-[#B42318]',
-      titleClass: 'text-[#B42318]',
-      title: 'Error',
-    },
-    warning: {
-      Icon: AlertTriangle,
-      containerClass: 'bg-white border-l-4 border-[#A16207] shadow-lg',
-      iconClass: 'text-[#A16207]',
-      titleClass: 'text-[#A16207]',
-      title: 'Warning',
-    },
-    info: {
-      Icon: Info,
-      containerClass: 'bg-white border-l-4 border-[#1F5A7A] shadow-lg',
-      iconClass: 'text-[#1F5A7A]',
-      titleClass: 'text-[#1F5A7A]',
-      title: 'Notice',
-    },
+    success: { Icon: CheckCircle2, iconClass: 'text-trust-success', title: 'Success' },
+    error: { Icon: XCircle, iconClass: 'text-trust-error', title: 'Error' },
+    warning: { Icon: AlertTriangle, iconClass: 'text-trust-warning', title: 'Warning' },
+    info: { Icon: Info, iconClass: 'text-trust-secondary', title: 'Notice' },
   };
 
   const cfg = configs[toast.type] || configs.info;
@@ -85,24 +61,22 @@ function ToastItem({ toast, onRemove }) {
 
   return (
     <div
-      className={`
-        pointer-events-auto flex items-start gap-3 p-4 rounded-xl border border-[#E8EEF3]
-        ${cfg.containerClass}
-        transition-all duration-300
-        ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
-      `}
+      className={`pointer-events-auto flex items-start gap-3 p-3.5 rounded-lg bg-white border border-trust-border shadow-popover transition-all duration-200 ${
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+      }`}
       role="alert"
     >
-      <Icon className={`w-5 h-5 shrink-0 mt-0.5 ${cfg.iconClass}`} />
+      <Icon className={`w-4 h-4 shrink-0 mt-0.5 ${cfg.iconClass}`} />
       <div className="flex-1 min-w-0">
-        <p className={`text-xs font-bold ${cfg.titleClass}`}>{cfg.title}</p>
-        <p className="text-xs text-[#374151] mt-0.5 leading-relaxed">{toast.message}</p>
+        <p className="text-sm font-medium text-trust-text">{cfg.title}</p>
+        <p className="text-sm text-trust-text-muted mt-0.5 leading-snug">{toast.message}</p>
       </div>
       <button
         onClick={() => onRemove(toast.id)}
-        className="shrink-0 text-[#9CA3AF] hover:text-[#374151] transition p-0.5 rounded"
+        aria-label="Dismiss"
+        className="shrink-0 text-trust-text-subtle hover:text-trust-text p-0.5 rounded"
       >
-        <X className="w-3.5 h-3.5" />
+        <X className="w-4 h-4" />
       </button>
     </div>
   );

@@ -69,25 +69,25 @@ export function OnboardParticipantModal({ isOpen, onClose, onCreated, user }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F2A43]/40 backdrop-blur-xs">
-      <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-popover">
-        <div className="sticky top-0 bg-white border-b border-[#D8E0E8] p-5 flex items-center justify-between z-10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40">
+      <div className="bg-white border border-trust-border rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-popover">
+        <div className="sticky top-0 bg-white border-b border-trust-border p-5 flex items-center justify-between z-10">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-[#F0F4F8] text-[#0F2A43] border border-[#D8E0E8]">
-              <ShieldCheck className="w-5 h-5 text-[#0F766E]" />
+            <div className="p-2.5 rounded-lg bg-slate-100 text-trust-primary border border-trust-border">
+              <ShieldCheck className="w-5 h-5 text-trust-accent" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-[#0F2A43] font-['Outfit',sans-serif]">
+              <h3 className="text-base font-semibold text-trust-primary">
                 Onboard Consortium Participant
               </h3>
-              <p className="text-xs text-[#5A6A7E]">
+              <p className="text-xs text-trust-text-muted">
                 PII stored off-chain with SHA-256 salted hash anchored to Hyperledger Fabric
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#5A6A7E] hover:text-[#0F2A43] hover:bg-[#F8FAFC] transition"
+            className="p-1.5 rounded-lg text-trust-text-muted hover:text-trust-primary hover:bg-slate-50 transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -95,7 +95,7 @@ export function OnboardParticipantModal({ isOpen, onClose, onCreated, user }) {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECDD3] text-xs text-[#B42318] flex items-center gap-2.5">
+            <div className="p-3.5 rounded-lg bg-trust-error-bg border border-trust-error-border text-xs text-trust-error flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -104,11 +104,11 @@ export function OnboardParticipantModal({ isOpen, onClose, onCreated, user }) {
           {/* Classification & Type */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-[#17202A] mb-1">Participant Kind</label>
+              <label className="block text-xs font-semibold text-trust-text mb-1">Participant Kind</label>
               <select
                 value={formData.kind}
                 onChange={(e) => setFormData({ ...formData, kind: e.target.value })}
-                className="w-full bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg px-3 py-2 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
+                className="trust-input w-full"
               >
                 <option value="INDIVIDUAL">Individual</option>
                 <option value="ENTITY">Legal Entity / Corporate</option>
@@ -116,11 +116,11 @@ export function OnboardParticipantModal({ isOpen, onClose, onCreated, user }) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#17202A] mb-1">Investor Tier</label>
+              <label className="block text-xs font-semibold text-trust-text mb-1">Investor Tier</label>
               <select
                 value={formData.investorClass}
                 onChange={(e) => setFormData({ ...formData, investorClass: e.target.value })}
-                className="w-full bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg px-3 py-2 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
+                className="trust-input w-full"
               >
                 <option value="RETAIL">Retail Investor</option>
                 <option value="QUALIFIED">Qualified / Accredited</option>
@@ -129,56 +129,56 @@ export function OnboardParticipantModal({ isOpen, onClose, onCreated, user }) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#17202A] mb-1">Jurisdiction</label>
+              <label className="block text-xs font-semibold text-trust-text mb-1">Jurisdiction</label>
               <input
                 type="text"
                 required
                 value={formData.jurisdiction}
                 onChange={(e) => setFormData({ ...formData, jurisdiction: e.target.value })}
-                className="w-full bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg px-3 py-2 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
+                className="trust-input w-full"
                 placeholder="IN"
               />
             </div>
           </div>
 
           {/* Legal Identity (PII) */}
-          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#D8E0E8] space-y-3.5">
-            <div className="text-xs font-bold text-[#0F766E] uppercase tracking-wider flex items-center gap-1.5">
+          <div className="p-4 rounded-lg bg-slate-50 border border-trust-border space-y-3.5">
+            <div className="text-xs font-semibold text-trust-accent flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5" />
               <span>Legal Identity Profile (Privileged Vault)</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-semibold text-[#17202A] mb-1">Legal Full Name *</label>
+                <label className="block text-xs font-semibold text-trust-text mb-1">Legal Full Name *</label>
                 <input
                   type="text"
                   required
                   value={formData.legalName}
                   onChange={(e) => setFormData({ ...formData, legalName: e.target.value })}
                   placeholder="e.g. Reliance Asset Capital Ltd"
-                  className="w-full bg-white border border-[#D8E0E8] rounded-lg px-3 py-2 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A]"
+                  className="trust-input w-full"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#17202A] mb-1">Contact Email *</label>
+                <label className="block text-xs font-semibold text-trust-text mb-1">Contact Email *</label>
                 <input
                   type="email"
                   required
                   value={formData.contactEmail}
                   onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
                   placeholder="compliance@firm.in"
-                  className="w-full bg-white border border-[#D8E0E8] rounded-lg px-3 py-2 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A]"
+                  className="trust-input w-full"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#17202A] mb-1">ID Document Type</label>
+                <label className="block text-xs font-semibold text-trust-text mb-1">ID Document Type</label>
                 <select
                   value={formData.identifierType}
                   onChange={(e) => setFormData({ ...formData, identifierType: e.target.value })}
-                  className="w-full bg-white border border-[#D8E0E8] rounded-lg px-3 py-2 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A]"
+                  className="trust-input w-full"
                 >
                   <option value="PAN">PAN (Permanent Account Number)</option>
                   <option value="CIN">CIN (Corporate Identity Number)</option>
@@ -188,14 +188,14 @@ export function OnboardParticipantModal({ isOpen, onClose, onCreated, user }) {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#17202A] mb-1">Identifier Value *</label>
+                <label className="block text-xs font-semibold text-trust-text mb-1">Identifier Value *</label>
                 <input
                   type="text"
                   required
                   value={formData.identifierValue}
                   onChange={(e) => setFormData({ ...formData, identifierValue: e.target.value.toUpperCase() })}
                   placeholder="AAACB1234F"
-                  className="w-full bg-white border border-[#D8E0E8] rounded-lg px-3 py-2 text-xs text-[#17202A] font-mono focus:outline-none focus:border-[#1F5A7A]"
+                  className="trust-input w-full font-mono"
                 />
               </div>
             </div>
@@ -204,7 +204,7 @@ export function OnboardParticipantModal({ isOpen, onClose, onCreated, user }) {
           {/* Limits & Compliance */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-[#17202A] mb-1">
+              <label className="block text-xs font-semibold text-trust-text mb-1">
                 Max Holding Cap (bps, 100 = 1%)
               </label>
               <input
@@ -213,12 +213,12 @@ export function OnboardParticipantModal({ isOpen, onClose, onCreated, user }) {
                 max="10000"
                 value={formData.maxHoldingBps}
                 onChange={(e) => setFormData({ ...formData, maxHoldingBps: e.target.value })}
-                className="w-full bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg px-3 py-2 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
+                className="trust-input w-full"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#17202A] mb-1">
+              <label className="block text-xs font-semibold text-trust-text mb-1">
                 Per-Transfer Limit (₹ Rupees)
               </label>
               <input
@@ -226,23 +226,23 @@ export function OnboardParticipantModal({ isOpen, onClose, onCreated, user }) {
                 min="1000"
                 value={formData.maxTransferRupees}
                 onChange={(e) => setFormData({ ...formData, maxTransferRupees: e.target.value })}
-                className="w-full bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg px-3 py-2 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
+                className="trust-input w-full"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4 border-t border-[#D8E0E8]">
+          <div className="flex justify-end gap-2 pt-4 border-t border-trust-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-[#5A6A7E] hover:text-[#17202A]"
+              className="px-4 py-2 text-xs font-semibold text-trust-text-muted hover:text-trust-text"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 text-xs font-semibold bg-[#0F2A43] hover:bg-[#0A1E30] text-white rounded-lg transition shadow-xs"
+              className="trust-btn-primary"
             >
               {loading ? 'Submitting to Ledger...' : 'Onboard Participant'}
             </button>

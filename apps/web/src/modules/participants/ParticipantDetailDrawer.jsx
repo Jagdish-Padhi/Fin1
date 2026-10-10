@@ -9,24 +9,24 @@ export function ParticipantDetailDrawer({ participant, onClose, onOpenReviewKyc,
   const isCompliance = user?.role === 'COMPLIANCE';
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-[#0F2A43]/40 backdrop-blur-xs">
-      <div className="bg-white border-l border-[#D8E0E8] w-full max-w-xl h-full flex flex-col shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-200">
+    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40">
+      <div className="bg-white border-l border-trust-border w-full max-w-xl h-full flex flex-col shadow-popover overflow-y-auto animate-in slide-in-from-right duration-200">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-[#D8E0E8] p-5 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-white border-b border-trust-border p-5 flex items-center justify-between z-10">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-[#F0F4F8] border border-[#D8E0E8] text-[#0F2A43]">
-              <User className="w-5 h-5 text-[#1F5A7A]" />
+            <div className="p-2.5 rounded-lg bg-slate-100 border border-trust-border text-trust-primary">
+              <User className="w-5 h-5 text-trust-secondary" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-[#0F2A43] font-['Outfit',sans-serif]">
+              <h3 className="text-base font-semibold text-trust-primary">
                 Participant Identity Passport
               </h3>
-              <div className="text-xs font-mono text-[#0F766E] font-semibold">{participant.id}</div>
+              <div className="text-xs font-mono text-trust-accent font-semibold">{participant.id}</div>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#5A6A7E] hover:text-[#0F2A43] hover:bg-[#F8FAFC] transition"
+            className="p-1.5 rounded-lg text-trust-text-muted hover:text-trust-primary hover:bg-slate-50 transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -35,21 +35,21 @@ export function ParticipantDetailDrawer({ participant, onClose, onOpenReviewKyc,
         {/* Content */}
         <div className="p-6 space-y-5 flex-1">
           {/* Status Bar */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-[#F8FAFC] border border-[#D8E0E8]">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 border border-trust-border">
             <div>
-              <div className="text-[10px] text-[#5A6A7E] uppercase tracking-wider mb-1 font-bold">
+              <div className="text-xs text-trust-text-muted mb-1 font-semibold">
                 KYC Verification
               </div>
               <StatusBadge status={participant.kycStatus} />
             </div>
             <div>
-              <div className="text-[10px] text-[#5A6A7E] uppercase tracking-wider mb-1 font-bold">
+              <div className="text-xs text-trust-text-muted mb-1 font-semibold">
                 Ledger Status
               </div>
               <StatusBadge status={participant.status} />
             </div>
             <div>
-              <div className="text-[10px] text-[#5A6A7E] uppercase tracking-wider mb-1 font-bold">
+              <div className="text-xs text-trust-text-muted mb-1 font-semibold">
                 Investor Class
               </div>
               <StatusBadge status={participant.investorClass} />
@@ -58,28 +58,28 @@ export function ParticipantDetailDrawer({ participant, onClose, onOpenReviewKyc,
 
           {/* ZKPassport Biometric Verification Anchor */}
           {(participant.zkProofHash || participant.zkPassport) && (
-            <div className="p-4 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] space-y-3">
+            <div className="p-4 rounded-lg bg-trust-success-bg border border-trust-success-border space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#15803D] uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#15803D]">
                   <Fingerprint className="w-4 h-4" />
                   <span>ZKPassport Biometric KYC (ICAO 9303)</span>
                 </div>
-                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]">
                   Zero-Knowledge Validated
                 </span>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-[#BBF7D0]">
-                  <span className="text-xs text-[#5A6A7E] font-medium">ZK Proof Hash:</span>
+                <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-trust-success-border">
+                  <span className="text-xs text-trust-text-muted font-medium">ZK Proof Hash:</span>
                   <HashChip hash={participant.zkProofHash || participant.zkPassport?.proofHash} />
                 </div>
-                <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-[#BBF7D0]">
-                  <span className="text-xs text-[#5A6A7E] font-medium">Sybil-Resistant Nullifier:</span>
+                <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-trust-success-border">
+                  <span className="text-xs text-trust-text-muted font-medium">Sybil-Resistant Nullifier:</span>
                   <HashChip hash={participant.zkNullifier || participant.zkPassport?.nullifier} />
                 </div>
-                <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-[#BBF7D0] text-xs">
-                  <span className="text-[#5A6A7E] font-medium">CSCA Signer Authority:</span>
-                  <span className="font-mono text-xs text-[#0F2A43] font-semibold">
+                <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-trust-success-border text-xs">
+                  <span className="text-trust-text-muted font-medium">CSCA Signer Authority:</span>
+                  <span className="font-mono text-xs text-trust-primary font-semibold">
                     {participant.zkPassport?.issuerAuthority || `ICAO-PKD-CSCA-${participant.jurisdiction || 'IND'}`}
                   </span>
                 </div>
@@ -88,51 +88,51 @@ export function ParticipantDetailDrawer({ participant, onClose, onOpenReviewKyc,
           )}
 
           {/* Cryptographic Integrity Section */}
-          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#D8E0E8] space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#0F766E] uppercase tracking-wider">
+          <div className="p-4 rounded-lg bg-slate-50 border border-trust-border space-y-3">
+            <div className="flex items-center gap-2 text-xs font-semibold text-trust-accent">
               <ShieldCheck className="w-4 h-4" />
               <span>Cryptographic Anchors (Hyperledger Fabric)</span>
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-[#D8E0E8]">
-                <span className="text-xs text-[#5A6A7E] font-medium">PII Salted Hash:</span>
+              <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-trust-border">
+                <span className="text-xs text-trust-text-muted font-medium">PII Salted Hash:</span>
                 <HashChip hash={participant.piiHash} />
               </div>
-              <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-[#D8E0E8]">
-                <span className="text-xs text-[#5A6A7E] font-medium">Organization MSP:</span>
-                <span className="font-mono text-xs text-[#0F2A43] font-semibold">{participant.mspId || participant.orgId}</span>
+              <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-trust-border">
+                <span className="text-xs text-trust-text-muted font-medium">Organization MSP:</span>
+                <span className="font-mono text-xs text-trust-primary font-semibold">{participant.mspId || participant.orgId}</span>
               </div>
             </div>
           </div>
 
           {/* Identity & Legal Info */}
-          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#D8E0E8] space-y-3">
-            <div className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider flex items-center gap-2">
-              <Building className="w-4 h-4 text-[#1F5A7A]" />
+          <div className="p-4 rounded-lg bg-slate-50 border border-trust-border space-y-3">
+            <div className="text-xs font-semibold text-trust-primary flex items-center gap-2">
+              <Building className="w-4 h-4 text-trust-secondary" />
               <span>Legal Entity Profile</span>
             </div>
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="bg-white p-2.5 rounded-lg border border-[#D8E0E8]">
-                <span className="text-[10px] text-[#5A6A7E] block uppercase font-bold">Legal Name</span>
-                <span className="font-bold text-[#17202A] text-xs">
+              <div className="bg-white p-2.5 rounded-lg border border-trust-border">
+                <span className="text-xs text-trust-text-muted block font-semibold">Legal Name</span>
+                <span className="font-semibold text-trust-text text-xs">
                   {participant.pii?.legalName || '[RESTRICTED PRIVILEGED]'}
                 </span>
               </div>
-              <div className="bg-white p-2.5 rounded-lg border border-[#D8E0E8]">
-                <span className="text-[10px] text-[#5A6A7E] block uppercase font-bold">Jurisdiction</span>
-                <span className="font-semibold text-[#17202A] text-xs">{participant.jurisdiction || 'IN'}</span>
+              <div className="bg-white p-2.5 rounded-lg border border-trust-border">
+                <span className="text-xs text-trust-text-muted block font-semibold">Jurisdiction</span>
+                <span className="font-semibold text-trust-text text-xs">{participant.jurisdiction || 'IN'}</span>
               </div>
-              <div className="bg-white p-2.5 rounded-lg border border-[#D8E0E8]">
-                <span className="text-[10px] text-[#5A6A7E] block uppercase font-bold">Identity Identifier</span>
-                <span className="font-mono font-semibold text-[#17202A] text-xs">
+              <div className="bg-white p-2.5 rounded-lg border border-trust-border">
+                <span className="text-xs text-trust-text-muted block font-semibold">Identity Identifier</span>
+                <span className="font-mono font-semibold text-trust-text text-xs">
                   {participant.pii?.identifierType
                     ? `${participant.pii.identifierType}: ${participant.pii.identifierValue}`
                     : '[SALTED HASH ONLY]'}
                 </span>
               </div>
-              <div className="bg-white p-2.5 rounded-lg border border-[#D8E0E8]">
-                <span className="text-[10px] text-[#5A6A7E] block uppercase font-bold">Contact Email</span>
-                <span className="text-[#17202A] text-xs font-medium">
+              <div className="bg-white p-2.5 rounded-lg border border-trust-border">
+                <span className="text-xs text-trust-text-muted block font-semibold">Contact Email</span>
+                <span className="text-trust-text text-xs font-medium">
                   {participant.pii?.contactEmail || '[CONFIDENTIAL]'}
                 </span>
               </div>
@@ -140,25 +140,25 @@ export function ParticipantDetailDrawer({ participant, onClose, onOpenReviewKyc,
           </div>
 
           {/* Holding & Transfer Cap Rules */}
-          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#D8E0E8] space-y-3">
-            <div className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider flex items-center gap-2">
-              <Key className="w-4 h-4 text-[#0F766E]" />
+          <div className="p-4 rounded-lg bg-slate-50 border border-trust-border space-y-3">
+            <div className="text-xs font-semibold text-trust-primary flex items-center gap-2">
+              <Key className="w-4 h-4 text-trust-accent" />
               <span>Trading Limits & Rule Constraints</span>
             </div>
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="bg-white p-2.5 rounded-lg border border-[#D8E0E8]">
-                <span className="text-[10px] text-[#5A6A7E] block uppercase font-bold">Max Fractional Cap</span>
-                <span className="font-bold text-[#0F2A43] text-sm">
+              <div className="bg-white p-2.5 rounded-lg border border-trust-border">
+                <span className="text-xs text-trust-text-muted block font-semibold">Max Fractional Cap</span>
+                <span className="font-semibold text-trust-primary text-sm">
                   {((participant.limits?.maxHoldingBps || 2500) / 100).toFixed(2)}%
                 </span>
-                <span className="text-[10px] text-[#5A6A7E] block">({participant.limits?.maxHoldingBps || 2500} bps)</span>
+                <span className="text-xs text-trust-text-muted block">({participant.limits?.maxHoldingBps || 2500} bps)</span>
               </div>
-              <div className="bg-white p-2.5 rounded-lg border border-[#D8E0E8]">
-                <span className="text-[10px] text-[#5A6A7E] block uppercase font-bold">Per-Transfer Cap</span>
-                <span className="font-bold text-[#0F2A43] text-sm">
+              <div className="bg-white p-2.5 rounded-lg border border-trust-border">
+                <span className="text-xs text-trust-text-muted block font-semibold">Per-Transfer Cap</span>
+                <span className="font-semibold text-trust-primary text-sm">
                   ₹{(((participant.limits?.maxTransferPaise || 100000000) / 100)).toLocaleString('en-IN')}
                 </span>
-                <span className="text-[10px] text-[#5A6A7E] block">Compliance ceiling</span>
+                <span className="text-xs text-trust-text-muted block">Compliance ceiling</span>
               </div>
             </div>
           </div>
@@ -171,9 +171,9 @@ export function ParticipantDetailDrawer({ participant, onClose, onOpenReviewKyc,
                   onClose();
                   onOpenReviewKyc(participant);
                 }}
-                className="w-full py-2.5 rounded-xl bg-[#0F2A43] hover:bg-[#0A1E30] text-white text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs"
+                className="trust-btn-primary w-full"
               >
-                <ShieldCheck className="w-4 h-4 text-[#0F766E]" />
+                <ShieldCheck className="w-4 h-4 text-trust-accent" />
                 <span>Open KYC Review Dialog</span>
               </button>
             </div>

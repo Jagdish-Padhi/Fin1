@@ -1,52 +1,61 @@
 import React from 'react';
 
-const STATUS_STYLES = {
-  // Positive / Verified / Active statuses
-  APPROVED: 'bg-[#F0FDF4] text-[#18794E] border-[#BBF7D0]',
-  VERIFIED: 'bg-[#F0FDF4] text-[#18794E] border-[#BBF7D0]',
-  ACTIVE: 'bg-[#F0FDF4] text-[#18794E] border-[#BBF7D0]',
-  EXECUTED: 'bg-[#F0FDF4] text-[#18794E] border-[#BBF7D0]',
+const TONES = {
+  success: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+  warning: 'bg-amber-50 text-amber-800 border-amber-200',
+  danger: 'bg-red-50 text-red-800 border-red-200',
+  caution: 'bg-orange-50 text-orange-800 border-orange-200',
+  info: 'bg-sky-50 text-sky-800 border-sky-200',
+  teal: 'bg-teal-50 text-teal-800 border-teal-200',
+  neutral: 'bg-slate-100 text-slate-700 border-slate-200',
+};
 
-  // Warning / In-progress / Verification queue
-  UNDER_VERIFICATION: 'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]',
-  UNDER_REVIEW: 'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]',
-  SUBMITTED: 'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]',
-  CHANGES_REQUESTED: 'bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]',
-  PENDING_COMPLIANCE: 'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]',
-  PROPOSED: 'bg-[#F0F4F8] text-[#1F5A7A] border-[#D8E0E8]',
+const STATUS_TONE = {
+  APPROVED: 'success',
+  VERIFIED: 'success',
+  ACTIVE: 'success',
+  EXECUTED: 'success',
 
-  // Negative / Restricted / Flagged
-  REJECTED: 'bg-[#FEF2F2] text-[#B42318] border-[#FECDD3]',
-  FROZEN: 'bg-[#FEF2F2] text-[#B42318] border-[#FECDD3]',
-  BLACKLISTED: 'bg-[#FEF2F2] text-[#B42318] border-[#FECDD3]',
-  SUSPENDED: 'bg-[#FFF7ED] text-[#C2410C] border-[#FFEDD5]',
+  UNDER_VERIFICATION: 'warning',
+  UNDER_REVIEW: 'warning',
+  SUBMITTED: 'warning',
+  CHANGES_REQUESTED: 'warning',
+  PENDING_COMPLIANCE: 'warning',
+  PROPOSED: 'info',
 
-  // Registered / Minted / Tokens
-  REGISTERED: 'bg-[#F0FDFA] text-[#0F766E] border-[#CCFBF1]',
-  VALUED: 'bg-[#F0FDFA] text-[#0F766E] border-[#CCFBF1]',
-  TOKENIZED: 'bg-[#F0F4F8] text-[#0F2A43] border-[#CBD5E1]',
+  REJECTED: 'danger',
+  FROZEN: 'danger',
+  BLACKLISTED: 'danger',
+  SUSPENDED: 'caution',
 
-  // Archival / Neutral
-  INACTIVE: 'bg-[#F1F5F9] text-[#5A6A7E] border-[#D8E0E8]',
-  RETIRED: 'bg-[#F1F5F9] text-[#5A6A7E] border-[#D8E0E8]',
-  REDEEMED: 'bg-[#F1F5F9] text-[#5A6A7E] border-[#D8E0E8]',
-  DEPRECATED: 'bg-[#F1F5F9] text-[#5A6A7E] border-[#D8E0E8]',
+  REGISTERED: 'teal',
+  VALUED: 'teal',
+  TOKENIZED: 'info',
 
-  // Classification tiers
-  QUALIFIED: 'bg-[#F8FAFC] text-[#0F2A43] border-[#D8E0E8]',
-  INSTITUTIONAL: 'bg-[#F8FAFC] text-[#0F2A43] border-[#D8E0E8]',
-  RETAIL: 'bg-[#F8FAFC] text-[#1F5A7A] border-[#D8E0E8]',
+  INACTIVE: 'neutral',
+  RETIRED: 'neutral',
+  REDEEMED: 'neutral',
+  DEPRECATED: 'neutral',
+  QUALIFIED: 'neutral',
+  INSTITUTIONAL: 'neutral',
+  RETAIL: 'neutral',
+};
+
+const humanize = (status) => {
+  if (!status) return '';
+  const text = String(status).replace(/_/g, ' ').toLowerCase();
+  return text.charAt(0).toUpperCase() + text.slice(1);
 };
 
 export function StatusBadge({ status }) {
-  const style = STATUS_STYLES[status] || 'bg-[#F8FAFC] text-[#5A6A7E] border-[#D8E0E8]';
+  const tone = TONES[STATUS_TONE[status]] || TONES.neutral;
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold border ${style}`}
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border whitespace-nowrap ${tone}`}
     >
-      <span className="w-1.5 h-1.5 mr-1.5 rounded-full bg-current opacity-80" />
-      {status}
+      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
+      {humanize(status)}
     </span>
   );
 }

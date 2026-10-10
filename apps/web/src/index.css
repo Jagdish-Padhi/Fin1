@@ -4,160 +4,163 @@
 
 :root {
   color-scheme: light;
-  --bg-trust: #F8FAFC;
-  --text-trust: #17202A;
-  --primary-trust: #0F2A43;
-  --secondary-trust: #1F5A7A;
-  --accent-trust: #0F766E;
-  --border-trust: #D8E0E8;
-  --success-trust: #18794E;
-  --warning-trust: #A16207;
-  --error-trust: #B42318;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #F8FAFC;
+  background-color: #F6F8FA;
   color: #17202A;
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
   -webkit-font-smoothing: antialiased;
 }
 
-/* Custom scrollbars for clean institutional light theme */
+/* Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
-  border-radius: 4px;
+  border-radius: 8px;
+  border: 2px solid #F6F8FA;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
 
-/* Enterprise Trust Design System Utility Classes */
-.trust-card {
-  background-color: #FFFFFF;
-  border: 1px solid #D8E0E8;
-  border-radius: 14px;
-  box-shadow: 0 1px 3px 0 rgba(15, 42, 67, 0.04), 0 1px 2px -1px rgba(15, 42, 67, 0.04);
+:focus-visible {
+  outline: 2px solid #1F5A7A;
+  outline-offset: 2px;
 }
 
-.trust-card-hover {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.trust-card-hover:hover {
-  border-color: #BAC7D5;
-  box-shadow: 0 4px 12px -2px rgba(15, 42, 67, 0.08), 0 2px 6px -2px rgba(15, 42, 67, 0.04);
+/* ─── Design system primitives ───────────────────────────────────────────── */
+@layer components {
+  /* Surfaces */
+  .trust-card {
+    @apply bg-white border border-trust-border rounded-lg shadow-subtle;
+  }
+  .trust-card-hover {
+    @apply transition-colors duration-150;
+  }
+  .trust-card-hover:hover {
+    @apply border-slate-400;
+  }
+
+  /* Page structure */
+  .page-header {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between pb-5 mb-6 border-b border-trust-border;
+  }
+  .page-title {
+    @apply text-xl font-semibold text-trust-primary tracking-tight;
+  }
+  .page-subtitle {
+    @apply mt-1 text-sm text-trust-text-muted max-w-2xl;
+  }
+  .section-label {
+    @apply text-xs font-medium text-trust-text-muted;
+  }
+
+  /* Form controls */
+  .trust-input {
+    @apply bg-white border border-trust-border text-trust-text rounded-md text-sm px-3 py-2
+      placeholder:text-trust-text-subtle transition-shadow;
+  }
+  .trust-input:focus {
+    @apply outline-none border-trust-secondary;
+    box-shadow: 0 0 0 3px rgba(31, 90, 122, 0.14);
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium px-3.5 py-2
+      transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .trust-btn-primary {
+    @apply btn bg-trust-primary text-white hover:bg-trust-primary-hover;
+  }
+  .trust-btn-accent {
+    @apply btn bg-trust-accent text-white hover:bg-trust-accent-hover;
+  }
+  .trust-btn-secondary {
+    @apply btn bg-white text-trust-text border border-trust-border hover:bg-slate-50 hover:border-slate-300;
+  }
+  .trust-btn-danger {
+    @apply btn bg-trust-error text-white hover:bg-red-800;
+  }
+
+  /* Data tables */
+  .data-table {
+    @apply w-full text-left text-sm;
+  }
+  .data-table thead {
+    @apply bg-slate-50 border-b border-trust-border;
+  }
+  .data-table th {
+    @apply px-4 py-2.5 text-xs font-medium text-trust-text-muted whitespace-nowrap;
+  }
+  .data-table td {
+    @apply px-4 py-3 align-middle;
+  }
+  .data-table tbody {
+    @apply divide-y divide-trust-border-subtle;
+  }
+  .data-table tbody tr {
+    @apply transition-colors;
+  }
+  .data-table tbody tr:hover {
+    @apply bg-slate-50;
+  }
+
+  /* Small inline tag (type keys, ids) */
+  .tag {
+    @apply inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium font-mono
+      bg-slate-100 text-slate-700 border border-slate-200;
+  }
 }
 
-.trust-input {
-  background-color: #FFFFFF;
-  border: 1px solid #D8E0E8;
-  color: #17202A;
-  border-radius: 10px;
-  font-size: 0.8125rem;
-  transition: all 0.15s ease-in-out;
-}
-.trust-input:focus {
-  outline: none;
-  border-color: #1F5A7A;
-  box-shadow: 0 0 0 3px rgba(31, 90, 122, 0.12);
-}
-
-.trust-btn-primary {
-  background-color: #0F2A43;
-  color: #FFFFFF;
-  border-radius: 10px;
-  font-weight: 600;
-  transition: all 0.15s ease-in-out;
-}
-.trust-btn-primary:hover {
-  background-color: #0A1E30;
-  box-shadow: 0 4px 12px -2px rgba(15, 42, 67, 0.2);
-}
-
-.trust-btn-accent {
-  background-color: #0F766E;
-  color: #FFFFFF;
-  border-radius: 10px;
-  font-weight: 600;
-  transition: all 0.15s ease-in-out;
-}
-.trust-btn-accent:hover {
-  background-color: #0D655E;
-  box-shadow: 0 4px 12px -2px rgba(15, 118, 110, 0.25);
-}
-
-.trust-btn-secondary {
-  background-color: #FFFFFF;
-  color: #17202A;
-  border: 1px solid #D8E0E8;
-  border-radius: 10px;
-  font-weight: 500;
-  transition: all 0.15s ease-in-out;
-}
-.trust-btn-secondary:hover {
-  background-color: #F8FAFC;
-  border-color: #BAC7D5;
-  color: #0F2A43;
-}
-
-/* ─── Enterprise Micro-Interactions & Fluid Transitions ─── */
+/* ─── Motion (kept minimal) ──────────────────────────────────────────────── */
 @keyframes enterFade {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes modalBackdropFade {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes modalContentPop {
-  0% {
-    opacity: 0;
-    transform: scale(0.985) translateY(6px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .app-view-transition {
-  animation: enterFade 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: enterFade 160ms ease-out both;
 }
 
 .app-modal-backdrop {
-  animation: modalBackdropFade 180ms ease-out both;
+  animation: enterFade 140ms ease-out both;
 }
 
 .app-modal-content {
-  animation: modalContentPop 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: modalContentPop 160ms ease-out both;
 }
 
-/* Subtle, stable enterprise transition for interactive elements */
 button,
 a,
 input,
 select,
 textarea {
-  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
-  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  transition-duration: 180ms;
+  transition-property: color, background-color, border-color, box-shadow, opacity;
+  transition-timing-function: ease-out;
+  transition-duration: 120ms;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

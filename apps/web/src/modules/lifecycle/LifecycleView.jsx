@@ -121,20 +121,19 @@ export function LifecycleView() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#D8E0E8]">
+      <div className="page-header">
         <div>
-          <h2 className="text-xl font-bold text-[#0F2A43] flex items-center gap-2">
-            <Activity className="w-6 h-6 text-[#1F5A7A]" />
+          <h2 className="page-title">
             Asset Lifecycle Governance
           </h2>
-          <p className="text-xs text-[#5A6A7E] mt-1">
+          <p className="page-subtitle">
             Permissioned state-machine transitions: emergency freeze, quarantine, reinstatement, and terminal retirement.
           </p>
         </div>
       </div>
 
       {!canManageLifecycle && (
-        <div className="flex items-center gap-2.5 p-4 bg-[#FEF2F2] border border-[#FECDD3] rounded-xl text-xs text-[#B42318]">
+        <div className="flex items-center gap-2.5 p-4 bg-trust-error-bg border border-trust-error-border rounded-lg text-xs text-trust-error">
           <ShieldAlert className="w-4 h-4 shrink-0" />
           <span>
             <strong>Access Restricted.</strong> Lifecycle governance actions are restricted to Compliance Officers.
@@ -149,18 +148,18 @@ export function LifecycleView() {
           {/* Action Panels */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Freeze Panel */}
-            <div className="bg-white border border-[#D8E0E8] rounded-xl p-5 shadow-2xs space-y-3">
-              <div className="flex items-center gap-2 text-[#A16207]">
+            <div className="bg-white border border-trust-border rounded-lg p-5 shadow-subtle space-y-3">
+              <div className="flex items-center gap-2 text-trust-warning">
                 <Snowflake className="w-5 h-5" />
-                <h3 className="font-bold text-sm text-[#0F2A43]">Emergency Freeze</h3>
+                <h3 className="font-semibold text-sm text-trust-primary">Emergency Freeze</h3>
               </div>
-              <p className="text-xs text-[#5A6A7E] leading-relaxed">
+              <p className="text-xs text-trust-text-muted leading-relaxed">
                 Suspends all secondary token transfers and collateral operations immediately upon court order or fraud suspicion.
               </p>
               <button
                 onClick={handleFreeze}
                 disabled={!!loadingAction || !canManageLifecycle}
-                className="w-full py-2 bg-[#FEFCE8] hover:bg-[#FEF9C3] text-[#A16207] border border-[#FEF08A] rounded-lg text-xs font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-2 bg-trust-warning-bg hover:bg-[#FEF9C3] text-trust-warning border border-trust-warning-border rounded-lg text-xs font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loadingAction === 'freeze' ? (
                   <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Freezing...</>
@@ -171,18 +170,18 @@ export function LifecycleView() {
             </div>
 
             {/* Unfreeze Panel */}
-            <div className="bg-white border border-[#D8E0E8] rounded-xl p-5 shadow-2xs space-y-3">
-              <div className="flex items-center gap-2 text-[#18794E]">
+            <div className="bg-white border border-trust-border rounded-lg p-5 shadow-subtle space-y-3">
+              <div className="flex items-center gap-2 text-trust-success">
                 <Sun className="w-5 h-5" />
-                <h3 className="font-bold text-sm text-[#0F2A43]">Reinstate / Unfreeze</h3>
+                <h3 className="font-semibold text-sm text-trust-primary">Reinstate / Unfreeze</h3>
               </div>
-              <p className="text-xs text-[#5A6A7E] leading-relaxed">
+              <p className="text-xs text-trust-text-muted leading-relaxed">
                 Restores normal token operations after formal regulatory resolution or KYC clearance on ledger.
               </p>
               <button
                 onClick={handleUnfreeze}
                 disabled={!!loadingAction || !canManageLifecycle}
-                className="w-full py-2 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#18794E] border border-[#BBF7D0] rounded-lg text-xs font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-2 bg-trust-success-bg hover:bg-[#DCFCE7] text-trust-success border border-trust-success-border rounded-lg text-xs font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loadingAction === 'unfreeze' ? (
                   <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Reinstating...</>
@@ -193,18 +192,18 @@ export function LifecycleView() {
             </div>
 
             {/* Retire Panel */}
-            <div className="bg-white border border-[#D8E0E8] rounded-xl p-5 shadow-2xs space-y-3">
-              <div className="flex items-center gap-2 text-[#B42318]">
+            <div className="bg-white border border-trust-border rounded-lg p-5 shadow-subtle space-y-3">
+              <div className="flex items-center gap-2 text-trust-error">
                 <Archive className="w-5 h-5" />
-                <h3 className="font-bold text-sm text-[#0F2A43]">Terminal Retirement</h3>
+                <h3 className="font-semibold text-sm text-trust-primary">Terminal Retirement</h3>
               </div>
-              <p className="text-xs text-[#5A6A7E] leading-relaxed">
+              <p className="text-xs text-trust-text-muted leading-relaxed">
                 Permanently burns outstanding token supplies upon physical asset liquidation, maturity, or principal repayment.
               </p>
               <button
                 onClick={handleRetireRequest}
                 disabled={!!loadingAction || !canManageLifecycle}
-                className="w-full py-2 bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#B42318] border border-[#FECACA] rounded-lg text-xs font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-2 bg-trust-error-bg hover:bg-[#FEE2E2] text-trust-error border border-[#FECACA] rounded-lg text-xs font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loadingAction === 'retire' ? (
                   <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Retiring...</>
@@ -216,30 +215,30 @@ export function LifecycleView() {
           </div>
 
           {/* Input Parameters Form */}
-          <div className="bg-white border border-[#D8E0E8] rounded-xl p-6 shadow-2xs space-y-4">
-            <h3 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-[#A16207]" />
+          <div className="bg-white border border-trust-border rounded-lg p-6 shadow-subtle space-y-4">
+            <h3 className="text-xs font-semibold text-trust-primary flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-trust-warning" />
               Action Parameters &amp; Institutional Justification
             </h3>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-[#5A6A7E] font-medium mb-1">Target Asset ID *</label>
+                <label className="block text-trust-text-muted font-medium mb-1">Target Asset ID *</label>
                 <input
                   type="text"
                   placeholder="e.g. ASSET-IN-BLR-001 or select from list →"
                   value={assetId}
                   onChange={(e) => setAssetId(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono focus:outline-none focus:border-[#1F5A7A]"
+                  className="trust-input w-full font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-[#5A6A7E] font-medium mb-1">Retirement Reason Code (if retiring)</label>
+                <label className="block text-trust-text-muted font-medium mb-1">Retirement Reason Code (if retiring)</label>
                 <select
                   value={retireCode}
                   onChange={(e) => setRetireCode(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg bg-white focus:outline-none focus:border-[#1F5A7A]"
+                  className="trust-input w-full"
                 >
                   <option value="ASSET_LIQUIDATED">ASSET_LIQUIDATED — Underlying physical asset sold</option>
                   <option value="BOND_MATURED">BOND_MATURED — Principal fully repaid</option>
@@ -248,15 +247,15 @@ export function LifecycleView() {
               </div>
 
               <div>
-                <label className="block text-[#5A6A7E] font-medium mb-1">
-                  Institutional Justification * <span className="text-[10px] text-[#8795A5]">(Recorded immutably on ledger)</span>
+                <label className="block text-trust-text-muted font-medium mb-1">
+                  Institutional Justification * <span className="text-xs text-trust-text-subtle">(Recorded immutably on ledger)</span>
                 </label>
                 <textarea
                   rows="3"
                   placeholder="Detailed compliance justification entered into tamper-proof audit trail. Court case number, regulatory authority, and date..."
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg focus:outline-none focus:border-[#1F5A7A] resize-none"
+                  className="trust-input w-full resize-none"
                 />
               </div>
             </div>
@@ -264,34 +263,34 @@ export function LifecycleView() {
         </div>
 
         {/* Right: Asset Quick-Select */}
-        <div className="bg-white border border-[#D8E0E8] rounded-xl overflow-hidden shadow-2xs">
-          <div className="p-4 bg-[#F8FAFC] border-b border-[#D8E0E8]">
-            <h3 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#1F5A7A]" />
+        <div className="bg-white border border-trust-border rounded-lg overflow-hidden shadow-subtle">
+          <div className="p-4 bg-slate-50 border-b border-trust-border">
+            <h3 className="text-xs font-semibold text-trust-primary flex items-center gap-2">
+              <Layers className="w-4 h-4 text-trust-secondary" />
               Active / Frozen Assets
             </h3>
-            <p className="text-[10px] text-[#5A6A7E] mt-1">Click to pre-fill Asset ID</p>
+            <p className="text-xs text-trust-text-muted mt-1">Click to pre-fill Asset ID</p>
           </div>
-          <div className="p-3 border-b border-[#D8E0E8]">
+          <div className="p-3 border-b border-trust-border">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8795A5]" />
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-trust-text-subtle" />
               <input
                 type="text"
                 placeholder="Search assets..."
                 value={assetSearch}
                 onChange={(e) => setAssetSearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs border border-[#D8E0E8] rounded-lg focus:outline-none focus:border-[#1F5A7A] bg-white"
+                className="trust-input w-full pl-8 pr-3"
               />
             </div>
           </div>
-          <div className="divide-y divide-[#F1F5F9] max-h-[400px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
             {loadingAssets ? (
-              <div className="p-6 text-center text-xs text-[#5A6A7E]">
-                <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1 text-[#1F5A7A]" />
+              <div className="p-6 text-center text-xs text-trust-text-muted">
+                <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1 text-trust-secondary" />
                 Loading assets...
               </div>
             ) : filteredAssets.length === 0 ? (
-              <div className="p-6 text-center text-xs text-[#5A6A7E]">
+              <div className="p-6 text-center text-xs text-trust-text-muted">
                 No tokenized or frozen assets found.
               </div>
             ) : (
@@ -299,20 +298,20 @@ export function LifecycleView() {
                 <button
                   key={asset.id}
                   onClick={() => setAssetId(asset.id)}
-                  className={`w-full text-left p-3 hover:bg-[#F8FAFC] transition text-xs ${
-                    assetId === asset.id ? 'bg-[#F0F4F8] border-l-4 border-l-[#1F5A7A]' : ''
+                  className={`w-full text-left p-3 hover:bg-slate-50 transition text-xs ${
+                    assetId === asset.id ? 'bg-slate-100 border-l-4 border-l-[#1F5A7A]' : ''
                   }`}
                 >
-                  <div className="font-mono font-bold text-[#0F2A43] text-[11px]">{asset.id}</div>
-                  <div className="text-[10px] text-[#5A6A7E] mt-0.5 truncate">{asset.displayName}</div>
+                  <div className="font-mono font-semibold text-trust-primary text-xs">{asset.id}</div>
+                  <div className="text-xs text-trust-text-muted mt-0.5 truncate">{asset.displayName}</div>
                   <div className="mt-1">
                     <span
-                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                      className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
                         asset.status === 'FROZEN'
-                          ? 'bg-[#FEFCE8] text-[#A16207]'
+                          ? 'bg-trust-warning-bg text-trust-warning'
                           : asset.status === 'TOKENIZED'
-                          ? 'bg-[#F0FDF4] text-[#18794E]'
-                          : 'bg-[#F0F4F8] text-[#1F5A7A]'
+                          ? 'bg-trust-success-bg text-trust-success'
+                          : 'bg-slate-100 text-trust-secondary'
                       }`}
                     >
                       {asset.status}

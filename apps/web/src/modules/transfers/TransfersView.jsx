@@ -183,13 +183,12 @@ export function TransfersView() {
   return (
     <div className="space-y-6">
       {/* Top Banner & Title */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#D8E0E8]">
+      <div className="page-header">
         <div>
-          <h2 className="text-xl font-bold text-[#0F2A43] flex items-center gap-2">
-            <ArrowRightLeft className="w-6 h-6 text-[#1F5A7A]" />
+          <h2 className="page-title">
             Settlement & Transfer Rule Engine
           </h2>
-          <p className="text-xs text-[#5A6A7E] mt-1">
+          <p className="page-subtitle">
             Governed secondary transfers on Hyperledger Fabric with deterministic rule validation, KYC/concentration caps, and first-class rejection audit.
           </p>
         </div>
@@ -198,7 +197,7 @@ export function TransfersView() {
           <button
             onClick={loadData}
             disabled={loading}
-            className="p-2 border border-[#D8E0E8] rounded-lg text-[#5A6A7E] hover:bg-[#F8FAFC] transition"
+            className="trust-btn-secondary !px-2.5"
             title="Refresh list"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -210,7 +209,7 @@ export function TransfersView() {
                 setEvalResult(null);
                 setShowProposeModal(true);
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#0F2A43] hover:bg-[#1F5A7A] text-white rounded-lg text-xs font-semibold shadow-xs transition"
+              className="trust-btn-primary"
             >
               <PlusCircle className="w-4 h-4" />
               Propose Transfer
@@ -221,45 +220,45 @@ export function TransfersView() {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 bg-white border border-[#D8E0E8] rounded-xl shadow-2xs">
+        <div className="p-4 bg-white border border-trust-border rounded-lg shadow-subtle">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-[#5A6A7E]">Total Transfer Logs</span>
-            <Layers className="w-4 h-4 text-[#1F5A7A]" />
+            <span className="text-xs font-medium text-trust-text-muted">Total Transfer Logs</span>
+            <Layers className="w-4 h-4 text-trust-secondary" />
           </div>
-          <p className="text-2xl font-bold text-[#0F2A43] mt-2">{totalTransfers}</p>
-          <p className="text-[11px] text-[#5A6A7E] mt-1">Immutable records on ledger</p>
+          <p className="text-2xl font-semibold tabular-nums text-trust-primary mt-2">{totalTransfers}</p>
+          <p className="text-xs text-trust-text-muted mt-1">Immutable records on ledger</p>
         </div>
 
-        <div className="p-4 bg-white border border-[#D8E0E8] rounded-xl shadow-2xs">
+        <div className="p-4 bg-white border border-trust-border rounded-lg shadow-subtle">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-[#5A6A7E]">Settled (Executed)</span>
-            <CheckCircle2 className="w-4 h-4 text-[#18794E]" />
+            <span className="text-xs font-medium text-trust-text-muted">Settled (Executed)</span>
+            <CheckCircle2 className="w-4 h-4 text-trust-success" />
           </div>
-          <p className="text-2xl font-bold text-[#18794E] mt-2">{executedTransfers}</p>
-          <p className="text-[11px] text-[#5A6A7E] mt-1">Atomic balance debits/credits</p>
+          <p className="text-2xl font-semibold tabular-nums text-trust-primary mt-2">{executedTransfers}</p>
+          <p className="text-xs text-trust-text-muted mt-1">Atomic balance debits/credits</p>
         </div>
 
-        <div className="p-4 bg-white border border-[#D8E0E8] rounded-xl shadow-2xs">
+        <div className="p-4 bg-white border border-trust-border rounded-lg shadow-subtle">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-[#5A6A7E]">Rejections Persisted</span>
-            <ShieldAlert className="w-4 h-4 text-[#B42318]" />
+            <span className="text-xs font-medium text-trust-text-muted">Rejections Persisted</span>
+            <ShieldAlert className="w-4 h-4 text-trust-error" />
           </div>
-          <p className="text-2xl font-bold text-[#B42318] mt-2">{rejectedTransfers}</p>
-          <p className="text-[11px] text-[#5A6A7E] mt-1">First-class audit records (Rule 3.4-1)</p>
+          <p className="text-2xl font-semibold tabular-nums text-trust-primary mt-2">{rejectedTransfers}</p>
+          <p className="text-xs text-trust-text-muted mt-1">First-class audit records (Rule 3.4-1)</p>
         </div>
 
-        <div className="p-4 bg-white border border-[#D8E0E8] rounded-xl shadow-2xs">
+        <div className="p-4 bg-white border border-trust-border rounded-lg shadow-subtle">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-[#5A6A7E]">Pending Execution</span>
-            <Clock className="w-4 h-4 text-[#A16207]" />
+            <span className="text-xs font-medium text-trust-text-muted">Pending Execution</span>
+            <Clock className="w-4 h-4 text-trust-warning" />
           </div>
-          <p className="text-2xl font-bold text-[#A16207] mt-2">{proposedTransfers}</p>
-          <p className="text-[11px] text-[#5A6A7E] mt-1">Awaiting compliance / settlement</p>
+          <p className="text-2xl font-semibold tabular-nums text-trust-primary mt-2">{proposedTransfers}</p>
+          <p className="text-xs text-trust-text-muted mt-1">Awaiting compliance / settlement</p>
         </div>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 border border-[#D8E0E8] rounded-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 border border-trust-border rounded-lg">
         <div className="flex items-center gap-2 flex-wrap">
           {['ALL', 'PROPOSED', 'EXECUTED', 'REJECTED', 'CANCELLED'].map((status) => (
             <button
@@ -267,8 +266,8 @@ export function TransfersView() {
               onClick={() => setStatusFilter(status)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
                 statusFilter === status
-                  ? 'bg-[#0F2A43] text-white'
-                  : 'bg-[#F8FAFC] text-[#5A6A7E] hover:bg-[#E2E8F0] border border-[#D8E0E8]'
+                  ? 'bg-trust-primary text-white'
+                  : 'bg-slate-50 text-trust-text-muted hover:bg-trust-border-subtle border border-trust-border'
               }`}
             >
               {status}
@@ -277,22 +276,22 @@ export function TransfersView() {
         </div>
 
         <div className="relative min-w-[260px]">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5A6A7E]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-trust-text-muted" />
           <input
             type="text"
             placeholder="Search transfer ID, token, participant..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs border border-[#D8E0E8] rounded-lg focus:outline-hidden focus:ring-1 focus:ring-[#1F5A7A]"
+            className="w-full pl-9 pr-3 py-1.5 text-xs border border-trust-border rounded-lg focus:outline-hidden focus:ring-1 focus:ring-trust-secondary"
           />
         </div>
       </div>
 
       {/* Transfers Table */}
-      <div className="bg-white border border-[#D8E0E8] rounded-xl overflow-hidden shadow-2xs">
+      <div className="bg-white border border-trust-border rounded-lg overflow-hidden shadow-subtle">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#F8FAFC] border-b border-[#D8E0E8] text-[#5A6A7E] uppercase font-semibold">
+          <table className="w-full text-left text-[13px]">
+            <thead className="bg-slate-50 border-b border-trust-border text-trust-text-muted font-medium">
               <tr>
                 <th className="px-4 py-3">Transfer ID</th>
                 <th className="px-4 py-3">Security Token</th>
@@ -304,17 +303,17 @@ export function TransfersView() {
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#D8E0E8] text-[#17202A]">
+            <tbody className="divide-y divide-trust-border text-trust-text">
               {loading ? (
                 <tr>
-                  <td colSpan="8" className="p-8 text-center text-[#5A6A7E]">
-                    <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[#1F5A7A]" />
+                  <td colSpan="8" className="p-8 text-center text-trust-text-muted">
+                    <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-trust-secondary" />
                     Loading transfer operations from blockchain...
                   </td>
                 </tr>
               ) : filteredTransfers.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="p-8 text-center text-[#5A6A7E]">
+                  <td colSpan="8" className="p-8 text-center text-trust-text-muted">
                     No transfer records found matching the criteria.
                   </td>
                 </tr>
@@ -326,14 +325,14 @@ export function TransfersView() {
                   const priceInr = t.pricePaise ? (t.pricePaise / 100).toLocaleString('en-IN') : '0';
 
                   return (
-                    <tr key={t.id} className="hover:bg-[#F8FAFC] transition">
-                      <td className="px-4 py-3 font-mono font-bold text-[#0F2A43]">{t.id}</td>
-                      <td className="px-4 py-3 font-mono text-[#1F5A7A]">
+                    <tr key={t.id} className="hover:bg-slate-50 transition">
+                      <td className="px-4 py-3 font-mono font-semibold text-trust-primary">{t.id}</td>
+                      <td className="px-4 py-3 font-mono text-trust-secondary">
                         {t.tokenId}
                       </td>
                       <td className="px-4 py-3 font-mono text-xs">{t.fromParticipantId}</td>
                       <td className="px-4 py-3 font-mono text-xs">{t.toParticipantId}</td>
-                      <td className="px-4 py-3 font-bold font-mono text-xs">
+                      <td className="px-4 py-3 font-semibold font-mono text-xs">
                         {Number(t.units).toLocaleString()}
                       </td>
                       <td className="px-4 py-3 font-mono text-xs">
@@ -341,12 +340,12 @@ export function TransfersView() {
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
                             isExecuted
-                              ? 'bg-[#F0FDF4] text-[#18794E] border-[#BBF7D0]'
+                              ? 'bg-trust-success-bg text-trust-success border-trust-success-border'
                               : isRejected
-                              ? 'bg-[#FEF2F2] text-[#B42318] border-[#FECDD3]'
-                              : 'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]'
+                              ? 'bg-trust-error-bg text-trust-error border-trust-error-border'
+                              : 'bg-trust-warning-bg text-trust-warning border-trust-warning-border'
                           }`}
                         >
                           {isExecuted && <CheckCircle2 className="w-3 h-3" />}
@@ -360,7 +359,7 @@ export function TransfersView() {
                           {isRejected && (
                             <button
                               onClick={() => setSelectedTransferForDetails(t)}
-                              className="px-2 py-1 bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#B42318] border border-[#FECDD3] rounded text-[11px] font-semibold transition"
+                              className="px-2 py-1 bg-trust-error-bg hover:bg-[#FEE2E2] text-trust-error border border-trust-error-border rounded text-xs font-semibold transition"
                             >
                               View Reasons ({t.rejectionReasons?.length || 1})
                             </button>
@@ -369,7 +368,7 @@ export function TransfersView() {
                           {canExecute && isProposed && (
                             <button
                               onClick={() => setExecuteTarget(t)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#0F2A43] hover:bg-[#1F5A7A] text-white rounded text-[11px] font-semibold transition"
+                              className="trust-btn-primary"
                             >
                               <Play className="w-3 h-3" />
                               Execute Settlement
@@ -379,7 +378,7 @@ export function TransfersView() {
                           {isExecuted && (
                             <button
                               onClick={() => setSelectedTransferForDetails(t)}
-                              className="px-2 py-1 text-[#5A6A7E] hover:text-[#0F2A43] text-[11px] font-medium"
+                              className="px-2 py-1 text-trust-text-muted hover:text-trust-primary text-xs font-medium"
                             >
                               Details
                             </button>
@@ -397,35 +396,35 @@ export function TransfersView() {
 
       {/* Propose Transfer Modal with Real-time Rule Simulation */}
       {showProposeModal && (
-        <div className="fixed inset-0 z-50 bg-[#0F2A43]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#D8E0E8] rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-[#D8E0E8]">
-              <h3 className="text-sm font-bold text-[#0F2A43] flex items-center gap-2">
-                <ArrowRightLeft className="w-4 h-4 text-[#1F5A7A]" />
+        <div className="fixed inset-0 z-50 bg-slate-900/40 flex items-center justify-center p-4">
+          <div className="bg-white border border-trust-border rounded-lg max-w-lg w-full p-6 shadow-popover space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-trust-border">
+              <h3 className="text-sm font-semibold text-trust-primary flex items-center gap-2">
+                <ArrowRightLeft className="w-4 h-4 text-trust-secondary" />
                 Propose Token Transfer
               </h3>
               <button
                 onClick={() => setShowProposeModal(false)}
-                className="p-1 hover:bg-[#F0F4F8] rounded text-[#5A6A7E]"
+                className="p-1 hover:bg-slate-100 rounded text-trust-text-muted"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-[#5A6A7E]">
+            <p className="text-xs text-trust-text-muted">
               Pre-flight compliance rules evaluate participant KYC, jurisdiction, lockup schedules, and holding limits prior to proposal submission.
             </p>
 
             <form onSubmit={handlePropose} className="space-y-3 text-xs">
               <div>
-                <label className="block text-[#5A6A7E] font-medium mb-1">
+                <label className="block text-trust-text-muted font-medium mb-1">
                   Select Security Token
                 </label>
                 {tokens.length > 0 ? (
                   <select
                     value={tokenId}
                     onChange={(e) => setTokenId(e.target.value)}
-                    className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono bg-white"
+                    className="w-full px-3 py-2 border border-trust-border rounded-lg font-mono bg-white"
                     required
                   >
                     {tokens.map((tok) => (
@@ -440,7 +439,7 @@ export function TransfersView() {
                     placeholder="e.g. TKN-0x12345..."
                     value={tokenId}
                     onChange={(e) => setTokenId(e.target.value)}
-                    className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
+                    className="w-full px-3 py-2 border border-trust-border rounded-lg font-mono"
                     required
                   />
                 )}
@@ -448,14 +447,14 @@ export function TransfersView() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#5A6A7E] font-medium mb-1">
+                  <label className="block text-trust-text-muted font-medium mb-1">
                     From Participant (Seller)
                   </label>
                   {participants.length > 0 ? (
                     <select
                       value={fromParticipantId}
                       onChange={(e) => setFromParticipantId(e.target.value)}
-                      className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono bg-white"
+                      className="w-full px-3 py-2 border border-trust-border rounded-lg font-mono bg-white"
                       required
                     >
                       {participants.map((p) => (
@@ -470,21 +469,21 @@ export function TransfersView() {
                       placeholder="PRT-ISSUER-01"
                       value={fromParticipantId}
                       onChange={(e) => setFromParticipantId(e.target.value)}
-                      className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
+                      className="w-full px-3 py-2 border border-trust-border rounded-lg font-mono"
                       required
                     />
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-[#5A6A7E] font-medium mb-1">
+                  <label className="block text-trust-text-muted font-medium mb-1">
                     To Participant (Buyer)
                   </label>
                   {participants.length > 0 ? (
                     <select
                       value={toParticipantId}
                       onChange={(e) => setToParticipantId(e.target.value)}
-                      className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono bg-white"
+                      className="w-full px-3 py-2 border border-trust-border rounded-lg font-mono bg-white"
                       required
                     >
                       {participants.map((p) => (
@@ -499,7 +498,7 @@ export function TransfersView() {
                       placeholder="PRT-INVESTOR-01"
                       value={toParticipantId}
                       onChange={(e) => setToParticipantId(e.target.value)}
-                      className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
+                      className="w-full px-3 py-2 border border-trust-border rounded-lg font-mono"
                       required
                     />
                   )}
@@ -508,21 +507,21 @@ export function TransfersView() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#5A6A7E] font-medium mb-1">
+                  <label className="block text-trust-text-muted font-medium mb-1">
                     Transfer Units
                   </label>
                   <input
                     type="number"
                     value={units}
                     onChange={(e) => setUnits(e.target.value)}
-                    className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
+                    className="w-full px-3 py-2 border border-trust-border rounded-lg font-mono"
                     min="1"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#5A6A7E] font-medium mb-1">
+                  <label className="block text-trust-text-muted font-medium mb-1">
                     Settlement Price (₹ INR)
                   </label>
                   <input
@@ -530,14 +529,14 @@ export function TransfersView() {
                     placeholder="e.g. 500000"
                     value={pricePaise ? pricePaise / 100 : ''}
                     onChange={(e) => setPricePaise(Number(e.target.value) * 100)}
-                    className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
+                    className="w-full px-3 py-2 border border-trust-border rounded-lg font-mono"
                     min="0"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[#5A6A7E] font-medium mb-1">
+                <label className="block text-trust-text-muted font-medium mb-1">
                   Payment Reference (Off-chain Settlement)
                 </label>
                 <input
@@ -545,7 +544,7 @@ export function TransfersView() {
                   placeholder="e.g. NEFT-HDFC-9918237"
                   value={paymentRef}
                   onChange={(e) => setPaymentRef(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono"
+                  className="w-full px-3 py-2 border border-trust-border rounded-lg font-mono"
                 />
               </div>
 
@@ -555,21 +554,21 @@ export function TransfersView() {
                   type="button"
                   onClick={handleEvaluateRules}
                   disabled={evaluating || !tokenId}
-                  className="w-full py-2 px-3 bg-[#F0F4F8] hover:bg-[#E2E8F0] text-[#0F2A43] border border-[#D8E0E8] rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition"
+                  className="w-full py-2 px-3 bg-slate-100 hover:bg-trust-border-subtle text-trust-primary border border-trust-border rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition"
                 >
-                  <ShieldCheck className="w-4 h-4 text-[#1F5A7A]" />
+                  <ShieldCheck className="w-4 h-4 text-trust-secondary" />
                   {evaluating ? 'Evaluating Rules...' : 'Run Pre-flight Compliance Check'}
                 </button>
 
                 {evalResult && (
-                  <div className="mt-3 p-3 bg-[#F8FAFC] border border-[#D8E0E8] rounded-xl text-xs space-y-2">
-                    <div className="flex items-center justify-between font-bold pb-1 border-b border-[#D8E0E8]">
+                  <div className="mt-3 p-3 bg-slate-50 border border-trust-border rounded-lg text-xs space-y-2">
+                    <div className="flex items-center justify-between font-semibold pb-1 border-b border-trust-border">
                       <span>Pre-flight Evaluation Result:</span>
                       <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        className={`px-2 py-0.5 rounded text-xs font-semibold ${
                           evalResult.passed
-                            ? 'bg-[#F0FDF4] text-[#18794E] border border-[#BBF7D0]'
-                            : 'bg-[#FEF2F2] text-[#B42318] border border-[#FECDD3]'
+                            ? 'bg-trust-success-bg text-trust-success border border-trust-success-border'
+                            : 'bg-trust-error-bg text-trust-error border border-trust-error-border'
                         }`}
                       >
                         {evalResult.passed ? 'COMPLIANT — ELIGIBLE' : 'NON-COMPLIANT — BLOCKED'}
@@ -581,12 +580,12 @@ export function TransfersView() {
                         Object.entries(evalResult.results).map(([ruleName, r]) => (
                           <div
                             key={ruleName}
-                            className="flex items-center justify-between text-[11px] py-0.5"
+                            className="flex items-center justify-between text-xs py-0.5"
                           >
-                            <span className="text-[#5A6A7E] font-medium">{ruleName}</span>
+                            <span className="text-trust-text-muted font-medium">{ruleName}</span>
                             <span
-                              className={`flex items-center gap-1 font-bold ${
-                                r.passed ? 'text-[#18794E]' : 'text-[#B42318]'
+                              className={`flex items-center gap-1 font-semibold ${
+                                r.passed ? 'text-trust-success' : 'text-trust-error'
                               }`}
                             >
                               {r.passed ? (
@@ -604,8 +603,8 @@ export function TransfersView() {
                     </div>
 
                     {evalResult.rejectionReasons?.length > 0 && (
-                      <div className="p-2 bg-[#FEF2F2] border border-[#FECDD3] rounded-lg text-[11px] text-[#B42318] space-y-1 mt-2">
-                        <p className="font-bold">Violations Detected:</p>
+                      <div className="p-2 bg-trust-error-bg border border-trust-error-border rounded-lg text-xs text-trust-error space-y-1 mt-2">
+                        <p className="font-semibold">Violations Detected:</p>
                         <ul className="list-disc list-inside space-y-0.5">
                           {evalResult.rejectionReasons.map((reason, idx) => (
                             <li key={idx}>
@@ -619,18 +618,18 @@ export function TransfersView() {
                 )}
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#D8E0E8]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-trust-border">
                 <button
                   type="button"
                   onClick={() => setShowProposeModal(false)}
-                  className="px-4 py-2 border border-[#D8E0E8] rounded-lg text-[#5A6A7E] hover:bg-[#F8FAFC]"
+                  className="px-4 py-2 border border-trust-border rounded-lg text-trust-text-muted hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-[#0F2A43] text-white rounded-lg font-semibold hover:bg-[#1F5A7A] transition"
+                  className="trust-btn-primary"
                 >
                   {submitting ? 'Submitting to Chain...' : 'Propose Transfer'}
                 </button>
@@ -642,55 +641,55 @@ export function TransfersView() {
 
       {/* Transfer Details & Rejections Modal */}
       {selectedTransferForDetails && (
-        <div className="fixed inset-0 z-50 bg-[#0F2A43]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#D8E0E8] rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-[#D8E0E8]">
-              <h3 className="text-sm font-bold text-[#0F2A43] flex items-center gap-2">
-                <Info className="w-4 h-4 text-[#1F5A7A]" />
+        <div className="fixed inset-0 z-50 bg-slate-900/40 flex items-center justify-center p-4">
+          <div className="bg-white border border-trust-border rounded-lg max-w-lg w-full p-6 shadow-popover space-y-4 max-h-[90vh] overflow-y-auto text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-trust-border">
+              <h3 className="text-sm font-semibold text-trust-primary flex items-center gap-2">
+                <Info className="w-4 h-4 text-trust-secondary" />
                 Transfer Audit Record: {selectedTransferForDetails.id}
               </h3>
               <button
                 onClick={() => setSelectedTransferForDetails(null)}
-                className="p-1 hover:bg-[#F0F4F8] rounded text-[#5A6A7E]"
+                className="p-1 hover:bg-slate-100 rounded text-trust-text-muted"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 p-3 bg-[#F8FAFC] rounded-lg border border-[#D8E0E8]">
+            <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-lg border border-trust-border">
               <div>
-                <p className="text-[10px] uppercase text-[#5A6A7E]">Status</p>
-                <p className="font-bold font-mono text-[#0F2A43] mt-0.5">
+                <p className="text-xs text-trust-text-muted">Status</p>
+                <p className="font-semibold font-mono text-trust-primary mt-0.5">
                   {selectedTransferForDetails.status}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] uppercase text-[#5A6A7E]">Token ID</p>
-                <p className="font-mono text-[#1F5A7A] truncate mt-0.5">
+                <p className="text-xs text-trust-text-muted">Token ID</p>
+                <p className="font-mono text-trust-secondary truncate mt-0.5">
                   {selectedTransferForDetails.tokenId}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] uppercase text-[#5A6A7E]">Seller (From)</p>
-                <p className="font-mono text-[#17202A] mt-0.5">
+                <p className="text-xs text-trust-text-muted">Seller (From)</p>
+                <p className="font-mono text-trust-text mt-0.5">
                   {selectedTransferForDetails.fromParticipantId}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] uppercase text-[#5A6A7E]">Buyer (To)</p>
-                <p className="font-mono text-[#17202A] mt-0.5">
+                <p className="text-xs text-trust-text-muted">Buyer (To)</p>
+                <p className="font-mono text-trust-text mt-0.5">
                   {selectedTransferForDetails.toParticipantId}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] uppercase text-[#5A6A7E]">Units Transferred</p>
-                <p className="font-bold text-[#0F2A43] mt-0.5">
+                <p className="text-xs text-trust-text-muted">Units Transferred</p>
+                <p className="font-semibold text-trust-primary mt-0.5">
                   {selectedTransferForDetails.units}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] uppercase text-[#5A6A7E]">Settlement Price</p>
-                <p className="font-mono text-[#0F2A43] mt-0.5">
+                <p className="text-xs text-trust-text-muted">Settlement Price</p>
+                <p className="font-mono text-trust-primary mt-0.5">
                   ₹{selectedTransferForDetails.pricePaise ? (selectedTransferForDetails.pricePaise / 100).toLocaleString('en-IN') : '0'}
                 </p>
               </div>
@@ -698,7 +697,7 @@ export function TransfersView() {
 
             {selectedTransferForDetails.rejectionReasons?.length > 0 && (
               <div className="space-y-2">
-                <h4 className="font-bold text-[#B42318] flex items-center gap-1.5">
+                <h4 className="font-semibold text-trust-error flex items-center gap-1.5">
                   <ShieldAlert className="w-4 h-4" />
                   On-Chain Rejection Diagnostic Breakdown:
                 </h4>
@@ -706,24 +705,24 @@ export function TransfersView() {
                   {selectedTransferForDetails.rejectionReasons.map((reason, idx) => (
                     <div
                       key={idx}
-                      className="p-3 bg-[#FEF2F2] border border-[#FECDD3] rounded-lg text-xs space-y-1"
+                      className="p-3 bg-trust-error-bg border border-trust-error-border rounded-lg text-xs space-y-1"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-mono font-bold text-[#B42318]">
+                        <span className="font-mono font-semibold text-trust-error">
                           {reason.code}
                         </span>
-                        <span className="text-[10px] bg-[#FECDD3] text-[#B42318] px-1.5 py-0.5 rounded font-semibold">
+                        <span className="text-xs bg-trust-error-border text-trust-error px-1.5 py-0.5 rounded font-semibold">
                           RULE VIOLATION
                         </span>
                       </div>
-                      <p className="text-[#5A6A7E] text-[11px]">{reason.message}</p>
+                      <p className="text-trust-text-muted text-xs">{reason.message}</p>
                       {reason.observedValue !== undefined && (
-                        <p className="text-[11px] font-mono text-[#17202A]">
+                        <p className="text-xs font-mono text-trust-text">
                           Observed: {JSON.stringify(reason.observedValue)}
                         </p>
                       )}
                       {reason.limit !== undefined && (
-                        <p className="text-[11px] font-mono text-[#17202A]">
+                        <p className="text-xs font-mono text-trust-text">
                           Limit: {JSON.stringify(reason.limit)}
                         </p>
                       )}
@@ -733,7 +732,7 @@ export function TransfersView() {
               </div>
             )}
 
-            <div className="space-y-1 pt-2 border-t border-[#D8E0E8] text-[11px] text-[#5A6A7E]">
+            <div className="space-y-1 pt-2 border-t border-trust-border text-xs text-trust-text-muted">
               <p>Created At: {selectedTransferForDetails.createdAt}</p>
               {selectedTransferForDetails.executedAt && (
                 <p>Executed At: {selectedTransferForDetails.executedAt}</p>
@@ -748,7 +747,7 @@ export function TransfersView() {
             <div className="flex justify-end pt-3">
               <button
                 onClick={() => setSelectedTransferForDetails(null)}
-                className="px-4 py-1.5 bg-[#0F2A43] text-white rounded-lg font-semibold hover:bg-[#1F5A7A]"
+                className="trust-btn-primary"
               >
                 Close
               </button>

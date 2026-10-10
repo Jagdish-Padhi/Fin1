@@ -27,6 +27,12 @@ verificationRouter.post(
 );
 
 verificationRouter.post(
+  '/cases/:caseId/integrity-check',
+  requireRole(Role.VERIFIER),
+  (req, res, next) => verificationController.integrityCheck(req, res, next)
+);
+
+verificationRouter.post(
   '/cases/:caseId/decide',
   requireRole(Role.VERIFIER),
   (req, res, next) => verificationController.decide(req, res, next)

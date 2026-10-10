@@ -1,6 +1,15 @@
 import { chainBridge } from '../../core/chain/chain-bridge.js';
 import { AppError } from '../../core/errors/app-error.js';
-import { Role } from '@rwa/contracts';
+import { Role, SUPPORTED_ASSET_TYPE_KEYS, validateAssetAttributes } from '@rwa/contracts';
+
+function assertValidAttributes(typeKey, attributes) {
+  const errors = validateAssetAttributes(typeKey, attributes);
+  if (errors.length > 0) {
+    throw AppError.badRequest(
+      `Invalid asset attributes: ${errors.map((e) => `${e.field} ${e.message}`).join('; ')}`
+    );
+  }
+}
 
 export class AssetsService {
   async listAssets(caller) {
@@ -15,6 +24,12 @@ export class AssetsService {
     if (caller.role !== Role.ISSUER) {
       throw AppError.forbidden('Only Issuer role can register real-world assets');
     }
+    if (!SUPPORTED_ASSET_TYPE_KEYS.includes(data.typeKey)) {
+      throw AppError.badRequest(
+        `Unsupported asset type '${data.typeKey}'. Supported: ${SUPPORTED_ASSET_TYPE_KEYS.join(', ')}`
+      );
+    }
+    assertValidAttributes(data.typeKey, data.attributes);
 
     const result = await chainBridge.submit(caller, 'registerAsset', {
       id: data.id,
@@ -30,6 +45,10 @@ export class AssetsService {
   async updateAttributes(caller, assetId, attributes, reason) {
     if (caller.role !== Role.ISSUER) {
       throw AppError.forbidden('Only Issuer role can update asset attributes');
+    }
+    const existing = await chainBridge.evaluate(caller, 'getAsset', { id: assetId });
+    if (existing?.typeKey) {
+      assertValidAttributes(existing.typeKey, { ...(existing.attributes || {}), ...(attributes || {}) });
     }
 
     const result = await chainBridge.submit(caller, 'updateAssetAttributes', {

@@ -1,15 +1,16 @@
 import { chainBridge } from '../../core/chain/chain-bridge.js';
 
 export class AuditService {
-  async getAuditTrail(caller, entityId = null) {
-    return chainBridge.evaluate(caller, 'getAuditTrail', { entityId });
+  async getAuditTrail(caller, entityId = null, entityType = 'ASSET') {
+    return chainBridge.evaluate(caller, 'getAuditTrail', { entityType, entityId: entityId || '' });
   }
 
   async getExplorerStats(caller) {
     const assets = await chainBridge.evaluate(caller, 'listAssets');
     const tokens = await chainBridge.evaluate(caller, 'listTokens');
     const transfers = await chainBridge.evaluate(caller, 'listTransfers');
-    const auditLogs = await chainBridge.evaluate(caller, 'getAuditTrail');
+    // Explorer mode: empty entityId returns the full audit log on-chain.
+    const auditLogs = await chainBridge.evaluate(caller, 'getAuditTrail', { entityType: 'ALL', entityId: '' });
 
     return {
       blockHeight: auditLogs.length + 1,

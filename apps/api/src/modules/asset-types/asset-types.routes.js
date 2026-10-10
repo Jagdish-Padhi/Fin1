@@ -6,10 +6,10 @@ import { Role } from '@rwa/contracts';
 
 export const assetTypesRouter = Router();
 
+assetTypesRouter.use(authenticate);
+
 assetTypesRouter.get('/', (req, res, next) => assetTypesController.list(req, res, next));
 assetTypesRouter.get('/:key', (req, res, next) => assetTypesController.getByKey(req, res, next));
-
-assetTypesRouter.use(authenticate);
 
 // Only Administrator can define new asset type schemas
 assetTypesRouter.post(

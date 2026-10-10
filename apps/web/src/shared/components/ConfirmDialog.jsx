@@ -1,18 +1,14 @@
 import React from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, Info, X } from 'lucide-react';
 import { ModalPortal } from './ModalPortal.jsx';
 
 /**
- * Enterprise inline confirmation dialog — replaces browser confirm() calls.
+ * Confirmation dialog — replaces browser confirm() calls.
  * Props:
- *   isOpen: boolean
- *   title: string
- *   message: string
+ *   isOpen, title, message, onConfirm, onCancel
  *   confirmLabel?: string (default: 'Confirm')
  *   cancelLabel?: string (default: 'Cancel')
- *   variant?: 'danger' | 'warning' | 'default' (default: 'default')
- *   onConfirm: () => void
- *   onCancel: () => void
+ *   variant?: 'danger' | 'warning' | 'default'
  */
 export function ConfirmDialog({
   isOpen,
@@ -26,66 +22,55 @@ export function ConfirmDialog({
 }) {
   if (!isOpen) return null;
 
-  const variantConfig = {
-    danger: {
-      headerBg: 'bg-[#FEF2F2]',
-      iconColor: 'text-[#B42318]',
-      confirmBtn: 'bg-[#B42318] hover:bg-[#991B1B] text-white',
-    },
-    warning: {
-      headerBg: 'bg-[#FEFCE8]',
-      iconColor: 'text-[#A16207]',
-      confirmBtn: 'bg-[#A16207] hover:bg-[#854D0E] text-white',
-    },
-    default: {
-      headerBg: 'bg-[#F0F4F8]',
-      iconColor: 'text-[#1F5A7A]',
-      confirmBtn: 'bg-[#0F2A43] hover:bg-[#1F5A7A] text-white',
-    },
+  const variants = {
+    danger: { Icon: AlertTriangle, icon: 'bg-red-50 text-trust-error', btn: 'trust-btn-danger' },
+    warning: { Icon: AlertTriangle, icon: 'bg-amber-50 text-trust-warning', btn: 'trust-btn-primary' },
+    default: { Icon: Info, icon: 'bg-sky-50 text-trust-secondary', btn: 'trust-btn-primary' },
   };
-
-  const cfg = variantConfig[variant] || variantConfig.default;
+  const { Icon, icon, btn } = variants[variant] || variants.default;
 
   return (
     <ModalPortal isOpen={isOpen} onClose={onCancel}>
-      <div className="fixed inset-0 z-[999] bg-[#0F2A43]/50 backdrop-blur-sm flex items-center justify-center p-4 app-modal-backdrop">
-        <div className="bg-white border border-[#D8E0E8] rounded-2xl max-w-md w-full shadow-2xl overflow-hidden app-modal-content">
-        {/* Header */}
-        <div className={`p-5 ${cfg.headerBg} flex items-start gap-3`}>
-          <AlertTriangle className={`w-6 h-6 shrink-0 mt-0.5 ${cfg.iconColor}`} />
-          <div className="flex-1">
-            <h3 className="text-sm font-bold text-[#0F2A43]">{title}</h3>
+      <div
+        className="fixed inset-0 z-[999] bg-slate-900/40 flex items-center justify-center p-4 app-modal-backdrop"
+        onClick={onCancel}
+      >
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="confirm-title"
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white border border-trust-border rounded-lg max-w-md w-full shadow-popover app-modal-content"
+        >
+          <div className="p-5 flex items-start gap-4">
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${icon}`}>
+              <Icon className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 id="confirm-title" className="text-base font-semibold text-trust-text">
+                {title}
+              </h3>
+              <p className="mt-1.5 text-sm text-trust-text-muted leading-relaxed">{message}</p>
+            </div>
+            <button
+              onClick={onCancel}
+              aria-label="Close"
+              className="p-1 -m-1 rounded-md text-trust-text-subtle hover:text-trust-text hover:bg-slate-100"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-          <button
-            onClick={onCancel}
-            className="p-1 rounded-lg text-[#5A6A7E] hover:bg-black/10 transition"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
 
-        {/* Body */}
-        <div className="px-6 py-4">
-          <p className="text-sm text-[#5A6A7E] leading-relaxed">{message}</p>
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 pb-5 flex justify-end gap-3">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 rounded-lg border border-[#D8E0E8] text-xs font-semibold text-[#5A6A7E] hover:bg-[#F8FAFC] transition"
-          >
-            {cancelLabel}
-          </button>
-          <button
-            onClick={onConfirm}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm ${cfg.confirmBtn}`}
-          >
-            {confirmLabel}
-          </button>
+          <div className="px-5 py-3 bg-slate-50 border-t border-trust-border-subtle rounded-b-lg flex justify-end gap-2">
+            <button onClick={onCancel} className="trust-btn-secondary">
+              {cancelLabel}
+            </button>
+            <button onClick={onConfirm} className={btn}>
+              {confirmLabel}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
     </ModalPortal>
   );
 }

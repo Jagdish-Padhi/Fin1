@@ -193,22 +193,22 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
 
   return (
     <ModalPortal isOpen={isOpen} onClose={onClose}>
-      <div className="fixed inset-0 z-50 bg-[#071728]/70 backdrop-blur-md flex items-center justify-center p-4 app-modal-backdrop overflow-y-auto">
-        <div className="bg-white border border-[#CBD5E1] rounded-2xl shadow-2xl relative overflow-hidden app-modal-content w-full max-w-[520px] my-8">
+      <div className="fixed inset-0 z-50 bg-[#071728]/70 flex items-center justify-center p-4 app-modal-backdrop overflow-y-auto">
+        <div className="bg-white border border-slate-300 rounded-lg shadow-popover relative overflow-hidden app-modal-content w-full max-w-[520px] my-8">
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 text-[#64748B] hover:text-[#0F2A43] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition z-20 cursor-pointer"
+            className="absolute right-4 top-4 text-[#64748B] hover:text-trust-primary p-1.5 rounded-lg hover:bg-slate-100 transition z-20 cursor-pointer"
             title="Close dialog"
           >
             <X className="w-4 h-4" />
           </button>
 
           {/* Top Header & Tab Switcher */}
-          <div className="px-6 pt-5 pb-4 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+          <div className="px-6 pt-5 pb-4 border-b border-trust-border-subtle bg-slate-50">
             <div className="flex items-center justify-between pr-8">
               <BrandLogo />
-              <div className="inline-flex items-center p-1 bg-[#E2E8F0]/70 rounded-xl text-xs font-semibold">
+              <div className="inline-flex items-center p-1 bg-trust-border-subtle/70 rounded-lg text-xs font-semibold">
                 <button
                   type="button"
                   onClick={() => {
@@ -217,8 +217,8 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                   }}
                   className={`px-3.5 py-1.5 rounded-lg text-xs transition cursor-pointer ${
                     mode === 'login'
-                      ? 'bg-white text-[#0F2A43] shadow-xs font-semibold'
-                      : 'text-[#64748B] hover:text-[#0F2A43]'
+                      ? 'bg-white text-trust-primary shadow-subtle font-semibold'
+                      : 'text-[#64748B] hover:text-trust-primary'
                   }`}
                 >
                   Sign In
@@ -231,8 +231,8 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                   }}
                   className={`px-3.5 py-1.5 rounded-lg text-xs transition cursor-pointer ${
                     mode === 'signup'
-                      ? 'bg-[#0F2A43] text-white shadow-xs font-semibold'
-                      : 'text-[#64748B] hover:text-[#0F2A43]'
+                      ? 'bg-trust-primary text-white shadow-subtle font-semibold'
+                      : 'text-[#64748B] hover:text-trust-primary'
                   }`}
                 >
                   Register
@@ -245,16 +245,16 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
           {mode === 'login' ? (
             <div className="p-6 sm:p-7">
               <div className="mb-5">
-                <h2 className="text-lg font-bold text-[#0F2A43] tracking-tight font-['Outfit',sans-serif]">
+                <h2 className="page-title">
                   Sign In
                 </h2>
-                <p className="text-xs text-[#5A6A7E] mt-0.5">
+                <p className="page-subtitle">
                   Enter your credentials to access your account.
                 </p>
               </div>
 
               {loginError && (
-                <div className="mb-4 p-3 rounded-xl bg-[#FEF2F2] border border-[#FECACA] text-xs text-[#B42318] flex items-start gap-2.5">
+                <div className="mb-4 p-3 rounded-lg bg-trust-error-bg border border-[#FECACA] text-xs text-trust-error flex items-start gap-2.5">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span className="leading-tight">{loginError}</span>
                 </div>
@@ -272,7 +272,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                         setEmail(e.target.value);
                         setLoginError(null);
                       }}
-                      className="w-full pl-9 pr-3 py-2 border border-[#CBD5E1] rounded-xl text-xs focus:outline-none focus:border-[#1F5A7A] focus:ring-1 focus:ring-[#1F5A7A]/20 transition"
+                      className="trust-input w-full pl-9 pr-3"
                       placeholder="name@company.com"
                       required
                       autoComplete="username"
@@ -293,7 +293,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                         setPassword(e.target.value);
                         setLoginError(null);
                       }}
-                      className="w-full pl-9 pr-9 py-2 border border-[#CBD5E1] rounded-xl text-xs focus:outline-none focus:border-[#1F5A7A] focus:ring-1 focus:ring-[#1F5A7A]/20 transition"
+                      className="trust-input w-full pl-9 pr-9"
                       placeholder="Enter your password"
                       required
                       autoComplete="current-password"
@@ -301,7 +301,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                     <button
                       type="button"
                       onClick={() => setShowPassword((p) => !p)}
-                      className="absolute right-3 top-2.5 text-[#94A3B8] hover:text-[#0F2A43] cursor-pointer"
+                      className="absolute right-3 top-2.5 text-[#94A3B8] hover:text-trust-primary cursor-pointer"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -312,7 +312,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                 <button
                   type="submit"
                   disabled={loginLoading}
-                  className="w-full py-2.5 bg-[#0F2A43] hover:bg-[#1F5A7A] text-white font-semibold rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 cursor-pointer"
+                  className="trust-btn-primary w-full"
                 >
                   <Lock className="w-3.5 h-3.5" />
                   <span>{loginLoading ? 'Signing in...' : 'Sign In'}</span>
@@ -320,14 +320,14 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                 </button>
               </form>
 
-              <div className="mt-5 pt-4 border-t border-[#F1F5F9] text-center">
+              <div className="mt-5 pt-4 border-t border-slate-100 text-center">
                 <button
                   type="button"
                   onClick={() => {
                     setMode('signup');
                     setSignupError(null);
                   }}
-                  className="text-xs text-[#1F5A7A] hover:text-[#0F2A43] hover:underline font-semibold cursor-pointer"
+                  className="text-xs text-trust-secondary hover:text-trust-primary hover:underline font-semibold cursor-pointer"
                 >
                   Need an account? Register &rarr;
                 </button>
@@ -341,34 +341,34 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
               </div>
 
               <div>
-                <h3 className="font-bold text-[#0F2A43] text-lg font-['Outfit',sans-serif]">
+                <h3 className="font-semibold text-trust-primary text-lg">
                   Registration Complete
                 </h3>
-                <p className="text-[#5A6A7E] max-w-sm mx-auto mt-1 text-xs">
+                <p className="text-trust-text-muted max-w-sm mx-auto mt-1 text-xs">
                   Your identity has been verified and registered successfully.
                 </p>
               </div>
 
-              <div className="bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-4 max-w-sm mx-auto text-left space-y-2.5">
+              <div className="bg-slate-50 border border-slate-300 rounded-lg p-4 max-w-sm mx-auto text-left space-y-2.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-[#64748B]">Participant ID:</span>
-                  <span className="font-mono font-bold text-[#0F2A43]">{completedParticipant?.id || 'PRT-ANCHORED'}</span>
+                  <span className="font-mono font-semibold text-trust-primary">{completedParticipant?.id || 'PRT-ANCHORED'}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-[#64748B]">Status:</span>
-                  <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]">
+                  <span className="px-2 py-0.5 rounded-md font-semibold text-xs bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]">
                     Active &bull; Verified
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-[#64748B]">Role:</span>
-                  <span className="font-semibold text-[#0F2A43]">
+                  <span className="font-semibold text-trust-primary">
                     {completedParticipant?.role || signupRole}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-[#64748B]">Nullifier:</span>
-                  <span className="font-mono text-[10px] text-[#0F766E] truncate max-w-[180px]">
+                  <span className="font-mono text-xs text-trust-accent truncate max-w-[180px]">
                     {completedParticipant?.zkNullifier || zkProofResult?.nullifier}
                   </span>
                 </div>
@@ -380,7 +380,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                   onSuccess?.();
                   onClose();
                 }}
-                className="w-full max-w-sm mx-auto py-2.5 bg-[#0F2A43] hover:bg-[#1F5A7A] text-white rounded-xl font-semibold text-xs transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                className="trust-btn-primary w-full max-w-sm mx-auto"
               >
                 <span>Continue to Workspace</span>
                 <ArrowRight className="w-4 h-4" />
@@ -389,12 +389,12 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
           ) : (
             /* STEP 1 & 2: SIGNUP & VERIFICATION */
             <div className="p-6 sm:p-7">
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#E2E8F0]">
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-trust-border-subtle">
                 <div>
-                  <h2 className="text-base font-bold text-[#0F2A43] font-['Outfit',sans-serif]">
+                  <h2 className="text-base font-semibold text-trust-primary">
                     {signupStep === 1 ? 'Create Account' : 'Identity Verification'}
                   </h2>
-                  <p className="text-xs text-[#5A6A7E] mt-0.5">
+                  <p className="page-subtitle">
                     {signupStep === 1
                       ? 'Select your role and enter account details'
                       : 'Verify identity credentials to proceed'}
@@ -405,8 +405,8 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                   <span
                     className={`px-2.5 py-1 rounded-lg transition ${
                       signupStep === 1
-                        ? 'bg-[#0F2A43] text-white'
-                        : 'bg-[#F1F5F9] text-[#64748B]'
+                        ? 'bg-trust-primary text-white'
+                        : 'bg-slate-100 text-[#64748B]'
                     }`}
                   >
                     1. Account
@@ -415,8 +415,8 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                   <span
                     className={`px-2.5 py-1 rounded-lg transition ${
                       signupStep === 2
-                        ? 'bg-[#0F766E] text-white'
-                        : 'bg-[#F1F5F9] text-[#64748B]'
+                        ? 'bg-trust-accent text-white'
+                        : 'bg-slate-100 text-[#64748B]'
                     }`}
                   >
                     2. Verification
@@ -425,7 +425,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
               </div>
 
               {signupError && (
-                <div className="mb-4 p-3 rounded-xl bg-[#FEF2F2] border border-[#FECACA] text-xs text-[#B42318] flex items-start gap-2.5">
+                <div className="mb-4 p-3 rounded-lg bg-trust-error-bg border border-[#FECACA] text-xs text-trust-error flex items-start gap-2.5">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span className="leading-tight">{signupError}</span>
                 </div>
@@ -439,7 +439,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                     <select
                       value={signupRole}
                       onChange={(e) => setSignupRole(e.target.value)}
-                      className="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white text-[#0F2A43] font-medium focus:outline-none focus:border-[#1F5A7A] focus:ring-1 focus:ring-[#1F5A7A]/20"
+                      className="trust-input w-full"
                     >
                       {ROLES.map((r) => (
                         <option key={r.value} value={r.value}>
@@ -456,7 +456,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                       placeholder="e.g. Acme Capital Ltd"
                       value={signupForm.name}
                       onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
-                      className="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs focus:outline-none focus:border-[#1F5A7A] focus:ring-1 focus:ring-[#1F5A7A]/20"
+                      className="trust-input w-full"
                       required
                     />
                   </div>
@@ -469,7 +469,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                         placeholder="name@company.com"
                         value={signupForm.email}
                         onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
-                        className="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs focus:outline-none focus:border-[#1F5A7A] focus:ring-1 focus:ring-[#1F5A7A]/20"
+                        className="trust-input w-full"
                         required
                       />
                     </div>
@@ -481,7 +481,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                         placeholder="Min. 8 characters"
                         value={signupForm.password}
                         onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
-                        className="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs focus:outline-none focus:border-[#1F5A7A] focus:ring-1 focus:ring-[#1F5A7A]/20"
+                        className="trust-input w-full"
                         required
                       />
                     </div>
@@ -493,7 +493,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                       <select
                         value={signupForm.jurisdiction}
                         onChange={(e) => setSignupForm({ ...signupForm, jurisdiction: e.target.value })}
-                        className="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white focus:outline-none focus:border-[#1F5A7A] focus:ring-1 focus:ring-[#1F5A7A]/20"
+                        className="trust-input w-full"
                       >
                         {JURISDICTIONS.map((j) => (
                           <option key={j.code} value={j.code}>
@@ -512,7 +512,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                         onChange={(e) =>
                           setSignupForm({ ...signupForm, passportNumber: e.target.value.toUpperCase() })
                         }
-                        className="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl uppercase font-mono text-xs focus:outline-none focus:border-[#1F5A7A] focus:ring-1 focus:ring-[#1F5A7A]/20"
+                        className="trust-input w-full font-mono"
                         required
                       />
                     </div>
@@ -532,7 +532,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                       setSignupError(null);
                       setSignupStep(2);
                     }}
-                    className="w-full py-2.5 bg-[#0F2A43] hover:bg-[#1F5A7A] text-white font-semibold rounded-xl text-xs transition flex items-center justify-center gap-2 mt-4 shadow-sm cursor-pointer"
+                    className="trust-btn-primary w-full mt-4"
                   >
                     <span>Continue to Verification</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -542,14 +542,14 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                 /* STEP 2: VERIFICATION INTERFACE */
                 <div className="space-y-4 text-xs">
                   {/* Verification Mode Switcher */}
-                  <div className="flex border-b border-[#E2E8F0]">
+                  <div className="flex border-b border-trust-border-subtle">
                     <button
                       type="button"
                       onClick={() => setZkMethod('prover')}
                       className={`pb-2.5 px-3 font-semibold text-xs border-b-2 flex items-center gap-1.5 transition cursor-pointer ${
                         zkMethod === 'prover'
-                          ? 'border-[#0F766E] text-[#0F766E]'
-                          : 'border-transparent text-[#64748B] hover:text-[#0F2A43]'
+                          ? 'border-trust-accent text-trust-accent'
+                          : 'border-transparent text-[#64748B] hover:text-trust-primary'
                       }`}
                     >
                       <Fingerprint className="w-3.5 h-3.5" />
@@ -560,8 +560,8 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                       onClick={() => setZkMethod('qr')}
                       className={`pb-2.5 px-3 font-semibold text-xs border-b-2 flex items-center gap-1.5 transition cursor-pointer ${
                         zkMethod === 'qr'
-                          ? 'border-[#0F766E] text-[#0F766E]'
-                          : 'border-transparent text-[#64748B] hover:text-[#0F2A43]'
+                          ? 'border-trust-accent text-trust-accent'
+                          : 'border-transparent text-[#64748B] hover:text-trust-primary'
                       }`}
                     >
                       <QrCode className="w-3.5 h-3.5" />
@@ -570,22 +570,22 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                   </div>
 
                   {zkMethod === 'prover' ? (
-                    <div className="p-4 rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] space-y-3">
+                    <div className="p-4 rounded-lg border border-slate-300 bg-slate-50 space-y-3">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-[#64748B]">Document:</span>
-                        <span className="font-semibold text-[#0F2A43]">
+                        <span className="font-semibold text-trust-primary">
                           Passport ({signupForm.passportNumber || 'Provided'})
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-[#64748B]">Jurisdiction:</span>
-                        <span className="font-semibold text-[#0F2A43]">
+                        <span className="font-semibold text-trust-primary">
                           {JURISDICTIONS.find((j) => j.code === signupForm.jurisdiction)?.label || 'India (IND)'}
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-[#64748B]">Verification Checks:</span>
-                        <span className="text-xs font-semibold text-[#0F766E]">
+                        <span className="text-xs font-semibold text-trust-accent">
                           Age &ge; 18 &bull; Sanctions Clear &bull; CSCA Valid
                         </span>
                       </div>
@@ -594,12 +594,12 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                       {!zkProofResult ? (
                         <div className="pt-2">
                           {zkProving ? (
-                            <div className="p-3.5 rounded-xl bg-white border border-[#CBD5E1] space-y-2">
-                              <div className="flex items-center gap-2 text-xs font-bold text-[#0F766E]">
+                            <div className="p-3.5 rounded-lg bg-white border border-slate-300 space-y-2">
+                              <div className="flex items-center gap-2 text-xs font-semibold text-trust-accent">
                                 <Sparkles className="w-4 h-4 animate-spin" />
                                 <span>Generating cryptographic proof...</span>
                               </div>
-                              <div className="space-y-1 text-[11px] text-[#64748B]">
+                              <div className="space-y-1 text-xs text-[#64748B]">
                                 <div className={zkStepIndex >= 1 ? 'text-[#059669] font-medium' : ''}>
                                   {zkStepIndex >= 1 ? '✓' : '○'} Verifying document signature
                                 </div>
@@ -615,7 +615,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                             <button
                               type="button"
                               onClick={handleGenerateZkProof}
-                              className="w-full py-2.5 bg-[#0F766E] hover:bg-[#0D655E] text-white font-semibold rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                              className="trust-btn-accent w-full"
                             >
                               <Fingerprint className="w-4 h-4" />
                               <span>Verify Identity</span>
@@ -626,11 +626,11 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                     </div>
                   ) : (
                     /* QR CODE METHOD */
-                    <div className="p-4 rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] text-center space-y-3">
-                      <div className="w-32 h-32 mx-auto bg-white p-2 rounded-xl border border-[#CBD5E1] shadow-xs flex items-center justify-center">
-                        <QrCode className="w-24 h-24 text-[#0F2A43]" />
+                    <div className="p-4 rounded-lg border border-slate-300 bg-slate-50 text-center space-y-3">
+                      <div className="w-32 h-32 mx-auto bg-white p-2 rounded-lg border border-slate-300 shadow-subtle flex items-center justify-center">
+                        <QrCode className="w-24 h-24 text-trust-primary" />
                       </div>
-                      <p className="text-[11px] text-[#64748B] max-w-xs mx-auto">
+                      <p className="text-xs text-[#64748B] max-w-xs mx-auto">
                         Scan with your identity app to complete verification on your device.
                       </p>
                       {!zkProofResult && (
@@ -638,7 +638,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                           type="button"
                           onClick={handleGenerateZkProof}
                           disabled={zkProving}
-                          className="px-4 py-2 bg-[#0F766E] hover:bg-[#0D655E] text-white font-semibold rounded-xl text-xs transition cursor-pointer"
+                          className="trust-btn-accent"
                         >
                           {zkProving ? 'Verifying...' : 'Confirm Verification'}
                         </button>
@@ -648,26 +648,26 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
 
                   {/* PROOF RESULT CARD */}
                   {zkProofResult && (
-                    <div className="p-3.5 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] space-y-2 text-xs">
-                      <div className="flex items-center justify-between text-[#065F46] font-bold">
+                    <div className="p-3.5 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0] space-y-2 text-xs">
+                      <div className="flex items-center justify-between text-[#065F46] font-semibold">
                         <div className="flex items-center gap-1.5">
                           <CheckCircle2 className="w-4 h-4 text-[#059669]" />
                           <span>Identity Verified</span>
                         </div>
-                        <span className="text-[10px] font-semibold text-[#059669] bg-white px-2 py-0.5 rounded border border-[#A7F3D0]">
+                        <span className="text-xs font-semibold text-[#059669] bg-white px-2 py-0.5 rounded border border-[#A7F3D0]">
                           Verified
                         </span>
                       </div>
 
-                      <div className="bg-white/90 p-2.5 rounded-lg border border-[#A7F3D0] space-y-1.5 font-mono text-[11px]">
+                      <div className="bg-white/90 p-2.5 rounded-lg border border-[#A7F3D0] space-y-1.5 font-mono text-xs">
                         <div className="flex justify-between items-center">
                           <span className="text-[#64748B]">Proof ID:</span>
-                          <div className="flex items-center gap-1 text-[#0F2A43]">
+                          <div className="flex items-center gap-1 text-trust-primary">
                             <span>{zkProofResult.proofHash.slice(0, 16)}...</span>
                             <button
                               type="button"
                               onClick={() => handleCopyProofHash(zkProofResult.proofHash)}
-                              className="text-[#64748B] hover:text-[#0F2A43] cursor-pointer"
+                              className="text-[#64748B] hover:text-trust-primary cursor-pointer"
                               title="Copy proof hash"
                             >
                               {copiedHash ? <Check className="w-3.5 h-3.5 text-[#059669]" /> : <Copy className="w-3.5 h-3.5" />}
@@ -677,14 +677,14 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
 
                         <div className="flex justify-between items-center">
                           <span className="text-[#64748B]">Nullifier:</span>
-                          <span className="text-[#0F766E] font-semibold truncate max-w-[200px]">
+                          <span className="text-trust-accent font-semibold truncate max-w-[200px]">
                             {zkProofResult.nullifier}
                           </span>
                         </div>
 
                         <div className="flex justify-between items-center">
                           <span className="text-[#64748B]">Nationality:</span>
-                          <span className="text-[#0F2A43] font-semibold">{zkProofResult.nationality}</span>
+                          <span className="text-trust-primary font-semibold">{zkProofResult.nationality}</span>
                         </div>
                       </div>
                     </div>
@@ -694,7 +694,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                     <button
                       type="button"
                       onClick={() => setSignupStep(1)}
-                      className="px-4 py-2.5 border border-[#CBD5E1] text-[#64748B] hover:text-[#0F2A43] rounded-xl text-xs font-semibold transition cursor-pointer"
+                      className="px-4 py-2.5 border border-slate-300 text-[#64748B] hover:text-trust-primary rounded-lg text-xs font-semibold transition cursor-pointer"
                     >
                       &larr; Back
                     </button>
@@ -702,7 +702,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                       type="button"
                       disabled={!zkProofResult || signupLoading}
                       onClick={handleCompleteRegistration}
-                      className="flex-1 py-2.5 bg-[#0F2A43] hover:bg-[#1F5A7A] text-white font-semibold rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer"
+                      className="trust-btn-primary flex-1"
                     >
                       <UserPlus className="w-3.5 h-3.5" />
                       <span>
@@ -713,14 +713,14 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
                 </div>
               )}
 
-              <div className="mt-4 pt-3 border-t border-[#F1F5F9] text-center">
+              <div className="mt-4 pt-3 border-t border-slate-100 text-center">
                 <button
                   type="button"
                   onClick={() => {
                     setMode('login');
                     setLoginError(null);
                   }}
-                  className="text-xs text-[#1F5A7A] hover:underline font-semibold cursor-pointer"
+                  className="text-xs text-trust-secondary hover:underline font-semibold cursor-pointer"
                 >
                   Already have an account? Sign In &rarr;
                 </button>

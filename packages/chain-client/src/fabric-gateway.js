@@ -14,14 +14,19 @@ const utf8Decoder = new TextDecoder();
 
 export class FabricGateway {
   constructor(options = {}) {
+    // Anchor relative paths to the repo root so the gateway works no matter
+    // which directory the process was started from (repo root, apps/api, ...).
+    const asAbsolute = (p) =>
+      p && !path.isAbsolute(p) ? path.join(REPO_ROOT, p) : p;
+
     this.connectionProfilePath =
-      options.connectionProfilePath ||
-      process.env.FABRIC_CONNECTION ||
+      asAbsolute(options.connectionProfilePath) ||
+      asAbsolute(process.env.FABRIC_CONNECTION) ||
       path.join(REPO_ROOT, '.fabric', 'connection.json');
 
     this.identityMapPath =
-      options.identityMapPath ||
-      process.env.FABRIC_IDENTITY_MAP ||
+      asAbsolute(options.identityMapPath) ||
+      asAbsolute(process.env.FABRIC_IDENTITY_MAP) ||
       path.join(REPO_ROOT, '.fabric', 'identity-map.json');
 
     this.channelName = options.channelName || process.env.FABRIC_CHANNEL || 'rwa-channel';
@@ -145,8 +150,53 @@ export class FabricGateway {
     return userCtx.contracts.get(contractName);
   }
 
+  _extractChaincodeMessage(err) {
+    // Fabric Gateway wraps the real chaincode error in `details`/`cause`
+    // (e.g. "10 ABORTED: failed to endorse transaction, see attached
+    // details"). Dig out the first meaningful detail so API callers get
+    // the actionable reason ("Duplicate asset detected: ...") instead of
+    // the generic wrapper. Returns null when nothing useful is attached.
+    const candidates = [];
+    const push = (v) => {
+      if (typeof v === 'string' && v.trim()) {
+        candidates.push(v.trim());
+      } else if (
+        v instanceof Uint8Array ||
+        (typeof Buffer !== 'undefined' && typeof v === 'object' && Buffer.isBuffer(v))
+      ) {
+        try {
+          const t = Buffer.from(v).toString('utf8');
+          if (t.trim()) candidates.push(t.trim());
+        } catch {}
+      }
+    };
+    const walk = (v, depth = 0) => {
+      if (depth > 4 || v === null || v === undefined) return;
+      if (typeof v === 'string' || v instanceof Uint8Array) return push(v);
+      if (Array.isArray(v)) return v.forEach((x) => walk(x, depth + 1));
+      if (typeof v === 'object') {
+        for (const k of ['message', 'payload', 'details', 'cause', 'errors']) {
+          if (v[k] !== undefined) walk(v[k], depth + 1);
+        }
+      }
+    };
+    walk(err.details);
+    walk(err.cause);
+    for (const c of candidates) {
+      if (
+        !/failed to (evaluate|endorse|submit|commit)/i.test(c) &&
+        !/see attached details/i.test(c) &&
+        c.length < 1000
+      ) {
+        return c;
+      }
+    }
+    return null;
+  }
+
   _mapError(err) {
-    const msg = err.message || String(err);
+    const detail = this._extractChaincodeMessage(err);
+    const msg = detail || err.message || String(err);
 
     // Handle Unauthorized / Segregation of Duties -> 403
     if (msg.includes('Unauthorized') || msg.includes('Segregation of Duties') || msg.includes('Permission denied')) {

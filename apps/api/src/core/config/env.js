@@ -1,4 +1,12 @@
 import dotenv from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Load repo-root .env explicitly so `pnpm dev:all` (cwd=apps/api) gets
+// the same live Fabric config as running node from the repo root.
+// dotenv never overrides already-set vars, so real env keeps precedence.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '../../../../../.env') });
 dotenv.config();
 
 const DEFAULT_JWT_SECRET = 'super_secret_jwt_signing_key_rwa_platform_2026_ekamvistar';

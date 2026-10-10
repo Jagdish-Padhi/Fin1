@@ -5,7 +5,7 @@ export default {
     extend: {
       colors: {
         trust: {
-          bg: '#F8FAFC',
+          bg: '#F6F8FA',
           surface: '#FFFFFF',
           primary: '#0F2A43',
           'primary-hover': '#0A1E30',
@@ -31,14 +31,15 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Inter', '-apple-system', 'sans-serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
         display: ['Space Grotesk', 'Plus Jakarta Sans', 'sans-serif'],
         logo: ['Outfit', 'Space Grotesk', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       boxShadow: {
-        subtle: '0 1px 3px 0 rgba(15, 42, 67, 0.04), 0 1px 2px -1px rgba(15, 42, 67, 0.04)',
-        card: '0 4px 12px -2px rgba(15, 42, 67, 0.05), 0 2px 6px -2px rgba(15, 42, 67, 0.03)',
-        popover: '0 10px 25px -5px rgba(15, 42, 67, 0.08), 0 8px 10px -6px rgba(15, 42, 67, 0.04)',
+        subtle: '0 1px 2px 0 rgba(15, 42, 67, 0.05)',
+        card: '0 1px 3px 0 rgba(15, 42, 67, 0.06), 0 1px 2px -1px rgba(15, 42, 67, 0.04)',
+        popover: '0 8px 24px -6px rgba(15, 42, 67, 0.14), 0 2px 6px -2px rgba(15, 42, 67, 0.06)',
       },
     },
   },

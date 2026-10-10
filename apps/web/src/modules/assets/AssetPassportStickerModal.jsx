@@ -7,65 +7,65 @@ export function AssetPassportStickerModal({ isOpen, onClose, asset }) {
 
   return (
     <ModalPortal isOpen={isOpen} onClose={onClose}>
-      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[#0F2A43]/40 backdrop-blur-sm">
-      <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-        <div className="p-4 border-b border-[#D8E0E8] flex items-center justify-between">
+      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-trust-primary/40">
+      <div className="bg-white border border-trust-border rounded-lg w-full max-w-md shadow-popover overflow-hidden">
+        <div className="p-4 border-b border-trust-border flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img src="/logo.png" alt="Logo" className="w-5 h-5 object-contain" />
-            <h3 className="text-sm font-bold text-[#17202A]">Physical Asset Passport</h3>
+            <h3 className="text-sm font-semibold text-trust-text">Physical Asset Passport</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-[#5A6A7E] hover:text-[#17202A] hover:bg-[#F8FAFC] transition"
+            className="p-1 rounded-lg text-trust-text-muted hover:text-trust-text hover:bg-slate-50 transition"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Sticker Card Preview */}
-        <div className="p-6 bg-[#F8FAFC]">
-          <div className="p-5 rounded-2xl bg-white border-2 border-[#D8E0E8] text-center space-y-4 shadow-sm relative overflow-hidden">
-            <div className="flex items-center justify-between border-b border-[#D8E0E8] pb-3">
+        <div className="p-6 bg-slate-50">
+          <div className="p-5 rounded-lg bg-white border-2 border-trust-border text-center space-y-4 shadow-subtle relative overflow-hidden">
+            <div className="flex items-center justify-between border-b border-trust-border pb-3">
               <div className="flex items-center gap-2">
                 <img src="/logo.png" alt="AsseTrust" className="w-7 h-7 object-contain" />
-                <span className="text-xs uppercase font-bold tracking-wider font-['Outfit',sans-serif]">
-                  <span className="text-[#0F2A43]">Asse</span>
-                  <span className="text-[#0F766E]">Trust</span>
-                  <span className="text-[#5A6A7E] ml-1.5 font-sans font-medium text-[11px]">Passport</span>
+                <span className="text-xs font-semibold">
+                  <span className="text-trust-primary">Asse</span>
+                  <span className="text-trust-accent">Trust</span>
+                  <span className="text-trust-text-muted ml-1.5 font-sans font-medium text-xs">Passport</span>
                 </span>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0F766E]/10 text-[#0F766E] font-bold border border-[#0F766E]/20">
+              <span className="px-2 py-0.5 rounded text-xs font-mono bg-trust-accent/10 text-trust-accent font-semibold border border-trust-accent/20">
                 {asset.typeKey}
               </span>
             </div>
 
             <div className="flex justify-center py-2">
-              <div className="p-3 rounded-xl bg-white border border-[#D8E0E8] text-[#0F2A43] shadow-xs">
+              <div className="p-3 rounded-lg bg-white border border-trust-border text-trust-primary shadow-subtle">
                 <QrCode className="w-24 h-24" />
               </div>
             </div>
 
             <div className="space-y-1">
-              <div className="text-base font-bold text-[#17202A] tracking-tight">{asset.displayName}</div>
-              <div className="font-mono text-xs text-[#0F766E] font-semibold">{asset.id}</div>
+              <div className="text-base font-semibold text-trust-text tracking-tight">{asset.displayName}</div>
+              <div className="font-mono text-xs text-trust-accent font-semibold">{asset.id}</div>
             </div>
 
-            <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-[#D8E0E8] text-[10px] font-mono text-[#5A6A7E] break-all space-y-1">
-              <span className="text-[#17202A] block uppercase font-bold text-[9px] tracking-wider">Root Hash:</span>
-              <span className="text-[#17202A]">{asset.attributesHash?.substring(0, 32)}...</span>
+            <div className="p-2.5 rounded-lg bg-slate-50 border border-trust-border text-xs font-mono text-trust-text-muted break-all space-y-1">
+              <span className="text-trust-text block font-semibold text-xs">Root Hash:</span>
+              <span className="text-trust-text">{asset.attributesHash?.substring(0, 32)}...</span>
             </div>
 
-            <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#18794E] font-semibold pt-1">
+            <div className="flex items-center justify-center gap-1.5 text-xs text-trust-success font-semibold pt-1">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Cryptographically Anchored to Ledger</span>
             </div>
           </div>
         </div>
 
-        <div className="p-4 bg-white border-t border-[#D8E0E8] flex justify-end gap-2">
+        <div className="p-4 bg-white border-t border-trust-border flex justify-end gap-2">
           <button
             onClick={() => window.print()}
-            className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0F2A43] hover:bg-[#1F5A7A] text-white flex items-center gap-1.5 shadow-sm transition"
+            className="trust-btn-primary"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Print Asset Sticker</span>

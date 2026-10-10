@@ -46,6 +46,15 @@ export class VerificationController {
     }
   }
 
+  async integrityCheck(req, res, next) {
+    try {
+      const data = await verificationService.runIntegrityCheck(req.user, req.params.caseId);
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async decide(req, res, next) {
     try {
       const { caseId } = req.params;

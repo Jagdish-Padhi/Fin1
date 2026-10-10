@@ -13,7 +13,6 @@ import {
   FileCheck,
   TrendingUp,
   Activity,
-  History,
   Users,
   ShieldCheck,
   XCircle,
@@ -338,11 +337,21 @@ function getRoleCounters(role, data, onNavigate) {
 }
 
 const toneStyles = {
-  navy: { chip: 'bg-[#F0F4F8] text-[#1F5A7A]', value: 'text-[#0F2A43]' },
-  teal: { chip: 'bg-[#F0FDFA] text-[#0F766E]', value: 'text-[#0F766E]' },
-  green: { chip: 'bg-[#F0FDF4] text-[#18794E]', value: 'text-[#18794E]' },
-  amber: { chip: 'bg-[#FEFCE8] text-[#A16207]', value: 'text-[#A16207]' },
-  red: { chip: 'bg-[#FEF2F2] text-[#B42318]', value: 'text-[#B42318]' },
+  navy: 'bg-slate-100 text-trust-secondary',
+  teal: 'bg-teal-50 text-trust-accent',
+  green: 'bg-emerald-50 text-trust-success',
+  amber: 'bg-amber-50 text-trust-warning',
+  red: 'bg-red-50 text-trust-error',
+};
+
+const ROLE_LABELS = {
+  ADMINISTRATOR: 'Administrator',
+  ISSUER: 'Issuer',
+  VERIFIER: 'Verifier',
+  VALUER: 'Valuer',
+  COMPLIANCE: 'Compliance officer',
+  INVESTOR: 'Investor',
+  AUDITOR: 'Auditor',
 };
 
 export function DashboardView({ onNavigate }) {
@@ -413,96 +422,94 @@ export function DashboardView({ onNavigate }) {
 
   return (
     <div className="space-y-6">
-      {/* Role-specific operational counters */}
-      <div className="space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {counters.map((c) => {
-            const Icon = c.icon;
-            const tone = toneStyles[c.tone] || toneStyles.navy;
-            const clickable = typeof c.onClick === 'function';
-            return (
-              <div
-                key={c.key}
-                onClick={c.onClick}
-                className={`trust-card p-5 space-y-2 transition ${
-                  clickable ? 'cursor-pointer hover:border-[#1F5A7A] group' : ''
-                }`}
-              >
-                <div className="flex items-center justify-between text-[#5A6A7E]">
-                  <span className="text-xs font-bold uppercase tracking-wider">{c.label}</span>
-                  <div className="flex items-center gap-1.5">
-                    <div className={`p-2 rounded-lg ${tone.chip}`}>
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    {clickable && (
-                      <ArrowUpRight className="w-4 h-4 text-[#8795A5] group-hover:text-[#0F2A43] transition" />
-                    )}
-                  </div>
-                </div>
-                <div className={`text-2xl font-extrabold ${tone.value}`}>
-                  {loading ? '—' : c.value}
-                </div>
-                <div className="text-[11px] text-[#5A6A7E]">{c.sub}</div>
-              </div>
-            );
-          })}
+      <div className="page-header !mb-0">
+        <div>
+          <h1 className="page-title">Dashboard</h1>
+          <p className="page-subtitle">
+            {ROLE_LABELS[role] || role} workspace. Items below need attention or summarize your current activity.
+          </p>
         </div>
       </div>
 
-      {/* Recent Ledger Audit Trail (unchanged) */}
-      <div className="trust-card overflow-hidden">
-        <div className="p-4 border-b border-[#D8E0E8] flex items-center bg-[#F8FAFC]">
-          <div className="flex items-center gap-2">
-            <History className="w-4 h-4 text-[#1F5A7A]" />
-            <h3 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider">
-              Recent Consortium Ledger Activity
-            </h3>
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {counters.map((c) => {
+          const Icon = c.icon;
+          const tone = toneStyles[c.tone] || toneStyles.navy;
+          const clickable = typeof c.onClick === 'function';
+          const Wrapper = clickable ? 'button' : 'div';
+          return (
+            <Wrapper
+              key={c.key}
+              onClick={c.onClick}
+              className={`trust-card p-5 text-left w-full ${
+                clickable ? 'trust-card-hover cursor-pointer group' : ''
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-sm font-medium text-trust-text-muted">{c.label}</span>
+                <span className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${tone}`}>
+                  <Icon className="w-4 h-4" />
+                </span>
+              </div>
+              <div className="mt-3 text-3xl font-semibold tabular-nums text-trust-primary">
+                {loading ? <span className="text-trust-text-subtle">—</span> : c.value}
+              </div>
+              <div className="mt-1 flex items-center justify-between text-xs text-trust-text-muted">
+                <span>{c.sub}</span>
+                {clickable && (
+                  <ArrowUpRight className="w-3.5 h-3.5 text-trust-text-subtle group-hover:text-trust-primary" />
+                )}
+              </div>
+            </Wrapper>
+          );
+        })}
+      </div>
+
+      <section className="trust-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-trust-border">
+          <h2 className="text-base font-semibold text-trust-text">Recent ledger activity</h2>
+          <p className="text-sm text-trust-text-muted mt-0.5">Latest transactions committed to the consortium channel.</p>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#F8FAFC] border-b border-[#D8E0E8] text-[#5A6A7E] uppercase text-[10px] font-bold tracking-wider">
+          <table className="data-table">
+            <thead>
               <tr>
-                <th className="py-2.5 px-4">Entity Type</th>
-                <th className="py-2.5 px-4">Entity ID</th>
-                <th className="py-2.5 px-4">Action</th>
-                <th className="py-2.5 px-4">Tx Hash</th>
-                <th className="py-2.5 px-4">Timestamp</th>
+                <th>Entity type</th>
+                <th>Entity ID</th>
+                <th>Action</th>
+                <th>Transaction</th>
+                <th>Time</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E8EEF3] text-[#17202A]">
+            <tbody>
               {data.recentEntries && data.recentEntries.length > 0 ? (
                 data.recentEntries.slice(0, 6).map((entry, idx) => (
-                  <tr key={idx} className="hover:bg-[#F8FAFC] transition">
-                    <td className="py-3 px-4 font-semibold text-[#0F2A43]">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8]">
-                        {entry.entityType || 'TRANSACTION'}
-                      </span>
+                  <tr key={idx}>
+                    <td>
+                      <span className="tag">{entry.entityType || 'TRANSACTION'}</span>
                     </td>
-                    <td className="py-3 px-4 font-mono text-xs">{entry.entityId}</td>
-                    <td className="py-3 px-4">
-                      <span className="font-semibold text-[#0F766E]">{entry.action}</span>
-                    </td>
-                    <td className="py-3 px-4 font-mono">
+                    <td className="font-mono text-xs text-trust-text">{entry.entityId}</td>
+                    <td className="font-medium text-trust-text">{entry.action}</td>
+                    <td>
                       <HashChip hash={entry.txId} />
                     </td>
-                    <td className="py-3 px-4 text-[#5A6A7E] text-[11px]">
+                    <td className="text-trust-text-muted whitespace-nowrap">
                       {entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString() : 'Recent'}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="py-8 text-center text-[#5A6A7E]">
-                    Consortium channel initialized. Ready for transactions.
+                  <td colSpan="5" className="py-10 text-center text-trust-text-muted">
+                    No ledger activity yet. Transactions will appear here once committed.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

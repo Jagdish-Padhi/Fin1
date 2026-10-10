@@ -1,3 +1,5 @@
+import { toFriendlyErrorMessage } from '../utils/error-messages.js';
+
 const API_PREFIX = '/api/v1';
 
 export class ApiClient {
@@ -24,10 +26,15 @@ export class ApiClient {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(`${API_PREFIX}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    let response;
+    try {
+      response = await fetch(`${API_PREFIX}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    } catch (e) {
+      throw new Error(toFriendlyErrorMessage(e));
+    }
 
     const contentType = response.headers.get('content-type') || '';
     let data;
@@ -35,15 +42,30 @@ export class ApiClient {
       try {
         data = await response.json();
       } catch (e) {
-        throw new Error(`Invalid JSON response from server (${response.status} ${response.statusText})`);
+        throw new Error(
+          toFriendlyErrorMessage(e, 'Unexpected server response. Please try again.')
+        );
       }
     } else {
       const text = await response.text();
-      throw new Error(text || `Server returned ${response.status}: Ensure backend API is running on http://localhost:5000`);
+      throw new Error(
+        toFriendlyErrorMessage(
+          text ? `Server error (${response.status}): ${text.slice(0, 120)}` : '',
+          'Cannot reach the server. Check your connection and try again.'
+        )
+      );
     }
 
     if (!response.ok) {
-      throw new Error(data?.error?.message || data?.message || `API error (${response.status})`);
+      const serverMessage = data?.error?.message || data?.message || '';
+      const err = new Error(
+        toFriendlyErrorMessage(
+          serverMessage ? `HTTP ${response.status}: ${serverMessage}` : `HTTP ${response.status}`,
+          'Request failed. Please try again.'
+        )
+      );
+      err.status = response.status;
+      throw err;
     }
 
     return data;
@@ -117,11 +139,16 @@ export class ApiClient {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    const response = await fetch('/api/v1/evidence/upload', {
-      method: 'POST',
-      headers,
-      body: formData,
-    });
+    let response;
+    try {
+      response = await fetch('/api/v1/evidence/upload', {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+    } catch (e) {
+      throw new Error(toFriendlyErrorMessage(e));
+    }
 
     const contentType = response.headers.get('content-type') || '';
     let data;
@@ -130,15 +157,20 @@ export class ApiClient {
     } else {
       const text = await response.text();
       if (!response.ok) {
-        if (response.status === 413) {
-          throw new Error('Document file is too large. Maximum supported upload size is 25 MB.');
-        }
-        throw new Error(`Upload error (${response.status}): ${text.slice(0, 100) || response.statusText}`);
+        throw new Error(
+          toFriendlyErrorMessage(`HTTP ${response.status}: ${text.slice(0, 120)}`, 'Document upload failed. Please try again.')
+        );
       }
     }
 
     if (!response.ok) {
-      throw new Error(data?.message || data?.error?.message || `File upload failed (${response.status})`);
+      const serverMessage = data?.message || data?.error?.message || '';
+      throw new Error(
+        toFriendlyErrorMessage(
+          serverMessage ? `HTTP ${response.status}: ${serverMessage}` : `HTTP ${response.status}`,
+          'Document upload failed. Please try again.'
+        )
+      );
     }
     return data;
   }
@@ -154,20 +186,30 @@ export class ApiClient {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(
-      `${API_PREFIX}/evidence/${encodeURIComponent(evidenceId)}/download`,
-      { headers }
-    );
+    let response;
+    try {
+      response = await fetch(
+        `${API_PREFIX}/evidence/${encodeURIComponent(evidenceId)}/download`,
+        { headers }
+      );
+    } catch (e) {
+      throw new Error(toFriendlyErrorMessage(e));
+    }
 
     if (!response.ok) {
-      let message = `Failed to download evidence (${response.status})`;
+      let serverMessage = '';
       try {
         const data = await response.json();
-        message = data?.error?.message || data?.message || message;
+        serverMessage = data?.error?.message || data?.message || '';
       } catch (e) {
-        // Non-JSON error body; keep the default message.
+        // Non-JSON error body; fall through to the friendly default.
       }
-      throw new Error(message);
+      throw new Error(
+        toFriendlyErrorMessage(
+          serverMessage ? `HTTP ${response.status}: ${serverMessage}` : `HTTP ${response.status}`,
+          'Could not download this document. Please try again.'
+        )
+      );
     }
 
     const disposition = response.headers.get('content-disposition') || '';
@@ -333,6 +375,10 @@ export class ApiClient {
 
   getRegistryCapabilities() {
     return this.request('/verification/registries');
+  }
+
+  runIntegrityCheck(caseId) {
+    return this.request(`/verification/cases/${encodeURIComponent(caseId)}/integrity-check`, { method: 'POST' });
   }
 
   runRegistryCheck(caseId, payload) {

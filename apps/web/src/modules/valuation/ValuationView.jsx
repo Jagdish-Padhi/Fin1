@@ -16,11 +16,11 @@ import {
 } from 'lucide-react';
 
 const VALUATION_PILL = {
-  PROPOSED: 'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]',
-  APPROVED: 'bg-[#ECFDF5] text-[#18794E] border-[#A7F3D0]',
-  REJECTED: 'bg-[#FEF2F2] text-[#B42318] border-[#FECACA]',
-  SUPERSEDED: 'bg-[#F1F5F9] text-[#5A6A7E] border-[#D8E0E8]',
-  EXPIRED: 'bg-[#FEF2F2] text-[#B42318] border-[#FECACA]',
+  PROPOSED: 'bg-trust-warning-bg text-trust-warning border-trust-warning-border',
+  APPROVED: 'bg-[#ECFDF5] text-trust-success border-[#A7F3D0]',
+  REJECTED: 'bg-trust-error-bg text-trust-error border-[#FECACA]',
+  SUPERSEDED: 'bg-slate-100 text-trust-text-muted border-trust-border',
+  EXPIRED: 'bg-trust-error-bg text-trust-error border-[#FECACA]',
 };
 
 function isStale(v) {
@@ -289,7 +289,7 @@ export function ValuationView() {
     const pill = VALUATION_PILL[v.status] || VALUATION_PILL.PROPOSED;
     const stale = isStale(v);
     return (
-      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-semibold border ${pill}`}>
+      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold border ${pill}`}>
         {v.status === 'APPROVED' && !stale ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
         {stale && v.status !== 'EXPIRED' ? 'EXPIRED' : v.status}
       </span>
@@ -300,13 +300,12 @@ export function ValuationView() {
     <div className="space-y-6">
       {/* Header — compliance / auditor only; valuer works straight from the queue below */}
       {!isValuer && (
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#D8E0E8]">
+        <div className="page-header">
           <div>
-            <h2 className="text-xl font-bold text-[#0F2A43] flex items-center gap-2">
-              <TrendingUp className="w-6 h-6 text-[#1F5A7A]" />
+            <h2 className="page-title">
               Valuation &amp; Pricing Desk
             </h2>
-            <p className="text-xs text-[#5A6A7E] mt-1">
+            <p className="page-subtitle">
               Certified institutional appraisals, discounted cash flows, and NAV determinations before token issuance.
             </p>
           </div>
@@ -315,10 +314,10 @@ export function ValuationView() {
             <button
               onClick={loadData}
               disabled={loading}
-              className="p-2 border border-[#D8E0E8] rounded-lg text-[#5A6A7E] hover:bg-[#F8FAFC] transition"
+              className="trust-btn-secondary !px-2.5"
               title="Refresh desk"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#0F766E]' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-trust-accent' : ''}`} />
             </button>
           </div>
         </div>
@@ -327,46 +326,46 @@ export function ValuationView() {
       {/* ─── Valuer: pipeline counters ─── */}
       {isValuer && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 bg-white border border-[#D8E0E8] rounded-xl shadow-2xs">
-            <span className="text-xs font-medium text-[#5A6A7E]">Verified Assets Awaiting You</span>
-            <p className="text-2xl font-bold text-[#0F2A43] mt-2">{loading ? '—' : awaitingCount}</p>
-            <p className="text-[11px] text-[#5A6A7E] mt-1">No pending or certified valuation yet</p>
+          <div className="p-4 bg-white border border-trust-border rounded-lg shadow-subtle">
+            <span className="text-xs font-medium text-trust-text-muted">Verified Assets Awaiting You</span>
+            <p className="text-2xl font-semibold tabular-nums text-trust-primary mt-2">{loading ? '—' : awaitingCount}</p>
+            <p className="text-xs text-trust-text-muted mt-1">No pending or certified valuation yet</p>
           </div>
-          <div className="p-4 bg-white border border-[#D8E0E8] rounded-xl shadow-2xs">
-            <span className="text-xs font-medium text-[#5A6A7E]">My Pending Proposals</span>
-            <p className="text-2xl font-bold text-[#A16207] mt-2">{loading ? '—' : myPendingCount}</p>
-            <p className="text-[11px] text-[#5A6A7E] mt-1">With compliance officers</p>
+          <div className="p-4 bg-white border border-trust-border rounded-lg shadow-subtle">
+            <span className="text-xs font-medium text-trust-text-muted">My Pending Proposals</span>
+            <p className="text-2xl font-semibold tabular-nums text-trust-primary mt-2">{loading ? '—' : myPendingCount}</p>
+            <p className="text-xs text-trust-text-muted mt-1">With compliance officers</p>
           </div>
-          <div className="p-4 bg-white border border-[#D8E0E8] rounded-xl shadow-2xs">
-            <span className="text-xs font-medium text-[#5A6A7E]">My Certified Valuations</span>
-            <p className="text-2xl font-bold text-[#18794E] mt-2">{loading ? '—' : myCertifiedCount}</p>
-            <p className="text-[11px] text-[#5A6A7E] mt-1">Approved NAV on ledger</p>
+          <div className="p-4 bg-white border border-trust-border rounded-lg shadow-subtle">
+            <span className="text-xs font-medium text-trust-text-muted">My Certified Valuations</span>
+            <p className="text-2xl font-semibold tabular-nums text-trust-primary mt-2">{loading ? '—' : myCertifiedCount}</p>
+            <p className="text-xs text-trust-text-muted mt-1">Approved NAV on ledger</p>
           </div>
         </div>
       )}
 
       {/* ─── Valuer: verified-asset queue ─── */}
       {isValuer && (
-        <div className="bg-white border border-[#D8E0E8] rounded-xl overflow-hidden shadow-2xs">
-          <div className="p-4 border-b border-[#D8E0E8] bg-[#F8FAFC] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <h3 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#1F5A7A]" />
+        <div className="bg-white border border-trust-border rounded-lg overflow-hidden shadow-subtle">
+          <div className="p-4 border-b border-trust-border bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h3 className="text-xs font-semibold text-trust-primary flex items-center gap-2">
+              <Layers className="w-4 h-4 text-trust-secondary" />
               Verified Assets — Ready for Valuation ({filteredQueue.length})
             </h3>
             <div className="relative sm:min-w-[240px]">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8795A5]" />
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-trust-text-subtle" />
               <input
                 type="text"
                 placeholder="Search asset ID, name, type..."
                 value={queueSearch}
                 onChange={(e) => setQueueSearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs border border-[#D8E0E8] rounded-lg focus:outline-none focus:border-[#1F5A7A] bg-white"
+                className="trust-input w-full pl-8 pr-3"
               />
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#F8FAFC] border-b border-[#D8E0E8] text-[#5A6A7E] uppercase font-semibold text-[10px] tracking-wider">
+            <table className="w-full text-left text-[13px]">
+              <thead className="bg-slate-50 border-b border-trust-border text-trust-text-muted font-medium text-xs">
                 <tr>
                   <th className="px-4 py-3">Asset</th>
                   <th className="px-4 py-3">Type</th>
@@ -376,17 +375,17 @@ export function ValuationView() {
                   <th className="px-4 py-3 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#D8E0E8] text-[#17202A]">
+              <tbody className="divide-y divide-trust-border text-trust-text">
                 {loading ? (
                   <tr>
-                    <td colSpan="6" className="p-8 text-center text-[#5A6A7E]">
-                      <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[#1F5A7A]" />
+                    <td colSpan="6" className="p-8 text-center text-trust-text-muted">
+                      <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-trust-secondary" />
                       Loading verified assets from ledger...
                     </td>
                   </tr>
                 ) : filteredQueue.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="p-8 text-center text-[#5A6A7E]">
+                    <td colSpan="6" className="p-8 text-center text-trust-text-muted">
                       No verified assets {queueSearch ? 'match your search' : 'await valuation right now'}. Newly verified assets appear here automatically.
                     </td>
                   </tr>
@@ -400,11 +399,11 @@ export function ValuationView() {
                         key={a.id}
                         onClick={() => { if (!blocked) openProposeForAsset(a); }}
                         title={blocked ? 'A proposal is already pending for this asset' : 'Click to define a valuation for this asset'}
-                        className={`transition ${blocked ? '' : 'cursor-pointer hover:bg-[#F8FAFC]'}`}
+                        className={`transition ${blocked ? '' : 'cursor-pointer hover:bg-slate-50'}`}
                       >
                         <td className="px-4 py-3">
-                          <div className="font-bold text-[#0F2A43]">{a.displayName || a.id}</div>
-                          <div className="font-mono text-[10px] text-[#5A6A7E] flex flex-wrap items-center gap-1.5 mt-0.5">
+                          <div className="font-semibold text-trust-primary">{a.displayName || a.id}</div>
+                          <div className="font-mono text-xs text-trust-text-muted flex flex-wrap items-center gap-1.5 mt-0.5">
                             <span>{a.id}</span>
                             {a.attributes?.surveyNumber && <span>• Survey: {a.attributes.surveyNumber}</span>}
                             {a.attributes?.registrationNumber && <span>• Reg: {a.attributes.registrationNumber}</span>}
@@ -413,33 +412,33 @@ export function ValuationView() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8]">
+                          <span className="px-2 py-0.5 rounded text-xs font-mono font-semibold bg-slate-100 text-trust-secondary border border-trust-border">
                             {a.typeKey}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-[#5A6A7E]">{a.jurisdiction || 'IN'}</td>
-                        <td className="px-4 py-3 text-[#5A6A7E]">{evidenceCount} doc{evidenceCount === 1 ? '' : 's'}</td>
+                        <td className="px-4 py-3 text-trust-text-muted">{a.jurisdiction || 'IN'}</td>
+                        <td className="px-4 py-3 text-trust-text-muted">{evidenceCount} doc{evidenceCount === 1 ? '' : 's'}</td>
                         <td className="px-4 py-3">
                           {approved ? (
                             <span className="inline-flex flex-col gap-0.5">
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#ECFDF5] text-[#18794E] border border-[#A7F3D0]">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[#ECFDF5] text-trust-success border border-[#A7F3D0]">
                                 <CheckCircle2 className="w-3 h-3" /> CERTIFIED
                               </span>
-                              <span className="text-[10px] text-[#5A6A7E]">
+                              <span className="text-xs text-trust-text-muted">
                                 valid till {new Date(approved.validUntil).toLocaleDateString('en-IN')}
                               </span>
                             </span>
                           ) : pending ? (
                             <span className="inline-flex flex-col gap-0.5">
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#FEFCE8] text-[#A16207] border border-[#FEF08A]">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-trust-warning-bg text-trust-warning border border-trust-warning-border">
                                 <Clock className="w-3 h-3" /> AWAITING COMPLIANCE
                               </span>
-                              <span className="text-[10px] text-[#5A6A7E]">
+                              <span className="text-xs text-trust-text-muted">
                                 {pending.proposedBy === myId ? 'proposed by you' : `proposed by ${pending.proposedBy}`}
                               </span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#EFF6FF] text-[#1F5A7A] border border-[#BFDBFE]">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[#EFF6FF] text-trust-secondary border border-[#BFDBFE]">
                               <FileCheck className="w-3 h-3" /> READY FOR VALUATION
                             </span>
                           )}
@@ -449,7 +448,7 @@ export function ValuationView() {
                             onClick={() => openProposeForAsset(a)}
                             disabled={blocked}
                             title={blocked ? 'A proposal is already pending for this asset — one pending proposal per asset' : 'Define a valuation for this asset'}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#0F2A43] hover:bg-[#1F5A7A] disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-[11px] font-semibold transition"
+                            className="trust-btn-primary"
                           >
                             Define Valuation <ArrowRight className="w-3 h-3" />
                           </button>
@@ -466,15 +465,15 @@ export function ValuationView() {
 
       {/* ─── Valuer: my proposals with pipeline stage ─── */}
       {isValuer && (
-        <div className="bg-white border border-[#D8E0E8] rounded-xl overflow-hidden shadow-2xs">
-          <div className="p-4 border-b border-[#D8E0E8] bg-[#F8FAFC]">
-            <h3 className="text-xs font-bold text-[#0F2A43] uppercase tracking-wider">
+        <div className="bg-white border border-trust-border rounded-lg overflow-hidden shadow-subtle">
+          <div className="p-4 border-b border-trust-border bg-slate-50">
+            <h3 className="text-xs font-semibold text-trust-primary">
               My Valuation Proposals ({myProposals.length})
             </h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#F8FAFC] border-b border-[#D8E0E8] text-[#5A6A7E] uppercase font-semibold text-[10px] tracking-wider">
+            <table className="w-full text-left text-[13px]">
+              <thead className="bg-slate-50 border-b border-trust-border text-trust-text-muted font-medium text-xs">
                 <tr>
                   <th className="px-4 py-3">Valuation ID</th>
                   <th className="px-4 py-3">Asset</th>
@@ -484,33 +483,33 @@ export function ValuationView() {
                   <th className="px-4 py-3">Valid Until</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#D8E0E8] text-[#17202A]">
+              <tbody className="divide-y divide-trust-border text-trust-text">
                 {loading ? (
-                  <tr><td colSpan="6" className="p-8 text-center text-[#5A6A7E]">Loading your proposals...</td></tr>
+                  <tr><td colSpan="6" className="p-8 text-center text-trust-text-muted">Loading your proposals...</td></tr>
                 ) : myProposals.length === 0 ? (
-                  <tr><td colSpan="6" className="p-8 text-center text-[#5A6A7E]">You have not defined any valuations yet. Pick a verified asset above to start.</td></tr>
+                  <tr><td colSpan="6" className="p-8 text-center text-trust-text-muted">You have not defined any valuations yet. Pick a verified asset above to start.</td></tr>
                 ) : (
                   myProposals.map((v) => (
-                    <tr key={v.id} className="hover:bg-[#F8FAFC] transition">
-                      <td className="px-4 py-3 font-mono font-bold text-[#0F2A43]">{v.id}</td>
-                      <td className="px-4 py-3 font-mono font-semibold text-[#1F5A7A]">{v.assetId}</td>
-                      <td className="px-4 py-3 font-bold">₹{((v.amountPaise || 0) / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
+                    <tr key={v.id} className="hover:bg-slate-50 transition">
+                      <td className="px-4 py-3 font-mono font-semibold text-trust-primary">{v.id}</td>
+                      <td className="px-4 py-3 font-mono font-semibold text-trust-secondary">{v.assetId}</td>
+                      <td className="px-4 py-3 font-semibold">₹{((v.amountPaise || 0) / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8]">
+                        <span className="px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-trust-secondary border border-trust-border">
                           {v.method}
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-col gap-1 items-start">
                           {renderValuationStatus(v)}
-                          <span className="text-[10px] text-[#5A6A7E]">
+                          <span className="text-xs text-trust-text-muted">
                             {v.status === 'PROPOSED' && '→ awaiting compliance certification'}
                             {v.status === 'APPROVED' && !isStale(v) && '→ asset VALUED, minting unlocked'}
                             {isStale(v) && '→ expired, define a fresh valuation'}
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-[#5A6A7E]">
+                      <td className="px-4 py-3 text-trust-text-muted">
                         {v.validUntil ? new Date(v.validUntil).toLocaleDateString('en-IN') : 'N/A'}
                       </td>
                     </tr>
@@ -524,10 +523,10 @@ export function ValuationView() {
 
       {/* ─── Compliance / Auditor: full certification queue (unchanged flow) ─── */}
       {!isValuer && (
-        <div className="bg-white border border-[#D8E0E8] rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-white border border-trust-border rounded-lg overflow-hidden shadow-subtle">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#F8FAFC] border-b border-[#D8E0E8] text-[#5A6A7E] uppercase font-semibold text-[10px] tracking-wider">
+            <table className="w-full text-left text-[13px]">
+              <thead className="bg-slate-50 border-b border-trust-border text-trust-text-muted font-medium text-xs">
                 <tr>
                   <th className="px-4 py-3">Valuation ID</th>
                   <th className="px-4 py-3">Target Asset</th>
@@ -539,17 +538,17 @@ export function ValuationView() {
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#D8E0E8] text-[#17202A]">
+              <tbody className="divide-y divide-trust-border text-trust-text">
                 {loading ? (
                   <tr>
-                    <td colSpan="8" className="p-8 text-center text-[#5A6A7E]">
-                      <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[#1F5A7A]" />
+                    <td colSpan="8" className="p-8 text-center text-trust-text-muted">
+                      <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-trust-secondary" />
                       Loading valuations from ledger state...
                     </td>
                   </tr>
                 ) : valuations.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="p-8 text-center text-[#5A6A7E]">
+                    <td colSpan="8" className="p-8 text-center text-trust-text-muted">
                       No certified valuation records exist on ledger yet.
                     </td>
                   </tr>
@@ -562,37 +561,37 @@ export function ValuationView() {
                     const canApproveThis = canApprove && isPending;
 
                     return (
-                      <tr key={v.id} className="hover:bg-[#F8FAFC] transition">
-                        <td className="px-4 py-3 font-mono font-bold text-[#0F2A43]">{v.id}</td>
-                        <td className="px-4 py-3 font-mono font-semibold text-[#1F5A7A]">{v.assetId}</td>
-                        <td className="px-4 py-3 font-bold text-[#17202A]">
+                      <tr key={v.id} className="hover:bg-slate-50 transition">
+                        <td className="px-4 py-3 font-mono font-semibold text-trust-primary">{v.id}</td>
+                        <td className="px-4 py-3 font-mono font-semibold text-trust-secondary">{v.assetId}</td>
+                        <td className="px-4 py-3 font-semibold text-trust-text">
                           ₹{amountInRupees.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                         </td>
                         <td className="px-4 py-3">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F0F4F8] text-[#1F5A7A] border border-[#D8E0E8]">
+                          <span className="px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-trust-secondary border border-trust-border">
                             {v.method}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-[#5A6A7E] font-mono text-[11px]">{v.proposedBy || 'Independent Appraiser'}</td>
+                        <td className="px-4 py-3 text-trust-text-muted font-mono text-xs">{v.proposedBy || 'Independent Appraiser'}</td>
                         <td className="px-4 py-3">{renderValuationStatus(v)}</td>
-                        <td className="px-4 py-3 text-[#5A6A7E]">
+                        <td className="px-4 py-3 text-trust-text-muted">
                           {v.validUntil ? new Date(v.validUntil).toLocaleDateString('en-IN') : 'N/A'}
                         </td>
                         <td className="px-4 py-3 text-right">
                           {canApproveThis ? (
                             <button
                               onClick={() => setApproveTarget(v)}
-                              className="px-2.5 py-1 bg-[#18794E] hover:bg-[#146441] text-white rounded text-[11px] font-semibold transition"
+                              className="px-2.5 py-1 bg-trust-success hover:bg-[#146441] text-white rounded text-xs font-semibold transition"
                             >
                               Certify &amp; Approve
                             </button>
                           ) : isApproved ? (
-                            <span className="text-[#5A6A7E] text-[11px] flex items-center gap-1 justify-end">
-                              <CheckCircle2 className="w-3 h-3 text-[#18794E]" />
+                            <span className="text-trust-text-muted text-xs flex items-center gap-1 justify-end">
+                              <CheckCircle2 className="w-3 h-3 text-trust-success" />
                               Certified
                             </span>
                           ) : (
-                            <span className="text-[#A16207] text-[11px]">Awaiting Compliance</span>
+                            <span className="text-trust-warning text-xs">Awaiting Compliance</span>
                           )}
                         </td>
                       </tr>
@@ -607,27 +606,27 @@ export function ValuationView() {
 
       {/* Define Valuation Modal (valuer) */}
       {showProposeModal && (
-        <div className="fixed inset-0 z-50 bg-[#0F2A43]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#D8E0E8] rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-2 border-b border-[#D8E0E8]">
-              <h3 className="text-sm font-bold text-[#0F2A43]">Define Valuation</h3>
+        <div className="fixed inset-0 z-50 bg-slate-900/40 flex items-center justify-center p-4">
+          <div className="bg-white border border-trust-border rounded-lg max-w-lg w-full p-6 shadow-popover space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-2 border-b border-trust-border">
+              <h3 className="text-sm font-semibold text-trust-primary">Define Valuation</h3>
               <button
                 onClick={closePropose}
-                className="p-1 hover:bg-[#F0F4F8] rounded text-[#5A6A7E] transition"
+                className="p-1 hover:bg-slate-100 rounded text-trust-text-muted transition"
               >
                 ✕
               </button>
             </div>
-            <p className="text-xs text-[#5A6A7E]">
+            <p className="text-xs text-trust-text-muted">
               Appraise a verified asset to establish authorized NAV. Certification by Compliance moves the asset to VALUED and unlocks token minting.
             </p>
             <form onSubmit={handlePropose} className="space-y-3 text-xs">
               <div>
-                <label className="block text-[#5A6A7E] font-medium mb-1">Verified Asset *</label>
+                <label className="block text-trust-text-muted font-medium mb-1">Verified Asset *</label>
                 <select
                   value={assetId}
                   onChange={(e) => setAssetId(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono bg-white focus:outline-none focus:border-[#1F5A7A]"
+                  className="trust-input w-full font-mono"
                   required
                 >
                   <option value="">Select a verified asset...</option>
@@ -638,20 +637,20 @@ export function ValuationView() {
                   ))}
                 </select>
                 {assetTypeError && (
-                  <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-[#B42318]">
+                  <div className="mt-1.5 flex items-center gap-1.5 text-xs text-trust-error">
                     <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                     {assetTypeError}
                   </div>
                 )}
                 {selectedAsset && (
-                  <div className="p-3 bg-[#F8FAFC] border border-[#D8E0E8] rounded-xl text-xs space-y-1.5">
-                    <div className="flex items-center justify-between text-[#0F2A43] font-semibold">
+                  <div className="p-3 bg-slate-50 border border-trust-border rounded-lg text-xs space-y-1.5">
+                    <div className="flex items-center justify-between text-trust-primary font-semibold">
                       <span>{selectedAsset.displayName || selectedAsset.id}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded font-mono font-semibold bg-[#ECFDF5] text-[#18794E] border border-[#A7F3D0]">
+                      <span className="text-xs px-2 py-0.5 rounded font-mono font-semibold bg-[#ECFDF5] text-trust-success border border-[#A7F3D0]">
                         Verified Evidence Anchored
                       </span>
                     </div>
-                    <div className="text-[11px] text-[#5A6A7E] flex flex-wrap gap-x-3 gap-y-1 font-mono">
+                    <div className="text-xs text-trust-text-muted flex flex-wrap gap-x-3 gap-y-1 font-mono">
                       {selectedAsset.attributes?.surveyNumber && (
                         <span>Survey: {selectedAsset.attributes.surveyNumber}</span>
                       )}
@@ -677,12 +676,12 @@ export function ValuationView() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#5A6A7E] font-medium mb-1">Currency</label>
-                  <div className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg bg-[#F8FAFC] text-[#5A6A7E]">INR (₹)</div>
+                  <label className="block text-trust-text-muted font-medium mb-1">Currency</label>
+                  <div className="w-full px-3 py-2 border border-trust-border rounded-lg bg-slate-50 text-trust-text-muted">INR (₹)</div>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-[#5A6A7E] font-medium">Amount (in Paise)</label>
+                    <label className="text-trust-text-muted font-medium">Amount (in Paise)</label>
                     {selectedAsset && (
                       <button
                         type="button"
@@ -695,7 +694,7 @@ export function ValuationView() {
                             setAmountPaise(150000000);
                           }
                         }}
-                        className="text-[10px] text-[#1F5A7A] hover:underline font-semibold cursor-pointer"
+                        className="text-xs text-trust-secondary hover:underline font-semibold cursor-pointer"
                         title="Populate authorized benchmark rate"
                       >
                         Apply Benchmark
@@ -706,21 +705,21 @@ export function ValuationView() {
                     type="number"
                     value={amountPaise}
                     onChange={(e) => setAmountPaise(e.target.value)}
-                    className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono focus:outline-none focus:border-[#1F5A7A]"
+                    className="trust-input w-full font-mono"
                     required
                   />
-                  <div className="text-[10px] text-[#5A6A7E] mt-0.5">
+                  <div className="text-xs text-trust-text-muted mt-0.5">
                     = ₹{(Number(amountPaise) / 100).toLocaleString('en-IN')}
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-[#5A6A7E] font-medium mb-1">Valuation Method *</label>
+                <label className="block text-trust-text-muted font-medium mb-1">Valuation Method *</label>
                 <select
                   value={methodology}
                   onChange={(e) => setMethodology(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg bg-white focus:outline-none focus:border-[#1F5A7A]"
+                  className="trust-input w-full"
                   disabled={allowedMethods.length === 0}
                   required
                 >
@@ -730,21 +729,21 @@ export function ValuationView() {
                   ))}
                 </select>
                 {allowedMethods.length > 0 && (
-                  <div className="text-[10px] text-[#5A6A7E] mt-0.5">
+                  <div className="text-xs text-trust-text-muted mt-0.5">
                     Methods governed by the asset-type schema
                   </div>
                 )}
               </div>
 
               {/* Indication engine: deterministic benchmark, valuer decides */}
-              <div className="p-3 bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg space-y-2">
+              <div className="p-3 bg-slate-50 border border-trust-border rounded-lg space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold text-[#0F2A43]">Indication Engine</span>
+                  <span className="font-semibold text-trust-primary">Indication Engine</span>
                   <button
                     type="button"
                     onClick={handleComputeIndication}
                     disabled={indicating || !methodology || !assetId.trim()}
-                    className="px-3 py-1.5 bg-white hover:bg-[#F1F5F9] disabled:opacity-50 border border-[#D8E0E8] text-[#1F5A7A] rounded-lg text-[11px] font-semibold transition"
+                    className="trust-btn-secondary"
                   >
                     {indicating ? 'Computing...' : 'Compute Indication'}
                   </button>
@@ -754,26 +753,26 @@ export function ValuationView() {
                   value={indicationInputsText}
                   onChange={(e) => setIndicationInputsText(e.target.value)}
                   placeholder='Method inputs, e.g. {"ratePerSqM": 600, "rateSource": "Kaveri guidance 2024-25"}'
-                  className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono text-[11px] focus:outline-none focus:border-[#1F5A7A] bg-white"
+                  className="trust-input w-full font-mono"
                 />
-                <div className="text-[10px] text-[#5A6A7E]">
+                <div className="text-xs text-trust-text-muted">
                   Closed-form methods only (discount, depreciation, mandi, circle-rate, cap-rate). Open methods need your judgment.
                 </div>
                 {indication && (
-                  <div className="p-2.5 bg-white border border-[#D8E0E8] rounded-lg space-y-1">
+                  <div className="p-2.5 bg-white border border-trust-border rounded-lg space-y-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-bold text-[#18794E]">
-                        ₹{(indication.recommendedPaise / 100).toLocaleString('en-IN')} <span className="font-medium text-[#5A6A7E]">indicated</span>
+                      <span className="font-semibold text-trust-success">
+                        ₹{(indication.recommendedPaise / 100).toLocaleString('en-IN')} <span className="font-medium text-trust-text-muted">indicated</span>
                       </span>
                       <button
                         type="button"
                         onClick={handleUseIndication}
-                        className="px-2.5 py-1 bg-[#18794E] hover:bg-[#146441] text-white rounded-lg text-[11px] font-semibold transition"
+                        className="px-2.5 py-1 bg-trust-success hover:bg-[#146441] text-white rounded-lg text-xs font-semibold transition"
                       >
                         Use This Amount
                       </button>
                     </div>
-                    <div className="text-[10px] text-[#5A6A7E]">
+                    <div className="text-xs text-trust-text-muted">
                       Range ₹{(indication.indicatedLowPaise / 100).toLocaleString('en-IN')} – ₹{(indication.indicatedHighPaise / 100).toLocaleString('en-IN')}
                       {' '}• {indication.method} • hash <span className="font-mono">{indication.indicationHash?.slice(0, 12)}…</span>
                     </div>
@@ -782,25 +781,25 @@ export function ValuationView() {
               </div>
 
               <div>
-                <label className="block text-[#5A6A7E] font-medium mb-1">Financial Model IPFS URI</label>
+                <label className="block text-trust-text-muted font-medium mb-1">Financial Model IPFS URI</label>
                 <input
                   type="text"
                   value={modelUri}
                   onChange={(e) => setModelUri(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg font-mono text-[11px] focus:outline-none focus:border-[#1F5A7A]"
+                  className="trust-input w-full font-mono"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[#5A6A7E] font-medium mb-1">
+                <label className="block text-trust-text-muted font-medium mb-1">
                   Validity Period (Days, max: {validityLimit})
                 </label>
                 <input
                   type="number"
                   value={validDays}
                   onChange={(e) => setValidDays(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#D8E0E8] rounded-lg focus:outline-none focus:border-[#1F5A7A]"
+                  className="trust-input w-full"
                   min="1"
                   max={validityLimit}
                   required
@@ -811,14 +810,14 @@ export function ValuationView() {
                 <button
                   type="button"
                   onClick={closePropose}
-                  className="px-4 py-2 border border-[#D8E0E8] rounded-lg text-[#5A6A7E] hover:bg-[#F8FAFC]"
+                  className="px-4 py-2 border border-trust-border rounded-lg text-trust-text-muted hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting || allowedMethods.length === 0 || !!assetTypeError}
-                  className="px-4 py-2 bg-[#0F2A43] text-white rounded-lg font-semibold hover:bg-[#1F5A7A] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="trust-btn-primary"
                 >
                   {submitting ? 'Submitting...' : 'Sign & Propose'}
                 </button>

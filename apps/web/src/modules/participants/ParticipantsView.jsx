@@ -136,12 +136,12 @@ export function ParticipantsView() {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#D8E0E8]">
+      <div className="page-header">
         <div>
-          <h2 className="text-2xl font-bold text-[#0F2A43] tracking-tight font-['Outfit',sans-serif]">
+          <h2 className="page-title">
             Participant Directory
           </h2>
-          <p className="text-xs text-[#5A6A7E] mt-0.5">
+          <p className="page-subtitle">
             Cryptographically anchored participant identities, KYC eligibility profiles, and transfer limits
           </p>
         </div>
@@ -150,15 +150,15 @@ export function ParticipantsView() {
           <button
             onClick={fetchParticipants}
             disabled={loading}
-            className="p-2 rounded-xl bg-white border border-[#D8E0E8] text-[#5A6A7E] hover:text-[#0F2A43] hover:bg-[#F8FAFC] transition shadow-2xs"
+            className="trust-btn-secondary !px-2.5"
             title="Refresh participant registry"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#0F766E]' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-trust-accent' : ''}`} />
           </button>
 
           <button
             onClick={() => setShowOnboardModal(true)}
-            className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#0F2A43] hover:bg-[#0A1E30] text-white shadow-xs flex items-center gap-2 transition"
+            className="trust-btn-primary"
           >
             <UserPlus className="w-4 h-4" />
             <span>Onboard Participant</span>
@@ -169,63 +169,63 @@ export function ParticipantsView() {
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="trust-card p-4 space-y-1.5">
-          <div className="flex items-center justify-between text-[#5A6A7E] text-xs font-bold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-trust-text-muted text-xs font-semibold">
             <span>Total Participants</span>
-            <Users className="w-4 h-4 text-[#1F5A7A]" />
+            <Users className="w-4 h-4 text-trust-secondary" />
           </div>
-          <div className="text-2xl font-extrabold text-[#0F2A43]">{totalCount}</div>
-          <div className="text-[11px] text-[#5A6A7E]">Across Consortium Organizations</div>
+          <div className="text-2xl font-semibold tabular-nums text-trust-primary">{totalCount}</div>
+          <div className="text-xs text-trust-text-muted">Across Consortium Organizations</div>
         </div>
 
         <div className="trust-card p-4 space-y-1.5">
-          <div className="flex items-center justify-between text-[#5A6A7E] text-xs font-bold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-trust-text-muted text-xs font-semibold">
             <span>KYC Approved</span>
-            <CheckCircle2 className="w-4 h-4 text-[#18794E]" />
+            <CheckCircle2 className="w-4 h-4 text-trust-success" />
           </div>
-          <div className="text-2xl font-extrabold text-[#18794E]">{approvedCount}</div>
-          <div className="text-[11px] text-[#5A6A7E]">Eligible for Token Transfers</div>
+          <div className="text-2xl font-semibold tabular-nums text-trust-primary">{approvedCount}</div>
+          <div className="text-xs text-trust-text-muted">Eligible for Token Transfers</div>
         </div>
 
         <div className="trust-card p-4 space-y-1.5">
-          <div className="flex items-center justify-between text-[#5A6A7E] text-xs font-bold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-trust-text-muted text-xs font-semibold">
             <span>Pending Review</span>
-            <Clock className="w-4 h-4 text-[#A16207]" />
+            <Clock className="w-4 h-4 text-trust-warning" />
           </div>
-          <div className="text-2xl font-extrabold text-[#A16207]">{pendingCount}</div>
-          <div className="text-[11px] text-[#5A6A7E]">Awaiting Compliance Action</div>
+          <div className="text-2xl font-semibold tabular-nums text-trust-primary">{pendingCount}</div>
+          <div className="text-xs text-trust-text-muted">Awaiting Compliance Action</div>
         </div>
 
         <div className="trust-card p-4 space-y-1.5">
-          <div className="flex items-center justify-between text-[#5A6A7E] text-xs font-bold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-trust-text-muted text-xs font-semibold">
             <span>Suspended / Flagged</span>
-            <Ban className="w-4 h-4 text-[#B42318]" />
+            <Ban className="w-4 h-4 text-trust-error" />
           </div>
-          <div className="text-2xl font-extrabold text-[#B42318]">{flaggedCount}</div>
-          <div className="text-[11px] text-[#5A6A7E]">Transfer Restrictions Active</div>
+          <div className="text-2xl font-semibold tabular-nums text-trust-primary">{flaggedCount}</div>
+          <div className="text-xs text-trust-text-muted">Transfer Restrictions Active</div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
       <div className="trust-card p-3.5 flex flex-col md:flex-row items-center gap-3 justify-between">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-[#8795A5] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-trust-text-subtle absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by ID, name, or org..."
-            className="w-full bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg pl-9 pr-3 py-2 text-xs text-[#17202A] placeholder-[#8795A5] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
+            className="trust-input w-full pl-9 pr-3"
           />
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="flex items-center gap-2 text-xs text-[#5A6A7E] font-medium">
-            <Filter className="w-3.5 h-3.5 text-[#8795A5]" />
+          <div className="flex items-center gap-2 text-xs text-trust-text-muted font-medium">
+            <Filter className="w-3.5 h-3.5 text-trust-text-subtle" />
             <span>KYC:</span>
             <select
               value={kycFilter}
               onChange={(e) => setKycFilter(e.target.value)}
-              className="bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg px-2.5 py-1.5 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A]"
+              className="trust-input"
             >
               <option value="ALL">All KYC</option>
               <option value="APPROVED">Approved</option>
@@ -235,12 +235,12 @@ export function ParticipantsView() {
             </select>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-[#5A6A7E] font-medium">
+          <div className="flex items-center gap-2 text-xs text-trust-text-muted font-medium">
             <span>Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg px-2.5 py-1.5 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A]"
+              className="trust-input"
             >
               <option value="ALL">All Status</option>
               <option value="ACTIVE">Active</option>
@@ -254,8 +254,8 @@ export function ParticipantsView() {
       {/* Participants Table */}
       <div className="trust-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#F8FAFC] border-b border-[#D8E0E8] text-[10px] text-[#5A6A7E] uppercase tracking-wider font-bold">
+          <table className="w-full text-left text-[13px]">
+            <thead className="bg-slate-50 border-b border-trust-border text-xs text-trust-text-muted font-medium">
               <tr>
                 <th className="py-3 px-4">Participant</th>
                 <th className="py-3 px-4">Consortium Org</th>
@@ -266,40 +266,40 @@ export function ParticipantsView() {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E8EEF3]">
+            <tbody className="divide-y divide-trust-border-subtle">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-[#5A6A7E]">
+                  <td colSpan={7} className="text-center py-12 text-trust-text-muted">
                     <div className="flex flex-col items-center gap-2">
-                      <RefreshCw className="w-5 h-5 border-[#0F766E] animate-spin text-[#0F766E]" />
+                      <RefreshCw className="w-5 h-5 border-trust-accent animate-spin text-trust-accent" />
                       <span>Reading participant ledger world state...</span>
                     </div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-[#5A6A7E]">
+                  <td colSpan={7} className="text-center py-12 text-trust-text-muted">
                     No consortium participants found matching the current filters.
                   </td>
                 </tr>
               ) : (
                 filtered.map((p) => (
-                  <tr key={p.id} className="hover:bg-[#F8FAFC] transition">
+                  <tr key={p.id} className="hover:bg-slate-50 transition">
                     <td className="py-3.5 px-4">
                       <div>
-                        <div className="font-bold text-[#0F2A43] flex items-center gap-1.5">
+                        <div className="font-semibold text-trust-primary flex items-center gap-1.5">
                           <span>{p.pii?.legalName || 'Registered Actor'}</span>
-                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#F0F4F8] text-[#1F5A7A] font-mono font-medium">
+                          <span className="text-xs px-1.5 py-0.2 rounded bg-slate-100 text-trust-secondary font-mono font-medium">
                             {p.kind}
                           </span>
                         </div>
-                        <div className="font-mono text-[11px] text-[#0F766E] font-medium">{p.id}</div>
+                        <div className="font-mono text-xs text-trust-accent font-medium">{p.id}</div>
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-4 font-mono text-[#17202A]">
+                    <td className="py-3.5 px-4 font-mono text-trust-text">
                       <div className="font-semibold">{p.mspId || p.orgId}</div>
-                      <div className="text-[10px] text-[#5A6A7E]">{p.jurisdiction}</div>
+                      <div className="text-xs text-trust-text-muted">{p.jurisdiction}</div>
                     </td>
 
                     <td className="py-3.5 px-4">
@@ -311,7 +311,7 @@ export function ParticipantsView() {
                         <StatusBadge status={p.kycStatus} />
                         {(p.zkProofHash || p.zkPassport) && (
                           <span
-                            className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] shrink-0"
+                            className="text-xs font-semibold px-1.5 py-0.5 rounded bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] shrink-0"
                             title={`ZKPassport Attested: ${p.zkProofHash?.slice(0, 16)}...`}
                           >
                             ZK-KYC
@@ -324,11 +324,11 @@ export function ParticipantsView() {
                       <StatusBadge status={p.status} />
                     </td>
 
-                    <td className="py-3.5 px-4 text-[#17202A]">
-                      <div className="text-[11px]">
-                        Cap: <span className="font-bold text-[#0F2A43]">{((p.limits?.maxHoldingBps || 2500) / 100).toFixed(1)}%</span>
+                    <td className="py-3.5 px-4 text-trust-text">
+                      <div className="text-xs">
+                        Cap: <span className="font-semibold text-trust-primary">{((p.limits?.maxHoldingBps || 2500) / 100).toFixed(1)}%</span>
                       </div>
-                      <div className="text-[10px] text-[#5A6A7E]">
+                      <div className="text-xs text-trust-text-muted">
                         Max: ₹{(((p.limits?.maxTransferPaise || 100000000) / 100)).toLocaleString('en-IN')}
                       </div>
                     </td>
@@ -336,7 +336,7 @@ export function ParticipantsView() {
                     <td className="py-3.5 px-4 text-right space-x-1.5">
                       <button
                         onClick={() => setDetailTarget(p)}
-                        className="px-2.5 py-1 rounded-md bg-[#F0F4F8] hover:bg-[#E2E8F0] text-[#0F2A43] text-[11px] font-semibold transition"
+                        className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-trust-border-subtle text-trust-primary text-xs font-semibold transition"
                       >
                         Passport
                       </button>
@@ -346,13 +346,13 @@ export function ParticipantsView() {
                         <>
                           <button
                             onClick={() => setReviewKycTarget(p)}
-                            className="px-2.5 py-1 rounded-md bg-[#FEFCE8] hover:bg-[#FEF08A] text-[#A16207] border border-[#FEF08A] text-[11px] font-semibold transition"
+                            className="px-2.5 py-1 rounded-md bg-trust-warning-bg hover:bg-trust-warning-border text-trust-warning border border-trust-warning-border text-xs font-semibold transition"
                           >
                             Review KYC
                           </button>
                           <button
                             onClick={() => setBlacklistDialogTarget(p)}
-                            className="px-2.5 py-1 rounded-md bg-[#FEF2F2] hover:bg-[#FECDD3] text-[#B42318] border border-[#FECDD3] text-[11px] font-semibold transition"
+                            className="px-2.5 py-1 rounded-md bg-trust-error-bg hover:bg-trust-error-border text-trust-error border border-trust-error-border text-xs font-semibold transition"
                           >
                             {p.status === 'BLACKLISTED' ? 'Unblacklist' : 'Blacklist'}
                           </button>
@@ -370,13 +370,13 @@ export function ParticipantsView() {
                                 maxTransferRupees: (p.limits?.maxTransferPaise || 100000000) / 100,
                               });
                             }}
-                            className="px-2.5 py-1 rounded-md bg-[#F0FDFA] hover:bg-[#CCFBF1] text-[#0F766E] border border-[#CCFBF1] text-[11px] font-semibold transition"
+                            className="px-2.5 py-1 rounded-md bg-trust-accent-light hover:bg-[#CCFBF1] text-trust-accent border border-[#CCFBF1] text-xs font-semibold transition"
                           >
                             Limits
                           </button>
                           <button
                             onClick={() => setSuspendDialogTarget(p)}
-                            className="px-2.5 py-1 rounded-md bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#5A6A7E] text-[11px] font-semibold transition"
+                            className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-trust-border-subtle text-trust-text-muted text-xs font-semibold transition"
                           >
                             {p.status === 'SUSPENDED' ? 'Reinstate' : 'Suspend'}
                           </button>
@@ -417,18 +417,18 @@ export function ParticipantsView() {
 
       {/* Set Limits Modal */}
       {limitsDialogTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F2A43]/40 backdrop-blur-xs">
-          <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-popover">
-            <h3 className="text-base font-bold text-[#0F2A43] flex items-center gap-2 font-['Outfit',sans-serif]">
-              <Sliders className="w-4 h-4 text-[#1F5A7A]" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40">
+          <div className="bg-white border border-trust-border rounded-lg w-full max-w-md p-6 space-y-4 shadow-popover">
+            <h3 className="text-base font-semibold text-trust-primary flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-trust-secondary" />
               Adjust Holding Cap & Transfer Limits
             </h3>
-            <p className="text-xs text-[#5A6A7E]">
-              Participant: <span className="font-mono text-[#0F766E] font-semibold">{limitsDialogTarget.id}</span>
+            <p className="text-xs text-trust-text-muted">
+              Participant: <span className="font-mono text-trust-accent font-semibold">{limitsDialogTarget.id}</span>
             </p>
             <form onSubmit={handleSetLimits} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#17202A] mb-1">
+                <label className="block text-xs font-semibold text-trust-text mb-1">
                   Max Holding Cap (Basis Points, 100 bps = 1%)
                 </label>
                 <input
@@ -437,11 +437,11 @@ export function ParticipantsView() {
                   max="10000"
                   value={newLimits.maxHoldingBps}
                   onChange={(e) => setNewLimits({ ...newLimits, maxHoldingBps: e.target.value })}
-                  className="w-full bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg p-2.5 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
+                  className="w-full bg-slate-50 border border-trust-border rounded-lg p-2.5 text-xs text-trust-text focus:outline-none focus:border-trust-secondary focus:bg-white"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#17202A] mb-1">
+                <label className="block text-xs font-semibold text-trust-text mb-1">
                   Per-Transfer Cap (₹ Rupees)
                 </label>
                 <input
@@ -449,20 +449,20 @@ export function ParticipantsView() {
                   min="1000"
                   value={newLimits.maxTransferRupees}
                   onChange={(e) => setNewLimits({ ...newLimits, maxTransferRupees: e.target.value })}
-                  className="w-full bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg p-2.5 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
+                  className="w-full bg-slate-50 border border-trust-border rounded-lg p-2.5 text-xs text-trust-text focus:outline-none focus:border-trust-secondary focus:bg-white"
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-2 border-t border-[#D8E0E8]">
+              <div className="flex justify-end gap-2 pt-2 border-t border-trust-border">
                 <button
                   type="button"
                   onClick={() => setLimitsDialogTarget(null)}
-                  className="px-3 py-1.5 text-xs font-semibold text-[#5A6A7E] hover:text-[#17202A]"
+                  className="px-3 py-1.5 text-xs font-semibold text-trust-text-muted hover:text-trust-text"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 text-xs font-semibold bg-[#0F2A43] hover:bg-[#0A1E30] text-white rounded-lg transition"
+                  className="trust-btn-primary"
                 >
                   Save Limits
                 </button>
@@ -474,19 +474,19 @@ export function ParticipantsView() {
 
       {/* Suspend Confirmation Dialog */}
       {suspendDialogTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F2A43]/40 backdrop-blur-xs">
-          <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-popover">
-            <h3 className="text-base font-bold text-[#0F2A43]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40">
+          <div className="bg-white border border-trust-border rounded-lg w-full max-w-md p-6 space-y-4 shadow-popover">
+            <h3 className="text-base font-semibold text-trust-primary">
               {suspendDialogTarget.status === 'SUSPENDED' ? 'Reinstate Participant' : 'Suspend Participant'}
             </h3>
-            <p className="text-xs text-[#5A6A7E]">
+            <p className="text-xs text-trust-text-muted">
               {suspendDialogTarget.status === 'SUSPENDED'
                 ? 'Reinstating will re-enable token transfers and participation.'
                 : 'Suspending will freeze all token transfers on the ledger rule engine.'}
             </p>
             {suspendDialogTarget.status !== 'SUSPENDED' && (
               <div>
-                <label className="block text-xs font-semibold text-[#17202A] mb-1">
+                <label className="block text-xs font-semibold text-trust-text mb-1">
                   Reason for Suspension *
                 </label>
                 <input
@@ -494,22 +494,22 @@ export function ParticipantsView() {
                   placeholder="e.g. Identity verification discrepancy"
                   value={suspendReason}
                   onChange={(e) => setSuspendReason(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg p-2.5 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
+                  className="w-full bg-slate-50 border border-trust-border rounded-lg p-2.5 text-xs text-trust-text focus:outline-none focus:border-trust-secondary focus:bg-white"
                 />
               </div>
             )}
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#D8E0E8]">
+            <div className="flex justify-end gap-2 pt-2 border-t border-trust-border">
               <button
                 type="button"
                 onClick={() => setSuspendDialogTarget(null)}
-                className="px-3 py-1.5 text-xs font-semibold text-[#5A6A7E] hover:text-[#17202A]"
+                className="px-3 py-1.5 text-xs font-semibold text-trust-text-muted hover:text-trust-text"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => handleToggleSuspend(suspendDialogTarget)}
-                className="px-4 py-1.5 text-xs font-semibold bg-[#0F2A43] hover:bg-[#0A1E30] text-white rounded-lg"
+                className="trust-btn-primary"
               >
                 Confirm
               </button>
@@ -520,19 +520,19 @@ export function ParticipantsView() {
 
       {/* Blacklist Confirmation Dialog */}
       {blacklistDialogTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F2A43]/40 backdrop-blur-xs">
-          <div className="bg-white border border-[#D8E0E8] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-popover">
-            <h3 className="text-base font-bold text-[#B42318]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40">
+          <div className="bg-white border border-trust-border rounded-lg w-full max-w-md p-6 space-y-4 shadow-popover">
+            <h3 className="text-base font-semibold text-trust-error">
               {blacklistDialogTarget.status === 'BLACKLISTED'
                 ? 'Remove from Sanctions Blacklist'
                 : 'Add to Compliance Blacklist'}
             </h3>
-            <p className="text-xs text-[#5A6A7E]">
+            <p className="text-xs text-trust-text-muted">
               Blacklisted participants are banned across all consortium settlement transactions.
             </p>
             {blacklistDialogTarget.status !== 'BLACKLISTED' && (
               <div>
-                <label className="block text-xs font-semibold text-[#17202A] mb-1">
+                <label className="block text-xs font-semibold text-trust-text mb-1">
                   Sanction / Blacklist Justification *
                 </label>
                 <input
@@ -540,22 +540,22 @@ export function ParticipantsView() {
                   placeholder="e.g. Regulatory compliance notification #771"
                   value={blacklistReason}
                   onChange={(e) => setBlacklistReason(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#D8E0E8] rounded-lg p-2.5 text-xs text-[#17202A] focus:outline-none focus:border-[#1F5A7A] focus:bg-white"
+                  className="w-full bg-slate-50 border border-trust-border rounded-lg p-2.5 text-xs text-trust-text focus:outline-none focus:border-trust-secondary focus:bg-white"
                 />
               </div>
             )}
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#D8E0E8]">
+            <div className="flex justify-end gap-2 pt-2 border-t border-trust-border">
               <button
                 type="button"
                 onClick={() => setBlacklistDialogTarget(null)}
-                className="px-3 py-1.5 text-xs font-semibold text-[#5A6A7E] hover:text-[#17202A]"
+                className="px-3 py-1.5 text-xs font-semibold text-trust-text-muted hover:text-trust-text"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => handleToggleBlacklist(blacklistDialogTarget)}
-                className="px-4 py-1.5 text-xs font-semibold bg-[#B42318] hover:bg-[#991B1B] text-white rounded-lg"
+                className="trust-btn-danger"
               >
                 Confirm
               </button>

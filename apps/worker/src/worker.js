@@ -1,4 +1,10 @@
 import dotenv from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Same repo-root .env anchoring as the API (see apps/api/src/core/config/env.js)
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 dotenv.config();
 
 import { BlockIndexer } from './indexer/block-indexer.js';
