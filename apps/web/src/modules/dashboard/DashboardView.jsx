@@ -268,7 +268,7 @@ function getRoleCounters(role, data, onNavigate) {
       ];
     }
     case 'AUDITOR': {
-      const txCount = explorer?.txCount ?? explorer?.totalTransactions ?? transfers.length;
+      const auditEntries = explorer?.totalAuditEntries ?? 0;
       return [
         {
           key: 'assets',
@@ -290,8 +290,8 @@ function getRoleCounters(role, data, onNavigate) {
         },
         {
           key: 'commits',
-          label: 'Ledger Transactions',
-          value: txCount,
+          label: 'Audit Entries',
+          value: auditEntries,
           sub: 'Committed & auditable',
           icon: Activity,
           tone: 'green',

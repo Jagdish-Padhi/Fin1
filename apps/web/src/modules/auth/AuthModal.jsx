@@ -352,7 +352,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccess })
               <div className="bg-slate-50 border border-slate-300 rounded-lg p-4 max-w-sm mx-auto text-left space-y-2.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-[#64748B]">Participant ID:</span>
-                  <span className="font-mono font-semibold text-trust-primary">{completedParticipant?.id || 'PRT-ANCHORED'}</span>
+                  <span className="font-mono font-semibold text-trust-primary">{completedParticipant?.id || '—'}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-[#64748B]">Status:</span>

@@ -149,14 +149,14 @@ export function ParticipantDetailDrawer({ participant, onClose, onOpenReviewKyc,
               <div className="bg-white p-2.5 rounded-lg border border-trust-border">
                 <span className="text-xs text-trust-text-muted block font-semibold">Max Fractional Cap</span>
                 <span className="font-semibold text-trust-primary text-sm">
-                  {((participant.limits?.maxHoldingBps || 2500) / 100).toFixed(2)}%
+                  {participant.limits?.maxHoldingBps ? `${(participant.limits.maxHoldingBps / 100).toFixed(2)}%` : 'Not set'}
                 </span>
-                <span className="text-xs text-trust-text-muted block">({participant.limits?.maxHoldingBps || 2500} bps)</span>
+                {participant.limits?.maxHoldingBps ? <span className="text-xs text-trust-text-muted block">({participant.limits.maxHoldingBps} bps)</span> : null}
               </div>
               <div className="bg-white p-2.5 rounded-lg border border-trust-border">
                 <span className="text-xs text-trust-text-muted block font-semibold">Per-Transfer Cap</span>
                 <span className="font-semibold text-trust-primary text-sm">
-                  ₹{(((participant.limits?.maxTransferPaise || 100000000) / 100)).toLocaleString('en-IN')}
+                  {participant.limits?.maxTransferPaise ? `₹${(participant.limits.maxTransferPaise / 100).toLocaleString('en-IN')}` : 'Not set'}
                 </span>
                 <span className="text-xs text-trust-text-muted block">Compliance ceiling</span>
               </div>

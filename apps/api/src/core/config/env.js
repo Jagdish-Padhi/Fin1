@@ -36,7 +36,7 @@ export const config = {
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   jwtSecret,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '15m',
-  chainGatewayMode: process.env.CHAIN_GATEWAY_MODE || 'mock',
+  chainGatewayMode: process.env.CHAIN_GATEWAY_MODE || 'fabric',
   encryptionMasterKey,
   registryProviders: {
     VAHAN: {

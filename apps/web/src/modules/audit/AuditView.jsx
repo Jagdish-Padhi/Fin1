@@ -63,30 +63,17 @@ export function AuditView() {
       {/* Explorer Metrics */}
       {explorer && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-white border border-trust-border rounded-lg p-4 shadow-subtle">
-            <div className="text-xs text-trust-text-muted font-semibold">Latest Block Height</div>
-            <div className="font-mono text-xl font-semibold text-trust-primary mt-1">
-              #{explorer.latestBlock || 42}
+          {[
+            ['Audit entries', explorer.totalAuditEntries],
+            ['Assets', explorer.totalAssets],
+            ['Tokens', explorer.totalTokens],
+            ['Transfers', explorer.totalTransfers],
+          ].map(([label, value]) => (
+            <div key={label} className="bg-white border border-trust-border rounded-lg p-4 shadow-subtle">
+              <div className="text-xs text-trust-text-muted font-medium">{label}</div>
+              <div className="text-xl font-semibold tabular-nums text-trust-primary mt-1">{value ?? '—'}</div>
             </div>
-          </div>
-          <div className="bg-white border border-trust-border rounded-lg p-4 shadow-subtle">
-            <div className="text-xs text-trust-text-muted font-semibold">Committed Transactions</div>
-            <div className="font-mono text-xl font-semibold text-trust-secondary mt-1">
-              {explorer.txCount || 128}
-            </div>
-          </div>
-          <div className="bg-white border border-trust-border rounded-lg p-4 shadow-subtle">
-            <div className="text-xs text-trust-text-muted font-semibold">Consortium Peers</div>
-            <div className="font-mono text-xl font-semibold text-trust-success mt-1">
-              6 Active
-            </div>
-          </div>
-          <div className="bg-white border border-trust-border rounded-lg p-4 shadow-subtle">
-            <div className="text-xs text-trust-text-muted font-semibold">Ledger State Channel</div>
-            <div className="font-mono text-xs font-semibold text-trust-accent mt-2 truncate">
-              rwa-channel
-            </div>
-          </div>
+          ))}
         </div>
       )}
 

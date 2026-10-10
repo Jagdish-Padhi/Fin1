@@ -13,7 +13,6 @@ export class AuditService {
     const auditLogs = await chainBridge.evaluate(caller, 'getAuditTrail', { entityType: 'ALL', entityId: '' });
 
     return {
-      blockHeight: auditLogs.length + 1,
       totalAssets: assets.length,
       totalTokens: tokens.length,
       totalTransfers: transfers.length,

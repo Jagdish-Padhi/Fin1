@@ -41,7 +41,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=5000
-      - CHAIN_GATEWAY_MODE=mock
+      - CHAIN_GATEWAY_MODE=fabric
     depends_on:
       redis:
         condition: service_healthy
@@ -54,7 +54,7 @@ services:
     restart: always
     environment:
       - NODE_ENV=production
-      - CHAIN_GATEWAY_MODE=mock
+      - CHAIN_GATEWAY_MODE=fabric
     depends_on:
       redis:
         condition: service_healthy

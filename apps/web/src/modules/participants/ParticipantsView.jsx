@@ -326,10 +326,10 @@ export function ParticipantsView() {
 
                     <td className="py-3.5 px-4 text-trust-text">
                       <div className="text-xs">
-                        Cap: <span className="font-semibold text-trust-primary">{((p.limits?.maxHoldingBps || 2500) / 100).toFixed(1)}%</span>
+                        Cap: <span className="font-semibold text-trust-primary">{p.limits?.maxHoldingBps ? `${(p.limits.maxHoldingBps / 100).toFixed(1)}%` : 'Not set'}</span>
                       </div>
                       <div className="text-xs text-trust-text-muted">
-                        Max: ₹{(((p.limits?.maxTransferPaise || 100000000) / 100)).toLocaleString('en-IN')}
+                        Max: {p.limits?.maxTransferPaise ? `₹${(p.limits.maxTransferPaise / 100).toLocaleString('en-IN')}` : 'Not set'}
                       </div>
                     </td>
 

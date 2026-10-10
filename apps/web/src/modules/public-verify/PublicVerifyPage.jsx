@@ -69,19 +69,6 @@ export function PublicVerifyPage({ onClose }) {
               <span>Verify</span>
             </button>
           </div>
-          <div className="flex items-center gap-2 pt-1 text-xs text-trust-text-muted">
-            <span>Try sample IDs:</span>
-            {['AST-LAND-001', 'TKN-LAND-001', 'AST-TRACTOR-001'].map((sample) => (
-              <button
-                type="button"
-                key={sample}
-                onClick={() => setTokenId(sample)}
-                className="font-mono px-2 py-0.5 rounded bg-slate-100 hover:bg-trust-border-subtle text-trust-primary font-medium border border-trust-border transition"
-              >
-                {sample}
-              </button>
-            ))}
-          </div>
         </form>
 
         {error && (
