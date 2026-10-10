@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import fabricContractPkg from 'fabric-contract-api';
 const { Contract, Info, Transaction, Returns } = fabricContractPkg as any;
-import type { Context } from 'fabric-contract-api';
+import { Context } from 'fabric-contract-api';
 import { getCaller, requireRole } from '../lib/ctx.js';
 import { Keys } from '../lib/Keys.js';
 import { AuditLog } from '../lib/AuditLog.js';

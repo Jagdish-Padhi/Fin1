@@ -199,7 +199,7 @@ async function runGoldenPath() {
       tokenId: token.id,
       toParticipantId: 'PRT-INVESTOR-01',
       units: 1000,
-      pricePaise: 520000000,
+      pricePaise: 75000000,
       paymentRef: 'UPI-NEFT-88992211',
     },
   });
@@ -221,7 +221,7 @@ async function runGoldenPath() {
 
   // Step 7: AUDITOR checking audit trail
   console.log('7. AUDITOR inspecting immutable ledger audit trail...');
-  const auditRes = await request(`/audit/trail/ASSET/${assetId}`, {
+  const auditRes = await request(`/audit/trail?entityId=${assetId}`, {
     headers: { Authorization: `Bearer ${auditorToken}` },
   });
   const trail = auditRes.data || auditRes;

@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { ParticipantContract } from './contracts/ParticipantContract.js';
 import { AssetTypeContract } from './contracts/AssetTypeContract.js';
 import { AssetContract } from './contracts/AssetContract.js';
