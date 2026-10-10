@@ -27,7 +27,7 @@ export const ROLE_PERMISSIONS = {
   [ROLES.ADMINISTRATOR]: {
     label: 'Consortium Administrator',
     badge: 'System Admin',
-    tabs: ['dashboard', 'participants', 'identity', 'identity-admin', 'asset-types'],
+    tabs: ['dashboard', 'participants', 'identity-admin', 'asset-types'],
     canRegisterAsset: false,
     canVerify: false,
     canValue: false,

@@ -422,6 +422,13 @@ export class ApiClient {
     });
   }
 
+  redeemAsset(assetId, reasonText) {
+    return this.request('/lifecycle/redeem', {
+      method: 'POST',
+      body: JSON.stringify({ assetId, reasonText }),
+    });
+  }
+
   retireAsset(assetId, reasonCode, reasonText) {
     return this.request('/lifecycle/retire', {
       method: 'POST',

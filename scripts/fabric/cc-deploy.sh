@@ -4,8 +4,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/env.sh"
 
-echo "===> Bundling chaincode..."
-(cd "$REPO/chaincode/rwa" && pnpm build:cc)
+if [ ! -f "$REPO/chaincode/rwa/build/cc/index.cjs" ]; then
+  echo "===> Bundling chaincode..."
+  (cd "$REPO/chaincode/rwa" && pnpm build:cc)
+fi
 
 echo "===> Deploying chaincode $CC_NAME to channel $CHANNEL_NAME..."
 cd "$FABRIC_HOME/test-network"

@@ -1,4 +1,4 @@
-.PHONY: help install up down deploy enroll bootstrap all test smoke ping clean
+.PHONY: help install up down deploy enroll bootstrap all test smoke ping live
 
 help:
 	@echo "EkamVistar Hyperledger Fabric Operations"

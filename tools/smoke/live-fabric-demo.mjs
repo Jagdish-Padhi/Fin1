@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { getChainGateway } from '../../packages/chain-client/src/index.js';
-import { Role } from '@rwa/contracts';
+import { Role } from '../../packages/contracts/src/index.js';
 
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const uniq = Date.now().toString().slice(-6);

@@ -1,5 +1,6 @@
-version: '3.8'
-
+# Canonical local-dev stack lives in the repo-root docker-compose.yml.
+# This file is the production-shaped variant (adds MinIO object storage,
+# production NODE_ENV). Kept intentionally — do not delete either file.
 services:
   redis:
     image: redis:7-alpine

@@ -1,5 +1,5 @@
 import { getChainGateway } from '../../packages/chain-client/src/index.js';
-import { Role } from '@rwa/contracts';
+import { Role } from '../../packages/contracts/src/index.js';
 
 async function main() {
   console.log('Testing Fabric connectivity via FabricGateway ping...');

@@ -1,5 +1,5 @@
 import { getChainGateway } from '../../packages/chain-client/src/index.js';
-import { DEFAULT_ASSET_TYPES, Role } from '@rwa/contracts';
+import { DEFAULT_ASSET_TYPES, Role } from '../../packages/contracts/src/index.js';
 import { SEED_DATA } from '../../db/seeds/seed.js';
 import crypto from 'node:crypto';
 
